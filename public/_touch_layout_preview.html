@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html data-vspos-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Touch overflow preview</title>
+<link rel="stylesheet" href="css/pos-theme.css">
+<link rel="stylesheet" href="css/qpos-light.css">
+<link rel="stylesheet" href="css/pos-touch.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  main { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .pos-header-shell { display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 8px; }
+  #scrollable-container { flex: 1; min-height: 0; }
+</style>
+</head>
+<body class="lockscreen vspos-touch-ui">
+<main>
+  <div class="pos-header"><div class="pos-header-shell"><strong>QPOS</strong><span>HIGH</span><button type="button">☰</button></div></div>
+  <div id="scrollable-container">
+    <section class="content"><form id="add_pos_sell_form"><div class="row" style="margin:0"><div class="col-md-12" style="padding:0">
+      <div class="vspos-touch-shell">
+        <div class="vspos-touch-top"><div class="vspos-touch-top-main"><div class="vspos-touch-customer"><div class="vspos-touch-customer-inner">
+          <div style="flex:1;min-width:0;height:44px;border:1px solid #ccc;border-radius:10px;display:flex;align-items:center;padding:0 10px;font-weight:700;">Walk-In Customer</div>
+          <button type="button" class="vspos-touch-cust-btn">+</button>
+        </div></div></div></div>
+        <div class="vspos-touch-layout">
+          <div class="vspos-touch-cats"><div class="vspos-touch-cats-scroll">
+            <button type="button" class="vspos-touch-cat is-active">All Categories</button>
+            <button type="button" class="vspos-touch-cat">Beverages</button>
+            <button type="button" class="vspos-touch-cat">Grocery</button>
+            <button type="button" class="vspos-touch-cat">Household</button>
+            <button type="button" class="vspos-touch-cat">Personal Care</button>
+          </div></div>
+          <section class="vspos-touch-products">
+            <div class="vspos-touch-products-toolbar"><div class="vspos-touch-search"><input class="form-control" placeholder="Enter Product name / SKU / Scan"><button type="button" class="vspos-touch-search-btn">⌕</button></div><button type="button" class="vspos-touch-add-product">+</button></div>
+            <div class="vspos-touch-product-grid"><div id="product_list_items">
+              <div class="product_box" style="border:1px solid #ddd;border-radius:12px;"><div class="image-container"></div><div class="text_div"><div class="text">Basmati Rice 5kg</div><small>NR-RICE-5KG</small></div><div class="product_price">Rs 2,650.00</div></div>
+              <div class="product_box" style="border:1px solid #ddd;border-radius:12px;"><div class="image-container"></div><div class="text_div"><div class="text">Cola Soft Drink 1.5L</div><small>NR-COLA-15</small></div><div class="product_price">Rs 310.00</div></div>
+            </div></div>
+          </section>
+          <aside class="vspos-touch-cart">
+            <div class="vspos-touch-cart-inner box-body pb-0"><div class="row"><div class="col-md-12 pos_product_div">
+              <table class="vspos-ticket-cart pos-has-rows" id="pos_table"><tbody>
+                <tr class="product_row">
+                  <td class="pos-td-serial">1</td>
+                  <td class="pos-td-product"><div class="vspos-line-name">Basmati Rice 5kg</div><div class="vspos-line-sku">NR-RICE-5KG</div></td>
+                  <td class="pos-td-qty"><div class="vspos-qty-stepper input-group"><button type="button" class="btn">-</button><input class="form-control pos_quantity" value="1.00"><button type="button" class="btn">+</button></div><span class="pos-unit-label">PIECES</span></td>
+                  <td class="pos-td-unitprice"><div class="vspos-rate-field"><input class="form-control pos_unit_price" value="2,650.00"></div></td>
+                  <td class="pos-td-subtotal"><div class="vspos-line-total"><span class="pos_line_total_text">Rs 2,650.00</span></div></td>
+                  <td class="pos-td-action"><button type="button" class="vspos-line-remove">×</button></td>
+                </tr>
+              </tbody></table>
+            </div></div></div>
+            <div class="vspos-touch-cart-footer">
+              <div class="vspos-touch-compact-summary">
+                <div class="vspos-touch-compact-row">
+                  <span>Items <strong>1.00</strong></span>
+                  <span>Sub <strong>2,650.00</strong></span>
+                  <button type="button" class="vspos-touch-mini-btn">Disc <strong>0.00</strong></button>
+                  <button type="button" class="vspos-touch-mini-btn">Ship <strong>0.00</strong></button>
+                </div>
+                <div class="vspos-touch-compact-total"><span>Total payable</span><strong class="vspos-touch-total">2,650.00</strong></div>
+              </div>
+              <button type="button" class="vspos-touch-pay-btn" id="pay_btn">Pay</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div></div></form></section>
+  </div>
+</main>
+<script>
+function audit() {
+  var shell = document.querySelector('.vspos-touch-shell').getBoundingClientRect();
+  function over(sel) {
+    var el = document.querySelector(sel);
+    if (!el) return null;
+    var r = el.getBoundingClientRect();
+    return { w: Math.round(r.width), right: Math.round(r.right), past: Math.round(r.right - shell.right), sw: el.scrollWidth, cw: el.clientWidth };
+  }
+  var total = document.querySelector('.pos_line_total_text').getBoundingClientRect();
+  var pay = document.getElementById('pay_btn').getBoundingClientRect();
+  var grand = document.querySelector('.vspos-touch-total').getBoundingClientRect();
+  return {
+    vw: innerWidth, vh: innerHeight,
+    shellW: Math.round(shell.width),
+    shellPast: Math.round(shell.right - innerWidth),
+    cats: over('.vspos-touch-cats'),
+    catsScroll: over('.vspos-touch-cats-scroll'),
+    cart: over('.vspos-touch-cart'),
+    footer: over('.vspos-touch-cart-footer'),
+    totalRight: Math.round(total.right),
+    totalPastShell: Math.round(total.right - shell.right),
+    grandPast: Math.round(grand.right - shell.right),
+    payPast: Math.round(pay.right - shell.right),
+    payIn: pay.bottom <= innerHeight + 1 && pay.top >= 0
+  };
+}
+</script>
+</body>
+</html>

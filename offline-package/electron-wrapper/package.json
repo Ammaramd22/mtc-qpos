@@ -1,0 +1,24 @@
+{
+  "name": "qpos-offline-shell",
+  "version": "1.0.0",
+  "description": "Thin Electron window for local QPOS (PHP/MySQL still required underneath)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --win dir",
+    "dist": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.qpos.offline",
+    "productName": "QPOS Offline",
+    "directories": { "output": "dist" },
+    "win": {
+      "target": ["portable"],
+      "icon": "icon.ico"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}

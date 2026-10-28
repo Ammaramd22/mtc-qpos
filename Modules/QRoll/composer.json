@@ -1,0 +1,24 @@
+{
+    "name": "avenque/qroll",
+    "description": "QRoll by AVENQUE — Roll Material POS & Inventory Management",
+    "type": "laravel-module",
+    "authors": [
+        {
+            "name": "AVENQUE",
+            "email": "support@avenque.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Modules\\QRoll\\": ""
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\QRoll\\Providers\\QRollServiceProvider"
+            ]
+        }
+    }
+}

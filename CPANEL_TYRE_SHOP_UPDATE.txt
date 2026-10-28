@@ -1,0 +1,30 @@
+QPOS — Tyre Shop Module UPDATE (cPanel)
+
+ZIP: QPOS-TyreShop-Module-Update.zip
+
+UPLOAD TO: public_html/sl
+EXTRACT INTO: same folder (merge with existing files)
+
+NO database migration required — uses existing products.tyre_size / pos_trade_ins tables.
+
+AFTER EXTRACT:
+1. Clear cache (File Manager):
+   - Delete contents of bootstrap/cache/*.php (keep folder)
+   - Delete contents of storage/framework/views/*
+2. Log in as Software Owner
+3. Business Settings → Modules → enable "Tyre Shop" → Save
+4. Refresh browser / log out and in
+5. Sidebar should show "Tyre Shop"
+
+ENABLE FOR EXISTING TYRE SHOP DEMO (optional):
+   Run in phpMyAdmin on your business row:
+   UPDATE business SET enabled_modules = JSON_ARRAY_APPEND(
+     COALESCE(enabled_modules, '[]'), '$', 'tyre_shop'
+   ) WHERE name = 'Tyre Shop';
+   (Or enable via Modules tab in UI — preferred)
+
+TEST:
+- Tyre OFF: no tyre fields, no quick services, no exchange on POS
+- Tyre ON: tyre fields, quick services, exchange appear
+
+DO NOT overwrite .env

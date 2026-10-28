@@ -1,0 +1,70 @@
+QPOS — Shop Mode / Industry Configuration UPDATE (cPanel)
+
+ZIP: QPOS-ShopMode-Update.zip
+
+UPLOAD TO: same folder as existing QPOS (example: public_html/sl)
+EXTRACT INTO: same folder (merge / overwrite existing files)
+
+DO NOT overwrite .env
+DO NOT extract into a new empty folder
+
+============================================================
+AFTER EXTRACT — do these 4 steps
+============================================================
+
+1) DATABASE (pick ONE)
+
+   A) Easiest — phpMyAdmin
+      - cPanel → phpMyAdmin → select the QPOS database
+      - SQL tab → paste contents of database/cpanel_shop_mode.sql → Go
+      - Safe to run twice. Does not delete products / sales / stock.
+
+   B) Browser migrate (if phpMyAdmin is awkward)
+      - Open:
+        https://YOURDOMAIN.com/cpanel_run_migrations.php?key=12345678
+      - Wait for SUCCESS
+      - DELETE public/cpanel_run_migrations.php immediately
+
+2) CLEAR CACHE (File Manager)
+   - Delete files inside bootstrap/cache/  (keep the folder, keep .gitignore)
+   - Delete files inside storage/framework/views/
+   - Delete files inside storage/framework/cache/data/  (if present)
+
+3) LOG IN as Software Owner
+   Business Settings → Software Owner Access → Shop Mode
+   Choose one mode → Save Shop Mode
+
+   Modes:
+   - Normal Retail / Wholesale
+   - Tyre Shop
+   - Mobile Shop
+   - Vehicle Modification Shop
+   - Vehicle Spare Parts Shop
+   - Hardware Shop
+
+4) HARD REFRESH the browser (Ctrl+F5) or log out and in.
+
+============================================================
+WHAT YOU SHOULD SEE
+============================================================
+
+Normal Retail     → no tyre / IMEI / workshop / spare-part / hardware menus
+Tyre Shop         → Tyre Shop menu + tyre fields on products + POS services
+Mobile Shop       → existing Mobile Shop (IMEI / repairs) unchanged
+Vehicle Modification → Vehicles + Workshop jobs + POS install services
+Vehicle Spare Parts  → part / OEM / vehicle fields + POS search
+Hardware Shop        → size / material / grade fields + POS search
+
+Switching mode does NOT delete data. It only shows/hides features.
+
+Only Software Owner can change Shop Mode.
+Business Admin cannot, even via the URL.
+
+============================================================
+IF SOMETHING LOOKS OLD
+============================================================
+
+- You extracted into the wrong folder (must merge with existing app/, resources/, public/)
+- Cache not cleared
+- Database step skipped (product fields / workshop tables missing)
+- Not logged in as Software Owner

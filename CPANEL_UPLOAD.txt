@@ -1,0 +1,28 @@
+# QPOS Mobile Shop — cPanel upload checklist
+#
+# NO TERMINAL? → read CPANEL_NO_TERMINAL_UPLOAD.md
+#   • phpMyAdmin: database/cpanel_tyre_size.sql
+#   • Or browser: public/cpanel_run_migrations.php?key=SECRET
+#
+# 1) Upload ZIP and extract (prefer folder outside public_html + document root = /public)
+# 2) Point domain document root to the /public folder (important)
+# 3) Copy .env.cpanel.example → .env and edit DB + APP_URL + APP_KEY
+#    (On UPDATE: do NOT overwrite existing .env)
+# 4) Migrations WITHOUT terminal:
+#      A) phpMyAdmin → run database/cpanel_tyre_size.sql
+#      B) OR open /cpanel_run_migrations.php?key=... then DELETE that file
+#    With Terminal/SSH (optional):
+#      php artisan key:generate
+#      php artisan migrate --force
+#      php artisan storage:link
+#      php artisan config:cache
+#      php artisan view:cache
+#    Skip route:cache (closure routes).
+# 5) If vendor/ is missing: composer install --no-dev --optimize-autoloader
+# 6) Set folders writable: storage/ and bootstrap/cache/ and public/uploads/ (755 or 775)
+# 7) SHOW_DEMO_SHOPS must stay false on live
+# 8) Seed Mobile Shop only if needed:
+#      php artisan pos:seed-mobile-shop
+#    Then change mobileshop password immediately (or create a real admin user)
+#
+# Login after seed: mobileshop / 123456  ← change password on live!

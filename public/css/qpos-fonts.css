@@ -1,0 +1,69 @@
+/* QPOS global typography — Plus Jakarta Sans */
+:root {
+    --qpos-font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --qpos-font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html {
+    font-family: var(--qpos-font) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+body,
+.wrapper,
+.content-wrapper,
+.main-header,
+.main-sidebar,
+.main-footer,
+.navbar,
+.sidebar,
+.box,
+.modal,
+.dropdown-menu,
+.form-control,
+.btn,
+.table,
+.select2-container,
+.select2-selection,
+.select2-results__option,
+.dataTables_wrapper,
+.popover,
+.tooltip,
+.alert,
+.nav,
+.pagination,
+.input-group,
+.lockscreen,
+.auth-body,
+.auth-layout,
+.pos-header,
+.vspos-entry-bar,
+.sidebar-menu,
+.content-header,
+.tw-font-sans {
+    font-family: var(--qpos-font) !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.box-title,
+.content-header > h1,
+.modal-title,
+.btn,
+label,
+.form-group label,
+.nav-tabs > li > a,
+.sidebar-menu > li > a,
+.treeview-menu > li > a {
+    font-family: var(--qpos-font) !important;
+}
+
+code,
+kbd,
+pre,
+samp,
+.font-mono,
+.monospace {
+    font-family: var(--qpos-font-mono) !important;
+}

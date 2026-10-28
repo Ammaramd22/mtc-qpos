@@ -1,0 +1,1075 @@
+/* VsoftPOS retail auth theme — charcoal + yellow */
+:root {
+    --vspos-auth-bg: #050505;
+    --vspos-auth-panel: #111111;
+    --vspos-auth-panel-2: #141414;
+    --vspos-auth-border: #2a2a2a;
+    --vspos-auth-text: #f5f5f5;
+    --vspos-auth-muted: #9ca3af;
+    --vspos-auth-accent: #f5c518;
+    --vspos-auth-accent-hover: #e6b800;
+    --vspos-auth-accent-soft: rgba(245, 197, 24, 0.12);
+    --vspos-auth-card: #ffffff;
+    --vspos-auth-input-bg: #f8f9fa;
+    --vspos-auth-input-border: #e5e7eb;
+    --vspos-auth-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+html,
+body.auth-body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--vspos-auth-bg);
+    font-family: var(--qpos-font, 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif);
+}
+
+.auth-layout {
+    display: flex;
+    min-height: 100vh;
+    font-family: var(--qpos-font, 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif);
+}
+
+/* ── Left brand panel ── */
+.auth-brand-panel {
+    display: none;
+    width: 50%;
+    flex-shrink: 0;
+    background: linear-gradient(160deg, #050505 0%, #111111 45%, #1a1a1a 100%);
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-right: 1px solid var(--vspos-auth-border);
+}
+
+@media (min-width: 992px) {
+    .auth-brand-panel {
+        display: flex;
+    }
+}
+
+.auth-brand-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 48px 52px;
+    min-height: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    gap: 8px;
+}
+
+.auth-logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+}
+
+.auth-qpos-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: contain;
+    background: #111;
+    border: 1px solid rgba(245, 197, 24, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.auth-qpos-fallback {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--vspos-auth-accent);
+    color: #111;
+    font-weight: 900;
+    font-size: 1.35rem;
+}
+
+.auth-logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.auth-logo-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--vspos-auth-text);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.auth-logo-sub {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--vspos-auth-shop-accent, var(--vspos-auth-accent));
+    letter-spacing: 0.01em;
+}
+
+.auth-form-topnav-brand {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    color: var(--vspos-auth-text);
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.auth-topnav-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    object-fit: contain;
+}
+
+@media (max-width: 991px) {
+    .auth-form-topnav-brand {
+        display: inline-flex;
+    }
+}
+
+/* Login card brand strip */
+.vspos-login-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.vspos-login-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    object-fit: contain;
+    background: #0a0a0a;
+    border: 1px solid rgba(245, 197, 24, 0.28);
+}
+
+.vspos-login-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.vspos-login-brand-text strong {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #f5f5f5;
+    letter-spacing: -0.02em;
+}
+
+.vspos-login-brand-text span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--vspos-auth-shop-accent, var(--vspos-auth-accent));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vspos-login-header p strong {
+    color: var(--vspos-auth-shop-accent, var(--vspos-auth-accent));
+    font-weight: 700;
+}
+
+/* Nutmeg theme accents (keeps QPOS yellow primary CTA) */
+body[data-auth-theme="nutmeg"] .auth-brand-panel {
+    background-color: #04140d;
+    background-image:
+        linear-gradient(160deg, rgba(4, 20, 13, 0.82) 0%, rgba(11, 31, 22, 0.72) 42%, rgba(8, 18, 14, 0.88) 100%),
+        url('../img/nutmeg-login-bg.jpg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    border-right-color: rgba(82, 183, 136, 0.28);
+}
+
+body[data-auth-theme="nutmeg"] .auth-brand-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 70% 50% at 20% 15%, rgba(82, 183, 136, 0.12), transparent 60%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, transparent 35%, rgba(0, 0, 0, 0.45) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+body[data-auth-theme="nutmeg"] .auth-brand-headline h1 span,
+body[data-auth-theme="nutmeg"] .auth-logo-sub,
+body[data-auth-theme="nutmeg"] .vspos-login-brand-text span,
+body[data-auth-theme="nutmeg"] .vspos-login-header p strong {
+    color: #52b788;
+}
+
+body[data-auth-theme="nutmeg"] .auth-deco-circle {
+    display: none;
+}
+
+body[data-auth-theme="nutmeg"] .vspos-demo-panel-brand {
+    border-color: rgba(82, 183, 136, 0.28);
+    background: rgba(4, 20, 13, 0.55);
+    backdrop-filter: blur(10px);
+}
+
+/* Custom Soft Owner login background (overrides theme defaults including nutmeg) */
+.auth-brand-panel.has-custom-bg,
+body[data-auth-theme="nutmeg"] .auth-brand-panel.has-custom-bg {
+    background-color: #0a0a0a;
+    background-image:
+        linear-gradient(160deg, rgba(10, 10, 10, 0.78) 0%, rgba(20, 20, 20, 0.62) 42%, rgba(8, 8, 8, 0.88) 100%),
+        var(--auth-login-bg-image);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.auth-brand-panel.has-custom-bg .auth-deco-circle,
+body[data-auth-theme="nutmeg"] .auth-brand-panel.has-custom-bg .auth-deco-circle {
+    display: none;
+}
+
+.auth-brand-panel.has-custom-bg::before,
+body[data-auth-theme="nutmeg"] .auth-brand-panel.has-custom-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, transparent 40%, rgba(0, 0, 0, 0.42) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.vspos-demo-shop.is-active {
+    border-color: var(--demo-accent);
+    background: rgba(245, 197, 24, 0.08);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--demo-accent) 22%, transparent);
+}
+
+.auth-brand-headline h1 {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 800;
+    color: var(--vspos-auth-text);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+}
+
+.auth-brand-headline h1 span {
+    color: var(--vspos-auth-accent);
+}
+
+.auth-brand-headline p {
+    font-size: 1rem;
+    color: var(--vspos-auth-muted);
+    line-height: 1.6;
+    margin: 0 0 28px;
+    max-width: 380px;
+}
+
+.auth-brand-extra {
+    position: relative;
+    z-index: 2;
+    margin-top: 4px;
+    max-width: 520px;
+    width: 100%;
+}
+
+.auth-feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auth-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--vspos-auth-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--vspos-auth-text);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.auth-feature:hover {
+    background: var(--vspos-auth-accent-soft);
+    border-color: rgba(245, 197, 24, 0.35);
+    transform: translateX(4px);
+}
+
+.auth-feature-icon {
+    font-size: 1.1rem;
+}
+
+.auth-deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(245, 197, 24, 0.04);
+    border: 1px solid rgba(245, 197, 24, 0.08);
+    z-index: 1;
+}
+
+.auth-deco-1 {
+    width: 420px;
+    height: 420px;
+    bottom: -120px;
+    right: -140px;
+}
+
+.auth-deco-2 {
+    width: 260px;
+    height: 260px;
+    top: -80px;
+    right: 20px;
+}
+
+/* ── Right form panel ── */
+.auth-form-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #0a0a0a;
+    min-height: 100vh;
+}
+
+.auth-form-topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--vspos-auth-border);
+    background: rgba(17, 17, 17, 0.85);
+    gap: 12px;
+}
+
+.auth-form-topnav-links {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.auth-topnav-link {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--vspos-auth-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+    white-space: nowrap;
+}
+
+.auth-topnav-link:hover {
+    color: var(--vspos-auth-accent);
+}
+
+.auth-topnav-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: var(--vspos-auth-accent);
+    color: #111;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--vspos-auth-accent);
+    transition: background 0.15s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.auth-topnav-btn:hover {
+    background: var(--vspos-auth-accent-hover);
+    color: #111;
+}
+
+.auth-form-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    gap: 0;
+    position: relative;
+    z-index: 1;
+    overflow-x: hidden;
+}
+
+/* ── Login card (POS charcoal dark) ── */
+.vspos-login-wrap {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.vspos-login-card {
+    background: #111111;
+    border-radius: 20px;
+    padding: 36px 32px;
+    border: 1px solid var(--vspos-auth-border);
+    box-shadow: var(--vspos-auth-shadow);
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.vspos-login-card .vspos-field,
+.vspos-login-card .vspos-field-row,
+.vspos-login-card .vspos-checkbox-row {
+    float: none !important;
+    clear: both !important;
+}
+
+.vspos-login-card .vspos-field label,
+.vspos-login-card .vspos-field-row label {
+    float: none !important;
+    position: static !important;
+    width: auto !important;
+    display: block;
+}
+
+.vspos-login-card .vspos-field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.vspos-login-card .vspos-field-row label {
+    margin-bottom: 0;
+}
+
+.vspos-login-card .vspos-field input[type="text"],
+.vspos-login-card .vspos-field input[type="password"],
+.vspos-login-card .vspos-field input[type="email"] {
+    float: none !important;
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+}
+
+.vspos-login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.vspos-login-header h1 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--vspos-auth-text);
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+}
+
+.vspos-login-header p {
+    font-size: 0.88rem;
+    color: var(--vspos-auth-muted);
+    margin: 0;
+}
+
+.vspos-login-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: #1a1a1a;
+    border: 1px solid var(--vspos-auth-border);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.vspos-login-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--vspos-auth-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.vspos-login-tab.active {
+    background: var(--vspos-auth-accent);
+    color: #111;
+    box-shadow: 0 2px 8px rgba(245, 197, 24, 0.28);
+}
+
+.vspos-login-panel {
+    display: none;
+}
+
+.vspos-login-panel.active {
+    display: block;
+}
+
+.vspos-field {
+    margin-bottom: 16px;
+}
+
+.vspos-field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--vspos-auth-muted);
+    margin-bottom: 6px;
+}
+
+.vspos-field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.vspos-field input[type="text"],
+.vspos-field input[type="password"],
+.vspos-field input[type="email"] {
+    width: 100%;
+    height: 48px;
+    border: 1.5px solid #333333;
+    border-radius: 12px;
+    padding: 0 14px;
+    font-size: 0.95rem;
+    color: var(--vspos-auth-text);
+    background: #1a1a1a;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.vspos-field input::placeholder {
+    color: #737373;
+}
+
+.vspos-field input:focus {
+    border-color: var(--vspos-auth-accent);
+    background: #1f1f1f;
+    box-shadow: 0 0 0 4px var(--vspos-auth-accent-soft);
+}
+
+.vspos-field .help-block,
+.vspos-field .text-danger {
+    font-size: 0.8rem;
+    color: #f87171;
+    margin-top: 6px;
+}
+
+.vspos-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--vspos-auth-accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(245, 197, 24, 0.45);
+}
+
+.vspos-link:hover {
+    color: var(--vspos-auth-accent-hover);
+}
+
+.vspos-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.vspos-checkbox-row input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--vspos-auth-accent);
+}
+
+.vspos-checkbox-row span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--vspos-auth-muted);
+}
+
+.vspos-btn-primary {
+    width: 100%;
+    height: 50px;
+    border: none;
+    border-radius: 14px;
+    background: var(--vspos-auth-accent);
+    color: #111;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(245, 197, 24, 0.35);
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.02em;
+}
+
+.vspos-btn-primary:hover {
+    background: var(--vspos-auth-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(245, 197, 24, 0.45);
+}
+
+.vspos-btn-primary:active {
+    transform: translateY(0);
+}
+
+.vspos-btn-ghost {
+    width: 100%;
+    height: 44px;
+    border: 1.5px dashed #333333;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--vspos-auth-muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.vspos-btn-ghost:hover {
+    border-color: var(--vspos-auth-accent);
+    color: var(--vspos-auth-accent);
+    background: var(--vspos-auth-accent-soft);
+}
+
+.vspos-login-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: var(--vspos-auth-muted);
+}
+
+.vspos-login-footer a {
+    color: var(--vspos-auth-accent);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(245, 197, 24, 0.45);
+}
+
+/* PIN display dots */
+.vspos-pin-display {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 8px 0 20px;
+}
+
+.vspos-pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #333333;
+    background: #1a1a1a;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.vspos-pin-dot.filled {
+    background: var(--vspos-auth-accent);
+    border-color: var(--vspos-auth-accent);
+    transform: scale(1.1);
+}
+
+/* PIN numpad */
+.vspos-pin-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.vspos-pin-key {
+    height: 52px;
+    border: 1.5px solid #333333;
+    border-radius: 12px;
+    background: #1a1a1a;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--vspos-auth-text);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.vspos-pin-key:hover {
+    background: var(--vspos-auth-accent-soft);
+    border-color: rgba(245, 197, 24, 0.5);
+}
+
+.vspos-pin-key:active {
+    transform: scale(0.96);
+    background: var(--vspos-auth-accent);
+    color: #111;
+}
+
+.vspos-pin-key.action {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--vspos-auth-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.vspos-pin-hint {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--vspos-auth-muted);
+    margin-bottom: 12px;
+}
+
+/* Setup PIN modal */
+.vspos-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.vspos-modal-overlay.open {
+    display: flex;
+}
+
+.vspos-modal {
+    background: #111111;
+    border: 1px solid var(--vspos-auth-border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--vspos-auth-shadow);
+    color: var(--vspos-auth-text);
+}
+
+.vspos-modal h3 {
+    margin: 0 0 6px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--vspos-auth-text);
+}
+
+.vspos-modal p {
+    margin: 0 0 20px;
+    font-size: 0.85rem;
+    color: var(--vspos-auth-muted);
+}
+
+.vspos-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--vspos-auth-muted);
+    cursor: pointer;
+}
+
+.vspos-modal-inner {
+    position: relative;
+}
+
+.vspos-password-toggle {
+    position: relative;
+}
+
+.vspos-password-toggle .vspos-toggle-btn {
+    position: absolute;
+    right: 10px;
+    top: auto;
+    bottom: 12px;
+    transform: none;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--vspos-auth-muted);
+    z-index: 3;
+}
+
+.vspos-password-toggle > input[type="password"],
+.vspos-password-toggle > input[type="text"] {
+    padding-right: 44px !important;
+}
+
+/* Welcome hero */
+.vspos-welcome-hero {
+    text-align: center;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.vspos-welcome-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--vspos-auth-accent-soft);
+    border: 1px solid rgba(245, 197, 24, 0.35);
+    color: var(--vspos-auth-accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.vspos-welcome-title {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 900;
+    color: var(--vspos-auth-text);
+    letter-spacing: -0.03em;
+    margin: 0 0 10px;
+    line-height: 1.1;
+}
+
+.vspos-welcome-title span {
+    color: var(--vspos-auth-accent);
+}
+
+.vspos-welcome-sub {
+    color: var(--vspos-auth-muted);
+    font-size: 1rem;
+    margin: 0 0 28px;
+    line-height: 1.5;
+}
+
+.vspos-welcome-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vspos-welcome-actions .vspos-btn-primary {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-form-content .row {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+/* ── Demo shop boxes (one-click login) ── */
+.vspos-login-page {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+.vspos-demo-panel {
+    background: rgba(10, 10, 10, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 18px 16px 14px;
+    backdrop-filter: blur(8px);
+}
+
+.vspos-demo-panel-brand {
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(245, 197, 24, 0.18);
+}
+
+.vspos-demo-panel-head {
+    margin-bottom: 12px;
+}
+
+.vspos-demo-panel-head h2 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--vspos-auth-text);
+    letter-spacing: -0.02em;
+}
+
+.vspos-demo-panel-head p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--vspos-auth-muted);
+    line-height: 1.4;
+}
+
+.vspos-demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.vspos-demo-shop {
+    --demo-accent: #f5c518;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 17, 17, 0.85);
+    color: #f5f5f5;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vspos-demo-shop:hover,
+.vspos-demo-shop:focus {
+    outline: none;
+    border-color: var(--demo-accent);
+    background: #141414;
+    box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.15);
+    transform: translateY(-1px);
+}
+
+.vspos-demo-shop.is-loading {
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+.vspos-demo-shop-icon {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(245, 197, 24, 0.12);
+    color: var(--demo-accent);
+    font-size: 0.95rem;
+}
+
+.vspos-demo-shop-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.vspos-demo-shop-text strong {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fafafa;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vspos-demo-shop-text small {
+    font-size: 0.68rem;
+    color: #a3a3a3;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vspos-demo-shop-go {
+    flex: 0 0 auto;
+    color: #737373;
+    font-size: 0.8rem;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.vspos-demo-shop:hover .vspos-demo-shop-go {
+    color: var(--demo-accent);
+    transform: translateX(2px);
+}
+
+/* Mobile / small screens: demos above the login card (brand panel is hidden) */
+.vspos-demo-mobile,
+.vspos-demo-above-form {
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto 18px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Desktop: demos live only in the left brand panel — hide duplicate above the form */
+@media (min-width: 992px) {
+    .vspos-demo-mobile,
+    .vspos-demo-above-form {
+        display: none !important;
+    }
+}
+
+/* Also keep demos visible in the left brand panel on desktop */
+.auth-brand-extra .vspos-demo-panel {
+    display: block;
+}
+
+@media (max-width: 991.98px) {
+    .vspos-demo-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile */
+@media (max-width: 991.98px) {
+    .auth-form-panel {
+        background: linear-gradient(160deg, #050505 0%, #111111 100%);
+    }
+
+    .auth-form-topnav {
+        background: rgba(17, 17, 17, 0.6);
+        border-bottom-color: var(--vspos-auth-border);
+    }
+
+    .auth-topnav-link {
+        color: var(--vspos-auth-muted);
+    }
+
+    .auth-topnav-link:hover {
+        color: var(--vspos-auth-accent);
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-form-content {
+        padding: 16px 12px;
+        align-items: flex-start;
+    }
+
+    .vspos-login-card {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+
+    .vspos-pin-key {
+        height: 48px;
+    }
+
+    .vspos-demo-panel {
+        padding: 14px 12px;
+    }
+}

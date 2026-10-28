@@ -1,0 +1,1136 @@
+/* QPOS light theme.
+   Dark remains the default (html[data-vspos-theme="dark"]).
+   These rules only apply when the user switches to light.
+   They sit on top of the existing dark overrides; they do not replace them. */
+
+html[data-vspos-theme="dark"] {
+    color-scheme: dark;
+}
+
+html[data-vspos-theme="light"] {
+    color-scheme: light;
+    --vspos-page-bg: #f8fafc;
+    --vspos-panel-bg: #ffffff;
+    --vspos-panel-border: #e2e8f0;
+    --vspos-panel-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+    --vspos-text: #111827;
+    --vspos-text-muted: #64748b;
+    --vspos-text-soft: #475569;
+    --vspos-accent: #b45309;
+    --vspos-accent-soft: rgba(180, 83, 9, 0.1);
+    --vspos-highlight: #b45309;
+    --vspos-highlight-border: #d97706;
+    --vspos-input-bg: #ffffff;
+    --vspos-input-border: #d1d5db;
+    --vspos-addon-bg: #f9fafb;
+    --vspos-cart-bg: #ffffff;
+    --vspos-cart-border: #e5e7eb;
+    --vspos-toolbar-bg: #f8fafc;
+    --vspos-row-odd: #ffffff;
+    --vspos-row-even: #f8fafc;
+    --vspos-row-hover: #eff6ff;
+    --vspos-header-bg: #ffffff;
+    --vspos-header-border: #e5e7eb;
+    --vspos-header-text: #111827;
+    --vspos-header-btn-bg: #ffffff;
+    --vspos-header-btn-border: #d1d5db;
+    --vspos-header-btn-text: #1f2937;
+    --vspos-header-btn-hover: #f3f4f6;
+    --vspos-op-header-bg: #f8fafc;
+    --vspos-op-border: #e5e7eb;
+    --vspos-op-row-border: #eef2f7;
+    --vspos-stat-bg: #ffffff;
+    --vspos-stat-border: #e5e7eb;
+    --vspos-lb-bg: linear-gradient(90deg, rgba(180, 83, 9, 0.08) 0%, rgba(180, 83, 9, 0.03) 100%);
+    --vspos-lb-border: rgba(180, 83, 9, 0.22);
+    --vspos-lb-accent: #b45309;
+    --vspos-empty-icon-bg: #f3f4f6;
+    --vspos-empty-icon-color: #6b7280;
+    --vspos-empty-title: #111827;
+    --vspos-empty-sub: #6b7280;
+    --vspos-handle: #d1d5db;
+    --vspos-mobile-handle-bg: #ffffff;
+    --vspos-th-bg: #f8fafc;
+    --vspos-th-text: #4b5563;
+    --vspos-th-border: #e5e7eb;
+    --vspos-total-bg: #fffbeb;
+    --vspos-total-border: #d97706;
+    --vspos-total-text: #92400e;
+    --vspos-total-value: #111827;
+    --vspos-pay-section-bg: #f8fafc;
+    --vspos-product-link: #1d4ed8;
+    --qpos-page: #f8fafc;
+    --qpos-surface: #ffffff;
+    --qpos-surface-2: #f1f5f9;
+    --qpos-border: #e2e8f0;
+    --qpos-text: #111827;
+    --qpos-muted: #4b5563;
+    --qpos-soft: #4b5563;
+    --vspos-menu-bg: #ffffff;
+    --vspos-menu-border: #e5e7eb;
+    --vspos-menu-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    --vspos-menu-divider: #e5e7eb;
+    --vspos-menu-item-bg: #ffffff;
+    --vspos-menu-item-border: #eef0f3;
+    --vspos-menu-item-text: #111827;
+    --vspos-menu-item-hover: #f8fafc;
+    --vspos-menu-item-hover-border: #e5e7eb;
+    --vspos-menu-icon-bg: rgba(180, 83, 9, 0.1);
+    --vspos-menu-icon-ring: rgba(15, 23, 42, 0.08);
+    --vspos-menu-muted: #6b7280;
+    --vspos-menu-label: #9ca3af;
+    --vspos-menu-accent-bg: #fff6d6;
+    --vspos-menu-accent-border: #f5d76a;
+    --vspos-menu-backdrop: rgba(15, 23, 42, 0.45);
+}
+
+/* ========== Admin shell ========== */
+html[data-vspos-theme="light"],
+html[data-vspos-theme="light"] body:not(.lockscreen) {
+    background: var(--qpos-page) !important;
+    color: var(--qpos-text) !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) main,
+html[data-vspos-theme="light"] body:not(.lockscreen) .thetop,
+html[data-vspos-theme="light"] body:not(.lockscreen) #scrollable-container,
+html[data-vspos-theme="light"] body:not(.lockscreen) .content-wrapper,
+html[data-vspos-theme="light"] body:not(.lockscreen) .right-side,
+html[data-vspos-theme="light"] body:not(.lockscreen) .wrapper,
+html[data-vspos-theme="light"] body:not(.lockscreen) .content,
+html[data-vspos-theme="light"] body:not(.lockscreen) .content-header,
+html[data-vspos-theme="light"] body:not(.lockscreen) section.content {
+    background: var(--qpos-page) !important;
+    color: var(--qpos-text) !important;
+}
+
+html[data-vspos-theme="light"] body:not(.lockscreen) .box,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-solid,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-primary,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-default,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-info,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-header,
+html[data-vspos-theme="light"] body:not(.lockscreen) .panel,
+html[data-vspos-theme="light"] body:not(.lockscreen) .panel-default,
+html[data-vspos-theme="light"] body:not(.lockscreen) .panel-heading,
+html[data-vspos-theme="light"] body:not(.lockscreen) .well,
+html[data-vspos-theme="light"] body:not(.lockscreen) .small-box,
+html[data-vspos-theme="light"] body:not(.lockscreen) .info-box,
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs-custom,
+html[data-vspos-theme="light"] body:not(.lockscreen) .modal-content,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pf-card {
+    background: var(--qpos-surface) !important;
+    color: var(--qpos-text) !important;
+    border-color: var(--qpos-border) !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .pf-title,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pf-inner label,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pf-inner .form-group label {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .pf-btn:hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pf-btn:focus {
+    background: #f8fafc !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-header,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-header.with-border,
+html[data-vspos-theme="light"] body:not(.lockscreen) .panel-heading,
+html[data-vspos-theme="light"] body:not(.lockscreen) .modal-header,
+html[data-vspos-theme="light"] body:not(.lockscreen) .modal-footer,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-footer {
+    background: var(--qpos-surface-2) !important;
+    border-color: var(--qpos-border) !important;
+    color: var(--qpos-text) !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .content-header > h1,
+html[data-vspos-theme="light"] body:not(.lockscreen) .content-header > h1 small,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-title,
+html[data-vspos-theme="light"] body:not(.lockscreen) h1,
+html[data-vspos-theme="light"] body:not(.lockscreen) h2,
+html[data-vspos-theme="light"] body:not(.lockscreen) h3,
+html[data-vspos-theme="light"] body:not(.lockscreen) h4,
+html[data-vspos-theme="light"] body:not(.lockscreen) h5,
+html[data-vspos-theme="light"] body:not(.lockscreen) h6,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body h1,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body h2,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body h3,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body h4,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body p,
+html[data-vspos-theme="light"] body:not(.lockscreen) label,
+html[data-vspos-theme="light"] body:not(.lockscreen) .control-label {
+    color: var(--qpos-text) !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .help-block,
+html[data-vspos-theme="light"] body:not(.lockscreen) .text-muted,
+html[data-vspos-theme="light"] body:not(.lockscreen) .breadcrumb,
+html[data-vspos-theme="light"] body:not(.lockscreen) .breadcrumb > li > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .breadcrumb > li + li:before {
+    color: var(--qpos-soft) !important;
+    background: transparent !important;
+}
+
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-bg-white,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-bg-gray-50,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-bg-gray-100 {
+    background: #ffffff !important;
+    color: var(--qpos-text) !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-text-black,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-text-gray-700,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-text-gray-800,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-text-gray-900,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-text-gray-100 {
+    color: var(--qpos-text) !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-text-gray-500,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-text-gray-600 {
+    color: var(--qpos-soft) !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-border-gray-200,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-border-gray-300 {
+    border-color: var(--qpos-border) !important;
+}
+
+/* ========== Navbar ========== */
+html[data-vspos-theme="light"] .nv-bar {
+    background: #ffffff;
+    color: #111827;
+    border-bottom: 1px solid var(--qpos-border);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+html[data-vspos-theme="light"] .nv-icon-btn {
+    background: #f3f4f6;
+    color: #111827;
+}
+html[data-vspos-theme="light"] .nv-icon-btn:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+html[data-vspos-theme="light"] .nv-icon-btn .fas,
+html[data-vspos-theme="light"] .nv-icon-btn .far,
+html[data-vspos-theme="light"] .nv-icon-btn i {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .nv-date-chip,
+html[data-vspos-theme="light"] .nv-user-btn {
+    background: #f8fafc;
+    border: 1px solid var(--qpos-border);
+    color: #111827;
+}
+html[data-vspos-theme="light"] .nv-user-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+html[data-vspos-theme="light"] .nv-username,
+html[data-vspos-theme="light"] .nv-chevron {
+    color: #111827;
+}
+html[data-vspos-theme="light"] .nv-dropdown {
+    background: #ffffff;
+    border: 1px solid var(--qpos-border);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+html[data-vspos-theme="light"] .nv-dropdown a,
+html[data-vspos-theme="light"] .nv-dropdown li,
+html[data-vspos-theme="light"] .nv-dropdown span,
+html[data-vspos-theme="light"] .nv-drop-item,
+html[data-vspos-theme="light"] .nv-drop-name,
+html[data-vspos-theme="light"] .nv-drop-icon {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .nv-drop-role {
+    color: #6b7280 !important;
+}
+html[data-vspos-theme="light"] .nv-drop-item:hover {
+    background: #f3f4f6;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .nv-dropdown .nv-drop-item-danger,
+html[data-vspos-theme="light"] .nv-dropdown .nv-drop-item-danger i {
+    color: #b91c1c !important;
+}
+html[data-vspos-theme="light"] .notifications-menu > a.dropdown-toggle {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .notifications-menu > a.dropdown-toggle:hover {
+    background: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .nv-divider {
+    background: #e5e7eb;
+}
+html[data-vspos-theme="light"] .qpos-theme-toggle .qpos-theme-toggle-icon {
+    color: inherit;
+}
+
+/* ========== Sidebar ========== */
+html[data-vspos-theme="light"] .qpos-sidebar.side-bar,
+html[data-vspos-theme="light"] .small-view-side-active {
+    --sb-bg: #ffffff;
+    --sb-panel: #f8fafc;
+    --sb-border: #e2e8f0;
+    --sb-text: #1f2937;
+    --sb-muted: #4b5563;
+    --sb-search-bg: #f3f4f6;
+    --sb-search-border: #e5e7eb;
+    --sb-search-text: #111827;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    border-right: 1px solid #e5e7eb !important;
+    color: #1f2937 !important;
+    box-shadow: none;
+}
+html[data-vspos-theme="light"] .qpos-sidebar .sb-brand-name,
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar > a,
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar > div > a.drop_down,
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar a.theme-sidebar-hover {
+    color: #1f2937 !important;
+}
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar a.theme-sidebar-hover:hover,
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar a.theme-sidebar-hover:focus {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar a svg,
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar a i {
+    color: #4b5563;
+}
+html[data-vspos-theme="light"] #side-bar .theme-sidebar-hover:hover,
+html[data-vspos-theme="light"] #side-bar .theme-sidebar-hover:active,
+html[data-vspos-theme="light"] #side-bar .theme-sidebar-hover:focus {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+html[data-vspos-theme="light"] .qpos-sidebar .sb-brand-mark {
+    background: #111111;
+}
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar .chiled a {
+    color: #4b5563 !important;
+}
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar .chiled a:hover,
+html[data-vspos-theme="light"] .qpos-sidebar #side-bar a.theme-sidebar-child-hover:hover {
+    color: #111827 !important;
+    background: #f3f4f6 !important;
+}
+
+/* ========== Tables ========== */
+html[data-vspos-theme="light"] body:not(.lockscreen) .table,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable.no-footer,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .row {
+    background: transparent !important;
+    color: var(--qpos-text) !important;
+    border-color: var(--qpos-border) !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .table thead th,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable thead th,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable thead td,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table > thead > tr > th,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table tfoot td {
+    background: #f8fafc !important;
+    color: #374151 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .table tbody td,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody td,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table > tbody > tr > td,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody tr,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody tr.odd,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody tr.even,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table-striped > tbody > tr:nth-of-type(odd),
+html[data-vspos-theme="light"] body:not(.lockscreen) .table-striped > tbody > tr:nth-of-type(even),
+html[data-vspos-theme="light"] body:not(.lockscreen) .table > tbody > tr,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_empty {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #eef2f7 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .table-striped > tbody > tr:nth-of-type(odd) > td,
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody tr.odd > td {
+    background: #fafbfc !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody tr:hover td,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table-hover > tbody > tr:hover > td,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table tbody tr:hover td {
+    background: #eff6ff !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .table-bordered,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table-bordered th,
+html[data-vspos-theme="light"] body:not(.lockscreen) .table-bordered td {
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dataTables_info,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dataTables_filter label,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dataTables_length label {
+    color: #4b5563 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons .dt-button,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons button,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-copy,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-csv,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-excel,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-print,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-pdf,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-colvis,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-collection,
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-default,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-dw-btn-outline:not(.tw-dw-btn-primary):not(.tw-dw-btn-success):not(.tw-dw-btn-error):not(.tw-dw-btn-warning):not(.tw-dw-btn-info):not(.tw-dw-btn-accent),
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-group .dropdown-toggle {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons a span,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons button span,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons a i,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons button i,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-collection span,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-collection i,
+html[data-vspos-theme="light"] .db-page .dt-buttons span,
+html[data-vspos-theme="light"] .db-page .dt-buttons i {
+    color: #111827 !important;
+    background: transparent !important;
+    opacity: 1 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-default:hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-default:focus,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dt-button:hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dt-button:focus,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-collection:hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .buttons-collection:focus,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons a:hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dt-buttons a:focus,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-dw-btn-outline:not(.tw-dw-btn-primary):not(.tw-dw-btn-success):not(.tw-dw-btn-error):not(.tw-dw-btn-warning):not(.tw-dw-btn-info):not(.tw-dw-btn-accent):hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-group .dropdown-toggle:hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-group.open .dropdown-toggle {
+    background: #f1f5f9 !important;
+    background-image: none !important;
+    color: #111827 !important;
+    border-color: #cbd5e1 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn:disabled,
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn.disabled,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dt-button.disabled {
+    opacity: 0.55 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-primary,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-dw-btn-primary {
+    color: #ffffff !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-success,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-dw-btn-success {
+    color: #ffffff !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-danger,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-dw-btn-error {
+    color: #ffffff !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .btn-warning,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tw-dw-btn-warning {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .content a:not(.btn):not(.tw-dw-btn):not(.dt-button):not(.paginate_button):not(.buttons-collection):not(.dropdown-toggle),
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body a:not(.btn):not(.tw-dw-btn):not(.dt-button):not(.paginate_button) {
+    color: #1d4ed8;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .content a:not(.btn):not(.tw-dw-btn):not(.dt-button):hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-body a:not(.btn):not(.tw-dw-btn):not(.dt-button):hover {
+    color: #1e3a8a;
+}
+html[data-vspos-theme="light"] .dt-button-collection.pdf-orient-collection,
+html[data-vspos-theme="light"] ul.dt-button-collection.dropdown-menu {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #e2e8f0 !important;
+}
+html[data-vspos-theme="light"] .pdf-orient-collection > li > a,
+html[data-vspos-theme="light"] .pdf-orient-collection > li > button,
+html[data-vspos-theme="light"] body .pdf-orient-collection > li > a,
+html[data-vspos-theme="light"] body .pdf-orient-collection > li > button {
+    color: #111827 !important;
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+}
+html[data-vspos-theme="light"] .pdf-orient-collection > li > a:hover,
+html[data-vspos-theme="light"] .pdf-orient-collection > li > a:focus,
+html[data-vspos-theme="light"] .pdf-orient-collection > li > button:hover,
+html[data-vspos-theme="light"] .pdf-orient-collection > li > button:focus,
+html[data-vspos-theme="light"] body .pdf-orient-collection > li > a:hover,
+html[data-vspos-theme="light"] body .pdf-orient-collection > li > button:hover {
+    background: #f8fafc !important;
+    color: #111827 !important;
+    border-color: #cbd5e1 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > li > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > li > span,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .pagination > li > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .pagination > li > span {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > .disabled > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > .disabled > span,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > li.disabled > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > li.disabled > span,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .pagination > li.disabled > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .pagination > li.disabled > span {
+    background: #f9fafb !important;
+    color: #9ca3af !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > .active > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .pagination > .active > span,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dataTables_paginate > a.paginate_button.current {
+    background: #f5c518 !important;
+    border-color: #f5c518 !important;
+    color: #111111 !important;
+}
+
+/* ========== Forms, select2, menus ========== */
+html[data-vspos-theme="light"] body:not(.lockscreen) .form-control,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_filter input,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_length select,
+html[data-vspos-theme="light"] body:not(.lockscreen) .input-group-addon,
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-container--default .select2-selection--single,
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-container--default .select2-selection--multiple {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    -webkit-text-fill-color: #111827;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .form-control::placeholder {
+    color: #9ca3af !important;
+    -webkit-text-fill-color: #9ca3af;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .form-control:focus,
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-container--default.select2-container--focus .select2-selection--single,
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #d97706 !important;
+    background: #ffffff !important;
+}
+html[data-vspos-theme="light"] .select2-dropdown,
+html[data-vspos-theme="light"] .select2-container--default .select2-dropdown,
+html[data-vspos-theme="light"] .vspos-select2-dropdown,
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-dropdown,
+html[data-vspos-theme="light"] body.lockscreen .select2-dropdown {
+    background: #ffffff !important;
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .select2-container--default .select2-search--dropdown,
+html[data-vspos-theme="light"] .select2-results,
+html[data-vspos-theme="light"] .select2-results__options {
+    background: #ffffff !important;
+}
+html[data-vspos-theme="light"] .select2-container--default .select2-search--dropdown .select2-search__field,
+html[data-vspos-theme="light"] .select2-dropdown .select2-search__field {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+}
+html[data-vspos-theme="light"] .select2-container--default .select2-selection--single .select2-selection__rendered,
+html[data-vspos-theme="light"] .select2-results__option,
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-results__option {
+    color: #111827 !important;
+    background: transparent !important;
+}
+html[data-vspos-theme="light"] .select2-container--default .select2-results__option--highlighted[aria-selected],
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-results__option--highlighted[aria-selected] {
+    background: #fff7d6 !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .select2-container--default .select2-results__option[aria-selected="true"],
+html[data-vspos-theme="light"] body:not(.lockscreen) .select2-results__option[aria-selected="true"] {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .dropdown-menu,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dropdown-menu.vspos-dt-dropdown {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .dropdown-menu > li > a {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .dropdown-menu > li > a:hover,
+html[data-vspos-theme="light"] body:not(.lockscreen) .dropdown-menu > li > a:focus {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+}
+
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs,
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs-custom > .nav-tabs {
+    background: transparent !important;
+    border-bottom-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs > li > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs-custom > .nav-tabs > li > a {
+    color: #4b5563 !important;
+    background: transparent !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs > li.active > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs-custom > .nav-tabs > li.active > a,
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs-custom > .nav-tabs > li.active:hover > a {
+    color: #1d4ed8 !important;
+    background: #ffffff !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .nav-tabs-custom > .tab-content,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tab-content,
+html[data-vspos-theme="light"] body:not(.lockscreen) .tab-pane {
+    background: #ffffff !important;
+    color: #111827 !important;
+}
+
+html[data-vspos-theme="light"] body:not(.lockscreen) #filters,
+html[data-vspos-theme="light"] body:not(.lockscreen) .filters,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box#filters,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box[id*="filter"],
+html[data-vspos-theme="light"] body:not(.lockscreen) .box[class*="filter"],
+html[data-vspos-theme="light"] body:not(.lockscreen) #filters .box-body,
+html[data-vspos-theme="light"] body:not(.lockscreen) .filters .box-body,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box[class*="filter"] > .box-body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) #filters .box-header,
+html[data-vspos-theme="light"] body:not(.lockscreen) .filters .box-header,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box[class*="filter"] > .box-header,
+html[data-vspos-theme="light"] body:not(.lockscreen) #filters label,
+html[data-vspos-theme="light"] body:not(.lockscreen) .filters label {
+    background: #f8fafc !important;
+    color: #374151 !important;
+    border-color: #e5e7eb !important;
+}
+
+html[data-vspos-theme="light"] body:not(.lockscreen) .list-group-item {
+    background: #ffffff !important;
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .list-group-item > b,
+html[data-vspos-theme="light"] body:not(.lockscreen) .list-group-item strong,
+html[data-vspos-theme="light"] body:not(.lockscreen) .box-profile .profile-username {
+    color: #374151 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .vspos-cheque-label,
+html[data-vspos-theme="light"] body:not(.lockscreen) .vspos-cheque-details-title,
+html[data-vspos-theme="light"] body:not(.lockscreen) .vspos-cheque-help {
+    color: #475569 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .close,
+html[data-vspos-theme="light"] body:not(.lockscreen) .modal-header .close {
+    color: #111827 !important;
+    opacity: 0.7;
+    text-shadow: none;
+}
+
+/* ========== Popovers, dates, dialogs ========== */
+html[data-vspos-theme="light"] .popover,
+html[data-vspos-theme="light"] .popover-content {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .popover-title {
+    background: #f8fafc !important;
+    color: #92400e !important;
+    border-bottom-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .popover.bottom > .arrow {
+    border-bottom-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .popover.bottom > .arrow:after {
+    border-bottom-color: #ffffff !important;
+}
+html[data-vspos-theme="light"] .tooltip-inner {
+    background: #111827;
+    color: #ffffff;
+}
+
+html[data-vspos-theme="light"] .daterangepicker,
+html[data-vspos-theme="light"] .bootstrap-datetimepicker-widget.dropdown-menu,
+html[data-vspos-theme="light"] #ui-datepicker-div,
+html[data-vspos-theme="light"] .ui-datepicker {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .daterangepicker .calendar-table,
+html[data-vspos-theme="light"] .daterangepicker td,
+html[data-vspos-theme="light"] .daterangepicker th,
+html[data-vspos-theme="light"] .bootstrap-datetimepicker-widget table th,
+html[data-vspos-theme="light"] .bootstrap-datetimepicker-widget table td,
+html[data-vspos-theme="light"] .ui-datepicker td a,
+html[data-vspos-theme="light"] .ui-datepicker td span,
+html[data-vspos-theme="light"] .ui-datepicker th {
+    background: #ffffff !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .daterangepicker td.active,
+html[data-vspos-theme="light"] .daterangepicker td.active:hover,
+html[data-vspos-theme="light"] .bootstrap-datetimepicker-widget table td.active,
+html[data-vspos-theme="light"] .ui-datepicker td .ui-state-active {
+    background: #f5c518 !important;
+    color: #111111 !important;
+}
+html[data-vspos-theme="light"] .daterangepicker select.monthselect,
+html[data-vspos-theme="light"] .daterangepicker select.yearselect,
+html[data-vspos-theme="light"] .daterangepicker .input-mini,
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker select.monthselect,
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker select.yearselect,
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker .input-mini {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker,
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker .calendar-table {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker td.off,
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker td.off.in-range {
+    color: #9ca3af !important;
+    background: #f9fafb !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker td.in-range {
+    background: #fff7d6 !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker .ranges li {
+    color: #111827 !important;
+    background: #ffffff !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker .ranges li:hover {
+    background: #f3f4f6 !important;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) .daterangepicker .ranges li.active {
+    background: #f5c518 !important;
+    color: #111111 !important;
+}
+
+html[data-vspos-theme="light"] .swal-modal {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.16) !important;
+}
+html[data-vspos-theme="light"] .swal-title {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .swal-text,
+html[data-vspos-theme="light"] .vspos-swal-customer-help {
+    color: #4b5563 !important;
+}
+html[data-vspos-theme="light"] .swal-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .swal-button--cancel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+}
+html[data-vspos-theme="light"] .vspos-swal-customer-label,
+html[data-vspos-theme="light"] .vspos-swal-customer-name {
+    color: #111827;
+}
+html[data-vspos-theme="light"] .vspos-swal-customer-help,
+html[data-vspos-theme="light"] .vspos-swal-customer-biz,
+html[data-vspos-theme="light"] .vspos-swal-customer-mobile,
+html[data-vspos-theme="light"] .vspos-swal-customer-empty {
+    color: #4b5563 !important;
+}
+html[data-vspos-theme="light"] .vspos-swal-customer-search .form-control,
+html[data-vspos-theme="light"] .vspos-swal-customer-results {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+html[data-vspos-theme="light"] .vspos-swal-customer-item {
+    color: #111827;
+    border-bottom-color: #e5e7eb;
+    background: #ffffff;
+}
+html[data-vspos-theme="light"] .vspos-swal-customer-item:hover,
+html[data-vspos-theme="light"] .vspos-swal-customer-item.is-selected {
+    background: #fff7d6;
+}
+html[data-vspos-theme="light"] .vspos-swal-customer-picked {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}
+html[data-vspos-theme="light"] .swal-icon--success:before,
+html[data-vspos-theme="light"] .swal-icon--success:after,
+html[data-vspos-theme="light"] .swal-icon--success__hide-corners {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+}
+
+html[data-vspos-theme="light"] #__ic_overlay.vspos-ic-prompt {
+    background: #ffffff !important;
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] #__ic_overlay input[type="password"],
+html[data-vspos-theme="light"] .vspos-ic-prompt input[type="password"] {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+
+html[data-vspos-theme="light"] body:not(.lockscreen) ::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+html[data-vspos-theme="light"] body:not(.lockscreen) ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+}
+
+/* ========== POS light ========== */
+html[data-vspos-theme="light"] body.lockscreen,
+html[data-vspos-theme="light"] body.lockscreen .content-wrapper,
+html[data-vspos-theme="light"] body.lockscreen .right-side,
+html[data-vspos-theme="light"] body.lockscreen .wrapper,
+html[data-vspos-theme="light"] body.lockscreen main,
+html[data-vspos-theme="light"] body.lockscreen .content,
+html[data-vspos-theme="light"] body.lockscreen section.content,
+html[data-vspos-theme="light"] body.lockscreen .thetop {
+    background: var(--vspos-page-bg) !important;
+    color: var(--vspos-text) !important;
+}
+html[data-vspos-theme="light"] body.lockscreen .pos-clock-chip {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #111827;
+}
+html[data-vspos-theme="light"] body.lockscreen .pos-mobile-icon-btn {
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    color: #92400e !important;
+}
+html[data-vspos-theme="light"] body.lockscreen .pos-mobile-logo {
+    background: #111111;
+}
+html[data-vspos-theme="light"] body.lockscreen #pos_table.vspos-ticket-cart thead th {
+    color: #6b7280 !important;
+}
+html[data-vspos-theme="light"] body.lockscreen #pos_table.vspos-ticket-cart tbody tr.product_row > td {
+    background: #ffffff !important;
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body.lockscreen #pos_table.vspos-ticket-cart tbody tr.product_row:hover > td {
+    background: #f8fafc !important;
+    border-color: #d1d5db !important;
+}
+html[data-vspos-theme="light"] body.lockscreen #pos_table .form-control,
+html[data-vspos-theme="light"] body.lockscreen #pos_table .display_currency.pos_line_total_text,
+html[data-vspos-theme="light"] body.lockscreen .vspos-entry-bar .form-control,
+html[data-vspos-theme="light"] body.lockscreen .vspos-entry-desc .form-control {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+html[data-vspos-theme="light"] body.lockscreen .vspos-entry-label,
+html[data-vspos-theme="light"] body.lockscreen .vspos-line-sku,
+html[data-vspos-theme="light"] .vspos-live-search-meta,
+html[data-vspos-theme="light"] .vspos-live-search-empty {
+    color: #6b7280 !important;
+}
+html[data-vspos-theme="light"] body.lockscreen .vspos-entry-bar {
+    background: #fffbeb !important;
+    border-color: #f5d78a !important;
+}
+html[data-vspos-theme="light"] body.lockscreen .vspos-entry-bar .input-group-btn .btn,
+html[data-vspos-theme="light"] body.lockscreen .vspos-entry-bar .input-group-addon {
+    background: #ffffff !important;
+    border-color: #d1d5db !important;
+    color: #92400e !important;
+}
+html[data-vspos-theme="light"] .vspos-live-search-item,
+html[data-vspos-theme="light"] .vspos-live-search {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .vspos-live-search-item.is-active,
+html[data-vspos-theme="light"] .vspos-live-search-item:hover {
+    background: #fff7d6 !important;
+}
+html[data-vspos-theme="light"] .vspos-live-search-name {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body.lockscreen .pos_product_div::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+html[data-vspos-theme="light"] body.lockscreen .pos_product_div::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+}
+html[data-vspos-theme="light"] body.lockscreen .vspos-op-pay-total-label {
+    color: #6b7280 !important;
+}
+html[data-vspos-theme="light"] body.lockscreen .vspos-op-pay-total {
+    background: #fffbeb !important;
+    border-color: #f5d78a !important;
+}
+
+/* Touch POS shells use hardcoded dark fills as well as variables.
+   html inherits into body-level modals (qty keypad is appended to body). */
+html[data-vspos-theme="light"] {
+    --touch-bg: #f8fafc;
+    --touch-panel: #ffffff;
+    --touch-border: #e2e8f0;
+    --touch-text: #111827;
+    --touch-muted: #4b5563;
+    --touch-soft: #4b5563;
+    --touch-meta: #374151;
+    --touch-surface: #ffffff;
+    --touch-surface-2: #f8fafc;
+    --touch-input: #ffffff;
+    --touch-input-border: #d1d5db;
+    --touch-price: #15803d;
+    --touch-hover: #f3f4f6;
+    --touch-addon-bg: #fff7d6;
+    --touch-raised: #f8fafc;
+    --touch-sunken: #f3f4f6;
+    --touch-key: #ffffff;
+}
+html[data-vspos-theme="light"] .vspos-touch-shell {
+    --touch-bg: #f8fafc;
+    --touch-panel: #ffffff;
+    --touch-border: #e2e8f0;
+    --touch-text: #111827;
+    --touch-muted: #4b5563;
+    --touch-soft: #4b5563;
+    --touch-meta: #374151;
+    --touch-surface: #ffffff;
+    --touch-surface-2: #f8fafc;
+    --touch-input: #ffffff;
+    --touch-input-border: #d1d5db;
+    --touch-price: #15803d;
+    --touch-hover: #f3f4f6;
+    --touch-addon-bg: #fff7d6;
+    --touch-raised: #f8fafc;
+    --touch-sunken: #f3f4f6;
+    --touch-key: #ffffff;
+    background: #f3f4f6;
+    color: #111827;
+}
+html[data-vspos-theme="light"] .vspos-touch-cat,
+html[data-vspos-theme="light"] .vspos-touch-cust-btn,
+html[data-vspos-theme="light"] .vspos-touch-shell .product_box,
+html[data-vspos-theme="light"] .vspos-touch-mini-btn,
+html[data-vspos-theme="light"] .vspos-repair-pay-item,
+html[data-vspos-theme="light"] .vspos-touch-key,
+html[data-vspos-theme="light"] .vspos-touch-pay-method,
+html[data-vspos-theme="light"] .vspos-touch-pay-line,
+html[data-vspos-theme="light"] .vspos-touch-cheque-sheet-card,
+html[data-vspos-theme="light"] .vspos-tyre-svc-btn {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-cat--sub,
+html[data-vspos-theme="light"] .vspos-touch-search,
+html[data-vspos-theme="light"] .vspos-tyre-svc-bar,
+html[data-vspos-theme="light"] .vspos-touch-cart-footer,
+html[data-vspos-theme="light"] .vspos-touch-pay-hero-main,
+html[data-vspos-theme="light"] .vspos-touch-pay-keypad-col,
+html[data-vspos-theme="light"] .vspos-touch-pay-list-panel,
+html[data-vspos-theme="light"] .vspos-touch-pay-footer,
+html[data-vspos-theme="light"] .vspos-touch-last-purchase {
+    background: #f8fafc !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-customer .select2-container--default .select2-selection--single,
+html[data-vspos-theme="light"] .vspos-touch-cheque-input,
+html[data-vspos-theme="light"] .vspos-touch-pay-account-select,
+html[data-vspos-theme="light"] .vspos-touch-cheque-sheet .select2-container--default .select2-selection--single {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-btn,
+html[data-vspos-theme="light"] .vspos-touch-pay-method--fullcash,
+html[data-vspos-theme="light"] .vspos-touch-pay-complete,
+html[data-vspos-theme="light"] .vspos-touch-cheque-btn--add {
+    background: linear-gradient(180deg, #ffd84a, #f5c518) !important;
+    color: #111111 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-method kbd,
+html[data-vspos-theme="light"] body.vspos-touch-ui #vspos_mobile_pay_popup .vspos-touch-pay-popup-kbd {
+    background: #f3f4f6 !important;
+    border: 1px solid #d1d5db !important;
+    color: #374151 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-method.vspos-touch-pay-method--fullcash kbd {
+    background: rgba(0, 0, 0, 0.18) !important;
+    border: none !important;
+    color: #111111 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-method--cash {
+    background: #fffbeb !important;
+    border-color: #f5d78a !important;
+    color: #92400e !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-method--card {
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    color: #1d4ed8 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-method--bank {
+    background: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+    color: #047857 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-method--credit {
+    background: #f5f3ff !important;
+    border-color: #ddd6fe !important;
+    color: #6d28d9 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-method--cheque {
+    background: #fff7ed !important;
+    border-color: #fed7aa !important;
+    color: #c2410c !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-meter--due strong {
+    color: #dc2626 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-meter--change strong,
+html[data-vspos-theme="light"] .vspos-touch-pay .vspos-pay-v2-change strong {
+    color: #15803d !important;
+}
+html[data-vspos-theme="light"] body.vspos-touch-ui #vspos_mobile_pay_popup .vspos-touch-pay-footer .vspos-pay-v2-sec--cancel {
+    background: #ffffff !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay .vspos-touch-key--clear {
+    background: #fef2f2 !important;
+    color: #b91c1c !important;
+    border-color: #fecaca !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay .vspos-touch-key--exact {
+    background: #fffbeb !important;
+    color: #92400e !important;
+    border-color: #f5d78a !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-line-amt {
+    color: #b45309 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-line-remove {
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+    color: #b91c1c !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-clear-list {
+    background: #ffffff !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+html[data-vspos-theme="light"] #vspos_mobile_pay_popup .select2-dropdown,
+html[data-vspos-theme="light"] .vspos-touch-cheque-sheet .select2-dropdown,
+html[data-vspos-theme="light"] .vspos-touch-cheque-sheet-card .select2-dropdown {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] #vspos_mobile_pay_popup .select2-search__field,
+html[data-vspos-theme="light"] .vspos-touch-cheque-sheet .select2-search__field {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+html[data-vspos-theme="light"] #vspos_mobile_pay_popup .select2-results__option,
+html[data-vspos-theme="light"] .vspos-touch-cheque-sheet .select2-results__option {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] #vspos_mobile_pay_popup .select2-results__option--highlighted[aria-selected],
+html[data-vspos-theme="light"] .vspos-touch-cheque-sheet .select2-results__option--highlighted[aria-selected] {
+    background: #f5c518 !important;
+    color: #111111 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-cheque-btn--cancel:hover {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body.vspos-cheque-dp-open .datepicker,
+html[data-vspos-theme="light"] body.vspos-mobile-pay-open .datepicker.dropdown-menu,
+html[data-vspos-theme="light"] .datepicker.dropdown-menu.vspos-dp--cheque {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12) !important;
+}
+html[data-vspos-theme="light"] body.vspos-cheque-dp-open .datepicker th,
+html[data-vspos-theme="light"] body.vspos-cheque-dp-open .datepicker td,
+html[data-vspos-theme="light"] body.vspos-cheque-dp-open .datepicker .datepicker-switch,
+html[data-vspos-theme="light"] body.vspos-mobile-pay-open .datepicker.dropdown-menu th,
+html[data-vspos-theme="light"] body.vspos-mobile-pay-open .datepicker.dropdown-menu td,
+html[data-vspos-theme="light"] .datepicker.dropdown-menu.vspos-dp--cheque th,
+html[data-vspos-theme="light"] .datepicker.dropdown-menu.vspos-dp--cheque td,
+html[data-vspos-theme="light"] .datepicker.dropdown-menu.vspos-dp--cheque .datepicker-switch {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body.vspos-cheque-dp-open .datepicker .dow,
+html[data-vspos-theme="light"] .datepicker.dropdown-menu.vspos-dp--cheque .dow {
+    color: #4b5563 !important;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-scroll {
+    scrollbar-color: #d1d5db #f3f4f6;
+}
+html[data-vspos-theme="light"] .vspos-touch-pay-scroll::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+}
+html[data-vspos-theme="light"] .vspos-touch-shell .product_box .text,
+html[data-vspos-theme="light"] .vspos-touch-shell .product_box .text_div,
+html[data-vspos-theme="light"] .vspos-touch-cat {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] body.lockscreen #pos_table .vspos-qty-stepper,
+html[data-vspos-theme="light"] body.lockscreen #pos_table .vspos-rate-field .pos_unit_price,
+html[data-vspos-theme="light"] body.lockscreen #pos_table .form-control.pos_unit_price,
+html[data-vspos-theme="light"] body.lockscreen #pos_table .vspos-qty-stepper .form-control.pos_quantity {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #d1d5db !important;
+}
+html[data-vspos-theme="light"] body.lockscreen #pos_table .vspos-qty-stepper .vspos-qty-btn,
+html[data-vspos-theme="light"] body.lockscreen #pos_table .vspos-qty-stepper .btn {
+    color: #92400e !important;
+}
+html[data-vspos-theme="light"] body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart tbody tr.product_row {
+    background: #ffffff !important;
+    border-color: #e5e7eb !important;
+}
+
+/* Dashboard colors are variables on .db-page in home/index.blade.php. */
+
+@media print {
+    html[data-vspos-theme="light"] body:not(.lockscreen),
+    html[data-vspos-theme="light"] body:not(.lockscreen) .box,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .table td,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .table th {
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+    }
+}

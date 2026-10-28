@@ -1,0 +1,73 @@
+QPOS + BarTender — quick setup
+================================
+
+WHERE FILES GO
+--------------
+Create folder:  C:\BarTender\
+
+  C:\BarTender\update_and_print.bat   <- copy from this package
+  C:\BarTender\ProductLabel.btw       <- YOU create in BarTender Designer
+  C:\BarTender\barcode_labels.csv     <- auto-downloaded (do not create manually)
+
+
+BTW FILE LOCATION
+-----------------
+Save your label design as:
+
+  C:\BarTender\ProductLabel.btw
+
+Same folder as the BAT file.
+In BarTender, connect database to:
+
+  C:\BarTender\barcode_labels.csv
+
+
+QPOS SETTINGS (Business Settings -> Bartender)
+----------------------------------------------
+1. Enable Bartender CSV Export = ON
+2. Save CSV to fixed server URL = ON
+3. Batch launcher URL =
+     file:///C:/BarTender/update_and_print.bat
+4. Default template name = ProductLabel
+5. Enable fields: Product Name, Sku, Barcode Value, Price, Quantity
+6. Save
+
+
+EDIT THE BAT (open update_and_print.bat)
+----------------------------------------
+Set your site CSV URL:
+
+  set "QPOS_CSV_URL=https://proway-qpos.avenque.io/exports/barcode_labels.csv"
+  set "LABEL_DIR=C:\BarTender"
+  set "BTW_NAME=ProductLabel.btw"
+
+
+CREATE THE BTW (first time only)
+--------------------------------
+1. Open BarTender Designer
+2. New label for your printer size
+3. Database Connection -> Text/CSV file
+   Path: C:\BarTender\barcode_labels.csv
+4. Bind text/barcode objects to columns:
+   Product Name, Sku, Barcode Value, Price
+5. Set label copies from column: Quantity
+6. Save As: C:\BarTender\ProductLabel.btw
+
+
+HOW TO PRINT EACH DAY
+---------------------
+1. QPOS -> Print Labels (or Yes after purchase)
+2. Export Label Data
+3. Click "Open Barcode"  (or double-click the BAT)
+4. Labels print
+
+
+FULL BAT
+--------
+See update_and_print.bat in this package.
+
+
+IF BROWSER BLOCKS file:/// BAT
+------------------------------
+After Export, double-click:
+  C:\BarTender\update_and_print.bat

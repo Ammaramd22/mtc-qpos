@@ -1,0 +1,58 @@
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Old /public/login addresses go to /login. The website files live in public_html.
+    RewriteRule ^public/(.*)$ /$1 [R=301,L,QSA]
+
+    # Leftover application folders from an earlier extract must not be downloadable.
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|vendor|lang|qpos|Modules)(/|$) - [F,L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+    RewriteRule ^uploads/.*\.(htaccess|htpasswd|ini|phps|fla|psd|log|sh|zip|exe|pl|jsp|asp|htm|sh|cgi|py|php)$ - [NC,F]
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(php|html|htm)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+    <FilesMatch "\.(css|js|jpg|jpeg|png|gif|webp|svg|woff|woff2|ttf|ico)$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_php.c>
+    php_value max_input_vars 10000
+    php_value post_max_size 64M
+    php_value upload_max_filesize 64M
+</IfModule>
+<IfModule mod_php7.c>
+    php_value max_input_vars 10000
+    php_value post_max_size 64M
+    php_value upload_max_filesize 64M
+</IfModule>
+<IfModule mod_php8.c>
+    php_value max_input_vars 10000
+    php_value post_max_size 64M
+    php_value upload_max_filesize 64M
+</IfModule>

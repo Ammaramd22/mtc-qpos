@@ -1,0 +1,300 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\InvoiceLayout;
+use App\Utils\Util;
+use Illuminate\Http\Request;
+use Validator;
+
+class InvoiceLayoutController extends Controller
+{
+    protected $commonUtil;
+
+    public function __construct(Util $commonUtil)
+    {
+        $this->commonUtil = $commonUtil;
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        if (! auth()->user()->can('invoice_settings.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $designs = $this->getDesigns();
+        $common_settings = session()->get('business.common_settings');
+        $is_warranty_enabled = ! empty($common_settings['enable_product_warranty']) ? true : false;
+        $has_number_formatter = class_exists(\NumberFormatter::class);
+
+        return view('invoice_layout.create')->with(compact('designs', 'is_warranty_enabled', 'has_number_formatter'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        if (! auth()->user()->can('invoice_settings.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'logo' => 'nullable|mimes:jpeg,gif,png|max:1000',
+                'letter_head' => 'nullable|mimes:jpeg,gif,png|max:1000',
+            ]);
+
+            $input = $request->only(['name', 'header_text',
+                'invoice_no_prefix', 'invoice_heading', 'sub_total_label', 'discount_label', 'tax_label', 'total_label', 'highlight_color', 'footer_text', 'invoice_heading_not_paid', 'invoice_heading_paid', 'total_due_label', 'customer_label', 'paid_label', 'sub_heading_line1', 'sub_heading_line2',
+                'sub_heading_line3', 'sub_heading_line4', 'sub_heading_line5',
+                'table_product_label', 'table_qty_label', 'table_unit_price_label',
+                'table_subtotal_label', 'client_id_label', 'date_label', 'quotation_heading', 'quotation_no_prefix', 'design', 'client_tax_label', 'cat_code_label', 'cn_heading', 'cn_no_label', 'cn_amount_label', 'sales_person_label', 'prev_bal_label', 'date_time_format', 'common_settings', 'change_return_label', 'round_off_label', 'qr_code_fields', 'commission_agent_label', 'previous_balance_due_label',]);
+
+            $business_id = $request->session()->get('user.business_id');
+            $input['business_id'] = $business_id;
+
+            //Set value for checkboxes
+            $checkboxes = ['show_business_name', 'show_location_name', 'show_landmark', 'show_city', 'show_state', 'show_country', 'show_zip_code', 'show_mobile_number', 'show_alternate_number', 'show_email', 'show_tax_1', 'show_tax_2', 'show_logo', 'show_barcode', 'show_payments', 'show_customer', 'show_client_id',
+                'show_brand', 'show_sku', 'show_cat_code', 'show_sale_description', 'show_sales_person', 'show_expiry',
+                'show_lot', 'show_previous_bal', 'show_previous_balance_due', 'show_image', 'show_reward_point', 'show_qr_code',
+                'show_commission_agent', 'show_letter_head', ];
+            foreach ($checkboxes as $name) {
+                $input[$name] = ! empty($request->input($name)) ? 1 : 0;
+            }
+
+
+            //Upload Logo
+            $logo_name = $this->commonUtil->uploadFile($request, 'logo', 'invoice_logos', 'image');
+            if (! empty($logo_name)) {
+                $input['logo'] = $logo_name;
+            }
+
+            $letter_head = $this->commonUtil->uploadFile($request, 'letter_head', 'invoice_logos', 'image');
+            if (! empty($letter_head)) {
+                $input['letter_head'] = $letter_head;
+            }
+
+            if (! empty($request->input('is_default'))) {
+                //get_default
+                $default = InvoiceLayout::where('business_id', $business_id)
+                                ->where('is_default', 1)
+                                ->update(['is_default' => 0]);
+                $input['is_default'] = 1;
+            }
+
+            //Module info
+            if ($request->has('module_info')) {
+                $input['module_info'] = json_encode($request->input('module_info'));
+            }
+
+            if (! empty($request->input('table_tax_headings'))) {
+                $input['table_tax_headings'] = json_encode($request->input('table_tax_headings'));
+            }
+            $input['product_custom_fields'] = ! empty($request->input('product_custom_fields')) ? $request->input('product_custom_fields') : null;
+            $input['contact_custom_fields'] = ! empty($request->input('contact_custom_fields')) ? $request->input('contact_custom_fields') : null;
+            $input['location_custom_fields'] = ! empty($request->input('location_custom_fields')) ? $request->input('location_custom_fields') : null;
+
+            InvoiceLayout::create($input);
+            $output = ['success' => 1,
+                'msg' => __('invoice.layout_added_success'),
+            ];
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            $output = ['success' => 0,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        return redirect('invoice-schemes')->with('status', $output);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\InvoiceLayout  $invoiceLayout
+     * @return \Illuminate\Http\Response
+     */
+    public function show(InvoiceLayout $invoiceLayout)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\InvoiceLayout  $invoiceLayout
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        if (! auth()->user()->can('invoice_settings.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $invoice_layout = InvoiceLayout::findOrFail($id);
+
+        //Module info
+        $invoice_layout->module_info = json_decode($invoice_layout->module_info, true);
+        $invoice_layout->table_tax_headings = ! empty($invoice_layout->table_tax_headings) ? json_decode($invoice_layout->table_tax_headings) : ['', '', '', ''];
+
+        $designs = $this->getDesigns();
+        $has_number_formatter = class_exists(\NumberFormatter::class);
+
+        return view('invoice_layout.edit')
+                ->with(compact('invoice_layout', 'designs', 'has_number_formatter'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\InvoiceLayout  $invoiceLayout
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        if (! auth()->user()->can('invoice_settings.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $validator = Validator::make($request->all(), [
+                'logo' => 'nullable|mimes:jpeg,gif,png|max:1000',
+                'letter_head' => 'nullable|mimes:jpeg,gif,png|max:1000',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->action([\App\Http\Controllers\InvoiceLayoutController::class, 'edit'], [$id])
+                    ->withErrors($validator)
+                    ->withInput()
+                    ->with('status', [
+                        'success' => 0,
+                        'msg' => $validator->errors()->first(),
+                    ]);
+            }
+
+            $input = $request->only(['name', 'header_text',
+                'invoice_no_prefix', 'invoice_heading', 'sub_total_label', 'discount_label', 'tax_label', 'total_label', 'highlight_color', 'footer_text', 'invoice_heading_not_paid', 'invoice_heading_paid', 'total_due_label', 'customer_label', 'paid_label', 'sub_heading_line1', 'sub_heading_line2',
+                'sub_heading_line3', 'sub_heading_line4', 'sub_heading_line5',
+                'table_product_label', 'table_qty_label', 'table_unit_price_label',
+                'table_subtotal_label', 'client_id_label', 'date_label', 'quotation_heading', 'quotation_no_prefix', 'design',
+                'client_tax_label', 'cat_code_label', 'cn_heading', 'cn_no_label', 'cn_amount_label',
+                'sales_person_label', 'prev_bal_label', 'date_time_format', 'change_return_label', 'round_off_label', 'commission_agent_label', 'previous_balance_due_label',]);
+            $business_id = $request->session()->get('user.business_id');
+
+            $checkboxes = ['show_business_name', 'show_location_name', 'show_landmark', 'show_city', 'show_state', 'show_country', 'show_zip_code', 'show_mobile_number', 'show_alternate_number', 'show_email', 'show_tax_1', 'show_tax_2', 'show_logo', 'show_barcode', 'show_payments', 'show_customer', 'show_client_id',
+                'show_brand', 'show_sku', 'show_cat_code', 'show_sale_description', 'show_sales_person',
+                'show_expiry', 'show_lot', 'show_previous_bal', 'show_previous_balance_due', 'show_image', 'show_reward_point',
+                'show_qr_code', 'show_commission_agent', 'show_letter_head', ];
+            foreach ($checkboxes as $name) {
+                $input[$name] = ! empty($request->input($name)) ? 1 : 0;
+            }
+
+            //Upload Logo
+            $logo_name = $this->commonUtil->uploadFile($request, 'logo', 'invoice_logos', 'image');
+            if (! empty($logo_name)) {
+                $input['logo'] = $logo_name;
+            }
+
+            //Upload letter head
+            $letter_head = $this->commonUtil->uploadFile($request, 'letter_head', 'invoice_logos', 'image');
+            if (! empty($letter_head)) {
+                $input['letter_head'] = $letter_head;
+            }
+
+            if (! empty($request->input('is_default'))) {
+                //get_default
+                $default = InvoiceLayout::where('business_id', $business_id)
+                                ->where('is_default', 1)
+                                ->update(['is_default' => 0]);
+                $input['is_default'] = 1;
+            }
+
+            //Module info
+            if ($request->has('module_info')) {
+                $input['module_info'] = json_encode($request->input('module_info'));
+            }
+
+            if (! empty($request->input('table_tax_headings'))) {
+                $input['table_tax_headings'] = json_encode($request->input('table_tax_headings'));
+            }
+
+            // Casted array columns — pass arrays (Eloquent encodes). Avoid double JSON encode.
+            $input['product_custom_fields'] = $request->input('product_custom_fields', []);
+            $input['contact_custom_fields'] = $request->input('contact_custom_fields', []);
+            $input['location_custom_fields'] = $request->input('location_custom_fields', []);
+            $input['qr_code_fields'] = $request->input('qr_code_fields', []);
+
+            $common_settings = $request->input('common_settings', []);
+            if (! is_array($common_settings)) {
+                $common_settings = [];
+            }
+            $common_checkboxes = [
+                'show_due_date', 'sell_custom_fields1', 'sell_custom_fields2', 'sell_custom_fields3', 'sell_custom_fields4',
+                'show_product_description', 'show_mrp_savings', 'show_warranty_name', 'show_warranty_exp_date',
+                'show_warranty_description', 'show_base_unit_details', 'hide_price', 'show_total_in_words',
+                'show_qr_code_label', 'zatca_qr',
+            ];
+            foreach ($common_checkboxes as $ck) {
+                $common_settings[$ck] = ! empty($common_settings[$ck]) ? 1 : 0;
+            }
+            $input['common_settings'] = $common_settings;
+
+            $layout = InvoiceLayout::where('id', $id)
+                        ->where('business_id', $business_id)
+                        ->firstOrFail();
+            $layout->fill($input);
+            $layout->save();
+
+            $output = ['success' => 1,
+                'msg' => __('invoice.layout_updated_success'),
+            ];
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+
+            $output = ['success' => 0,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        return redirect()->action([\App\Http\Controllers\InvoiceLayoutController::class, 'edit'], [$id])
+            ->with('status', $output);
+    }
+
+    private function getDesigns()
+    {
+        return ['classic' => __('lang_v1.classic').' ('.__('lang_v1.for_normal_printer').')',
+            'classic_a4' => 'Classic A4 (best for A4 / letter printer)',
+            'a5_half_landscape' => 'A5 Half Landscape (210×148mm — half A4 height)',
+            'classic_80mm' => 'Classic 80mm (thermal — matches Classic A4)',
+            'classic_80mm_mobile' => 'Classic 80mm — Mobile Shop (IMEI & warranty)',
+            'elegant' => __('lang_v1.elegant').' ('.__('lang_v1.for_normal_printer').')',
+            'detailed' => __('lang_v1.detailed').' ('.__('lang_v1.for_normal_printer').')',
+            'columnize-taxes' => __('lang_v1.columnize_taxes').' ('.__('lang_v1.for_normal_printer').')',
+            'slim' => __('lang_v1.slim').' ('.__('lang_v1.recomended_for_80mm').')',
+            'slim2' => __('lang_v1.slim').' 2 ('.__('lang_v1.recomended_for_58mm').')',
+            'english-arabic' => 'English-Arabic ('.__('lang_v1.for_normal_printer').')',
+            
+        ];
+    }
+}

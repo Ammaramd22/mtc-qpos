@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html data-vspos-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment modal preview</title>
+<link rel="stylesheet" href="css/pos-theme.css">
+<link rel="stylesheet" href="css/qpos-light.css">
+<link rel="stylesheet" href="css/pos-touch.css">
+<style>
+  body { margin: 0; min-height: 100vh; }
+  .probe { position: fixed; left: 8px; bottom: 8px; z-index: 99999; background: #fff; color: #111; font: 12px/1.4 monospace; padding: 6px 8px; border-radius: 8px; }
+</style>
+</head>
+<body class="lockscreen vspos-touch-ui vspos-mobile-pay-open">
+<div class="vspos-mobile-pay-backdrop vspos-mobile-pay-backdrop--open" id="vspos_mobile_pay_backdrop"></div>
+<div class="vspos-mobile-pay-popup vspos-pay-v2 vspos-mobile-pay-popup--open" id="vspos_mobile_pay_popup" role="dialog">
+  <div class="vspos-pay-view" id="vspos_pay_view_main">
+    <div class="vspos-pay-v2-head">
+      <div class="vspos-pay-v2-head-left">
+        <div class="vspos-pay-v2-title">
+          <i class="fi fi-rr-wallet pos-fi-icon"></i> Payment
+          <kbd class="vspos-touch-pay-popup-kbd">F3</kbd>
+        </div>
+      </div>
+      <button type="button" class="vspos-mobile-pay-popup-close" aria-label="Close">×</button>
+    </div>
+    <div class="vspos-touch-pay" id="vspos_touch_pay">
+      <div class="vspos-touch-pay-scroll">
+        <div class="vspos-touch-pay-hero">
+          <div class="vspos-touch-pay-hero-main">
+            <div class="vspos-pay-v2-hero-label">Total payable</div>
+            <div class="vspos-pay-v2-hero-amount">620.00</div>
+          </div>
+          <div class="vspos-touch-pay-meters">
+            <div class="vspos-touch-pay-meter"><span>Paid</span><strong id="vspos_touch_pay_paid">Rs 0.00</strong></div>
+            <div class="vspos-touch-pay-meter vspos-touch-pay-meter--due"><span>Due</span><strong id="vspos_touch_pay_due">Rs 620.00</strong></div>
+            <div class="vspos-touch-pay-meter vspos-touch-pay-meter--change"><span>Change</span><strong id="vspos_touch_pay_change">Rs 0.00</strong></div>
+          </div>
+        </div>
+        <div class="vspos-touch-pay-list-panel">
+          <div class="vspos-touch-pay-list-head"><span>Payments</span><button type="button" class="vspos-touch-pay-clear-list">Clear</button></div>
+          <div class="vspos-touch-pay-list"><div class="vspos-touch-pay-list-empty">No payments yet — enter amount &amp; tap a method</div></div>
+        </div>
+        <div class="vspos-touch-pay-workspace">
+          <aside class="vspos-touch-pay-methods">
+            <button type="button" class="vspos-touch-pay-method vspos-touch-pay-method--fullcash"><span>Cash Full Pay</span><kbd>F1</kbd></button>
+            <button type="button" class="vspos-touch-pay-method vspos-touch-pay-method--cash"><span>Cash</span><kbd>F2</kbd></button>
+            <button type="button" class="vspos-touch-pay-method vspos-touch-pay-method--card"><span>Card</span><kbd>F5</kbd></button>
+            <button type="button" class="vspos-touch-pay-method vspos-touch-pay-method--bank"><span>Bank Transfer</span><kbd>F11</kbd></button>
+            <button type="button" class="vspos-touch-pay-method vspos-touch-pay-method--credit"><span>Credit</span><kbd>F6</kbd></button>
+            <button type="button" class="vspos-touch-pay-method vspos-touch-pay-method--cheque"><span>Cheque</span><kbd>F7</kbd></button>
+          </aside>
+          <div class="vspos-touch-pay-keypad-col">
+            <div class="vspos-pay-v2-tender vspos-touch-pay-tender">
+              <label class="vspos-pay-v2-tender-label" for="vspos_pay_amount_input">Amount</label>
+              <input type="text" id="vspos_pay_amount_input" class="vspos-pay-amount-input vspos-pay-v2-input" value="620">
+              <div class="vspos-pay-v2-change"><span>Change Return</span><strong id="vspos_pay_change_preview">Rs 0.00</strong></div>
+            </div>
+            <div class="vspos-touch-pay-account">
+              <label class="vspos-pay-v2-tender-label" for="vspos_touch_pay_account">Payment Account</label>
+              <select id="vspos_touch_pay_account" class="vspos-touch-pay-account-select"><option>None</option><option>Cash Account</option></select>
+              <p class="vspos-touch-pay-account-hint">Auto-linked from location default · change only if needed</p>
+            </div>
+            <div class="vspos-touch-keypad">
+              <div class="vspos-touch-keypad-grid">
+                <button type="button" class="vspos-touch-key">1</button><button type="button" class="vspos-touch-key">2</button><button type="button" class="vspos-touch-key">3</button>
+                <button type="button" class="vspos-touch-key">4</button><button type="button" class="vspos-touch-key">5</button><button type="button" class="vspos-touch-key">6</button>
+                <button type="button" class="vspos-touch-key">7</button><button type="button" class="vspos-touch-key">8</button><button type="button" class="vspos-touch-key">9</button>
+                <button type="button" class="vspos-touch-key">.</button><button type="button" class="vspos-touch-key">0</button><button type="button" class="vspos-touch-key vspos-touch-key--back">⌫</button>
+              </div>
+              <div class="vspos-touch-keypad-row">
+                <button type="button" class="vspos-touch-key vspos-touch-key--clear">C</button>
+                <button type="button" class="vspos-touch-key vspos-touch-key--exact">Exact</button>
+              </div>
+            </div>
+            <p class="vspos-touch-pay-hint">Enter amount → tap a method to add · repeat for split</p>
+          </div>
+        </div>
+      </div>
+      <div class="vspos-touch-pay-footer">
+        <button type="button" class="vspos-pay-v2-sec vspos-pay-v2-sec--cancel"><span>Cancel</span></button>
+        <button type="button" class="vspos-touch-pay-complete"><span>Complete</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="probe" id="probe"></div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  if (q.get('theme') === 'dark') document.documentElement.setAttribute('data-vspos-theme', 'dark');
+  function contrast(fg, bg) {
+    function L(c){c=c.replace('#',''); if(c.length===3)c=c.split('').map(function(x){return x+x}).join('');
+      var n=parseInt(c,16); var r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+      function f(v){v/=255; return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)}
+      return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b)}
+    var a=L(fg), b=L(bg); var hi=Math.max(a,b), lo=Math.min(a,b);
+    return ((hi+0.05)/(lo+0.05));
+  }
+  function rgb(c){var m=c.match(/[\d.]+/g); return '#'+[m[0],m[1],m[2]].map(function(n){return ('0'+parseInt(n,10).toString(16)).slice(-2)}).join('')}
+  window.__payReport = function () {
+    var nodes = [
+      ['.vspos-pay-v2-title','title'],
+      ['.vspos-pay-v2-hero-label','payable label'],
+      ['.vspos-pay-v2-hero-amount','payable amount'],
+      ['.vspos-touch-pay-meter span','meter label'],
+      ['#vspos_touch_pay_paid','paid'],
+      ['#vspos_touch_pay_due','due'],
+      ['#vspos_touch_pay_change','change'],
+      ['.vspos-touch-pay-list-head','payments head'],
+      ['.vspos-touch-pay-list-empty','empty'],
+      ['.vspos-pay-v2-tender-label','amount label'],
+      ['#vspos_pay_amount_input','amount input'],
+      ['.vspos-pay-v2-change','change return'],
+      ['.vspos-pay-v2-change strong','change value'],
+      ['.vspos-touch-pay-account-hint','account hint'],
+      ['.vspos-touch-pay-account-select','account select'],
+      ['.vspos-touch-key','key'],
+      ['.vspos-touch-key--clear','clear'],
+      ['.vspos-pay-v2-sec--cancel','cancel'],
+      ['.vspos-touch-pay-complete','complete'],
+      ['.vspos-touch-pay-method--card','card btn']
+    ];
+    var popup = document.getElementById('vspos_mobile_pay_popup');
+    var footer = document.querySelector('.vspos-touch-pay-footer');
+    var pr = popup.getBoundingClientRect();
+    var fr = footer.getBoundingClientRect();
+    var docW = document.documentElement.scrollWidth;
+    var rows = nodes.map(function (pair) {
+      var el = document.querySelector(pair[0]);
+      if (!el) return pair[1]+': MISSING';
+      var cs = getComputedStyle(el);
+      var parent = getComputedStyle(el.parentElement);
+      var fg = rgb(cs.color);
+      var bg = cs.backgroundColor === 'rgba(0, 0, 0, 0)' ? parent.backgroundColor : cs.backgroundColor;
+      if (bg === 'rgba(0, 0, 0, 0)') bg = getComputedStyle(popup).backgroundColor;
+      var ratio = contrast(fg, rgb(bg));
+      return pair[1]+' '+fg+' on '+rgb(bg)+' '+ratio.toFixed(2)+' vis='+(el.offsetParent!==null);
+    });
+    var overflow = docW > window.innerWidth + 1;
+    var footerInside = fr.bottom <= pr.bottom + 1 && fr.top >= pr.top - 1;
+    return {
+      theme: document.documentElement.getAttribute('data-vspos-theme'),
+      vw: window.innerWidth,
+      vh: window.innerHeight,
+      popup: {w: Math.round(pr.width), h: Math.round(pr.height), top: Math.round(pr.top), left: Math.round(pr.left), bottom: Math.round(pr.bottom)},
+      footerInside: footerInside,
+      pageOverflow: overflow,
+      scrollW: docW,
+      rows: rows
+    };
+  };
+})();
+</script>
+</body>
+</html>

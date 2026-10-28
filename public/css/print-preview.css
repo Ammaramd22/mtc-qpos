@@ -1,0 +1,442 @@
+/* QPOS in-app print preview — always loaded (not only POS theme) */
+.vspos-pp-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20040;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.vspos-pp-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.vspos-pp-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 20050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.vspos-pp-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.vspos-pp-shell {
+    width: min(560px, 96vw);
+    max-height: min(92vh, 920px);
+    display: flex;
+    flex-direction: column;
+    background: #121212;
+    border: 1px solid rgba(245, 197, 24, 0.22);
+    border-radius: 20px;
+    box-shadow: 0 28px 72px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+    transform: translateY(14px) scale(0.97);
+    transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.vspos-pp-shell.is-wide {
+    width: min(920px, 96vw);
+}
+.vspos-pp-modal.is-open .vspos-pp-shell {
+    transform: translateY(0) scale(1);
+}
+.vspos-pp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    background:
+        radial-gradient(ellipse 80% 120% at 0% 0%, rgba(245, 197, 24, 0.14), transparent 55%),
+        linear-gradient(180deg, #1a1a1a, #111);
+    border-bottom: 1px solid #2a2a2a;
+}
+.vspos-pp-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.vspos-pp-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #f5c518, #d4a012);
+    color: #111;
+    font-weight: 900;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(245, 197, 24, 0.28);
+}
+.vspos-pp-head h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fafafa;
+    letter-spacing: -0.01em;
+}
+.vspos-pp-sub {
+    margin: 3px 0 0;
+    font-size: 0.75rem;
+    color: #a3a3a3;
+    font-weight: 600;
+}
+.vspos-pp-x {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e5e5e5;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.vspos-pp-x:hover {
+    border-color: #f5c518;
+    color: #f5c518;
+    background: rgba(245, 197, 24, 0.1);
+}
+.vspos-pp-stage {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 22px 20px 28px;
+    background:
+        radial-gradient(480px 180px at 50% 0%, rgba(245, 197, 24, 0.1), transparent 70%),
+        #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.vspos-pp-badge {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 14px;
+}
+.vspos-pp-badge span {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #f5c518;
+    background: rgba(245, 197, 24, 0.12);
+    border: 1px solid rgba(245, 197, 24, 0.35);
+    border-radius: 999px;
+    padding: 4px 12px;
+}
+.vspos-pp-paper-wrap {
+    width: 80mm;
+    min-width: 80mm;
+    max-width: 80mm;
+    flex-shrink: 0;
+    filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.6));
+    position: relative;
+}
+.vspos-pp-paper-wrap.is-58mm,
+.vspos-pp-modal.vspos-pp-58 .vspos-pp-paper-wrap {
+    width: 58mm;
+    min-width: 58mm;
+    max-width: 58mm;
+}
+.vspos-pp-paper-wrap.is-a5,
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper-wrap {
+    width: min(210mm, 88vw);
+    min-width: 0;
+    max-width: 210mm;
+}
+.vspos-pp-paper-wrap.is-a5::before,
+.vspos-pp-paper-wrap.is-a5::after,
+.vspos-pp-paper-wrap.is-a4::before,
+.vspos-pp-paper-wrap.is-a4::after,
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper-wrap::before,
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper-wrap::after,
+.vspos-pp-modal.vspos-pp-a4 .vspos-pp-paper-wrap::before,
+.vspos-pp-modal.vspos-pp-a4 .vspos-pp-paper-wrap::after {
+    display: none;
+}
+.vspos-pp-paper-wrap.is-a4,
+.vspos-pp-modal.vspos-pp-a4 .vspos-pp-paper-wrap {
+    width: min(210mm, 88vw);
+    min-width: 0;
+    max-width: 210mm;
+}
+.vspos-pp-paper-wrap::before,
+.vspos-pp-paper-wrap::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: radial-gradient(circle at 4px 0, transparent 4px, #fff 4.5px) repeat-x;
+    background-size: 10px 8px;
+    pointer-events: none;
+    z-index: 2;
+}
+.vspos-pp-paper-wrap::before {
+    top: -1px;
+    transform: rotate(180deg);
+}
+.vspos-pp-paper-wrap::after {
+    bottom: -1px;
+}
+.vspos-pp-paper {
+    width: 80mm;
+    min-width: 80mm;
+    max-width: 80mm;
+    box-sizing: border-box;
+    background: #fff;
+    color: #111 !important;
+    border-radius: 0;
+    padding: 0;
+    min-height: 140px;
+    font-size: 11px;
+    line-height: 1.35;
+    overflow: visible;
+}
+.vspos-pp-paper-wrap.is-58mm .vspos-pp-paper,
+.vspos-pp-modal.vspos-pp-58 .vspos-pp-paper {
+    width: 58mm;
+    min-width: 58mm;
+    max-width: 58mm;
+    font-size: 10px;
+}
+.vspos-pp-paper-wrap.is-a5 .vspos-pp-paper,
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper {
+    width: 210mm;
+    min-width: 0;
+    max-width: 210mm;
+    height: 148mm;
+    min-height: 148mm;
+    max-height: 148mm;
+    font-size: 10px;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+    box-sizing: border-box;
+}
+.vspos-pp-paper-wrap.is-a5 .vspos-pp-paper .a5-sheet,
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper .a5-sheet {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+/* A5 business logo must stay compact — override generic preview img rules */
+.vspos-pp-paper .a5-sheet .a4-logo,
+.vspos-pp-paper .a5-sheet .a5-brand-logo img,
+.vspos-pp-paper-wrap.is-a5 .vspos-pp-paper .a5-sheet .a4-logo,
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper .a5-sheet .a4-logo {
+    max-width: 40px !important;
+    max-height: 38px !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    float: none !important;
+    position: static !important;
+    object-fit: contain !important;
+}
+.vspos-pp-paper .a5-sheet .a5-brand-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+.vspos-pp-paper .a5-sheet .a5-brand-logo {
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    max-width: 40px !important;
+    overflow: hidden !important;
+}
+.vspos-pp-paper .a5-sheet .a5-brand-text {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+.vspos-pp-paper-wrap.is-a4 .vspos-pp-paper,
+.vspos-pp-modal.vspos-pp-a4 .vspos-pp-paper {
+    width: 100%;
+    min-width: 0;
+    max-width: 210mm;
+    min-height: 260px;
+    font-size: 11px;
+    padding: 8mm;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+}
+.vspos-pp-paper-wrap.is-a5 .vspos-pp-paper .ticket,
+.vspos-pp-paper-wrap.is-a4 .vspos-pp-paper .ticket,
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper .ticket,
+.vspos-pp-modal.vspos-pp-a4 .vspos-pp-paper .ticket {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+.vspos-pp-paper-wrap.is-a5 .vspos-pp-paper img:not(.a4-logo),
+.vspos-pp-paper-wrap.is-a4 .vspos-pp-paper img:not(.a4-logo),
+.vspos-pp-modal.vspos-pp-a5 .vspos-pp-paper .receipt-logo,
+.vspos-pp-modal.vspos-pp-a4 .vspos-pp-paper .receipt-logo {
+    max-width: 48mm !important;
+    max-height: 28mm !important;
+}
+.vspos-pp-paper-wrap.is-58mm .vspos-pp-paper .ticket,
+.vspos-pp-modal.vspos-pp-58 .vspos-pp-paper .ticket {
+    width: 58mm !important;
+    max-width: 58mm !important;
+}
+.vspos-pp-paper.is-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 16px;
+    color: #737373 !important;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+.vspos-pp-paper .ticket {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 3mm 2.5mm 4mm !important;
+    box-sizing: border-box !important;
+    overflow: hidden;
+}
+.vspos-pp-paper img:not(.a4-logo),
+.vspos-pp-paper .receipt-logo {
+    max-width: 58mm !important;
+    max-height: 22mm !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 auto 5px !important;
+    display: block !important;
+    object-fit: contain !important;
+}
+.vspos-pp-paper .software-footer,
+.vspos-pp-paper .software-footer p {
+    font-weight: 700 !important;
+    color: #111 !important;
+    text-align: center !important;
+}
+.vspos-pp-paper .software-footer strong {
+    font-weight: 800 !important;
+    color: #000 !important;
+}
+.vspos-pp-paper table {
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+.vspos-pp-paper .textbox-info,
+.vspos-pp-paper .flex-box,
+.vspos-pp-paper .table-info {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+}
+.vspos-pp-paper .textbox-info > p:first-child,
+.vspos-pp-paper .flex-box > p:first-child {
+    flex: 0 1 auto !important;
+    text-align: left !important;
+    max-width: 42% !important;
+}
+.vspos-pp-paper .textbox-info > p:last-child,
+.vspos-pp-paper .flex-box > p:last-child {
+    flex: 1 1 auto !important;
+    text-align: right !important;
+    min-width: 0 !important;
+    word-break: break-word !important;
+}
+.vspos-pp-paper .flex-box > p:last-child {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+}
+.vspos-pp-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 18px;
+    border-top: 1px solid #2a2a2a;
+    background: linear-gradient(180deg, #111, #0c0c0c);
+}
+.vspos-pp-btn {
+    border-radius: 12px;
+    border: 1px solid #333;
+    padding: 11px 18px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.vspos-pp-btn--ghost {
+    background: #1a1a1a;
+    color: #f5f5f5;
+}
+.vspos-pp-btn--ghost:hover {
+    border-color: #555;
+}
+.vspos-pp-btn--print {
+    background: linear-gradient(145deg, #f5c518, #d4a012);
+    color: #111;
+    border-color: rgba(245, 197, 24, 0.5);
+    box-shadow: 0 8px 20px rgba(245, 197, 24, 0.28);
+}
+.vspos-pp-btn--print:hover {
+    filter: brightness(1.05);
+}
+.vspos-pp-btn--print:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+@media (max-width: 520px) {
+    .vspos-pp-shell {
+        width: 100%;
+        max-height: 94vh;
+        border-radius: 18px 18px 0 0;
+        align-self: flex-end;
+    }
+    .vspos-pp-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+    .vspos-pp-stage {
+        padding: 16px 10px 20px;
+    }
+    .vspos-pp-foot {
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+}
+body.vspos-pp-open {
+    overflow: hidden;
+}
+@media print {
+    body.vspos-pp-printing .vspos-pp-backdrop,
+    body.vspos-pp-printing .vspos-pp-modal,
+    body.vspos-pp-printing .vspos-pp-shell,
+    body.vspos-pp-printing .vspos-pp-head,
+    body.vspos-pp-printing .vspos-pp-foot,
+    body.vspos-pp-printing .vspos-pp-x {
+        display: none !important;
+    }
+}

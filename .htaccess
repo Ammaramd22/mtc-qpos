@@ -1,0 +1,45 @@
+# QPOS — cPanel root .htaccess
+# Place this in the folder ABOVE /public (same level as app/, .env, public/)
+# Stops /public/ in the URL and reduces 419 "Page Expired" from cached CSRF tokens.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Never serve application directories, even if the front-controller rewrite is skipped.
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|vendor|lang|tests|Modules)(/|$) - [F,L]
+
+    # Block dotfiles (.env, .git, .htaccess download) but allow ACME HTTP-01 challenges.
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # 1) Browser asked for /public/... → redirect to clean URL (keeps cookies/CSRF consistent)
+    RewriteCond %{THE_REQUEST} \s/+public/([^\s?]*) [NC]
+    RewriteRule ^ /%1 [R=301,L,QSA]
+
+    # 2) Everything else → serve from /public (internal rewrite; POST & CSRF stay intact)
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Block sensitive files at project root
+<FilesMatch "(^\.env|composer\.(json|lock)|artisan|package(-lock)?\.json|\.git|.*\.(sql|log|bak|ini|sh|bat|ps1|md))$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# No-cache for HTML/PHP responses (fixes stale login CSRF → 419 Page Expired)
+<IfModule mod_headers.c>
+    <FilesMatch "\.(php|html|htm)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
