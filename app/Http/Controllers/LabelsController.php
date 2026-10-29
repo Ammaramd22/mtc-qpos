@@ -6,6 +6,7 @@ use App\Barcode;
 use App\Business;
 use App\Product;
 use App\SellingPriceGroup;
+use App\Utils\BrowserLabelLayout;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
@@ -523,73 +524,33 @@ class LabelsController extends Controller
             ? $common_settings['browser_label_layout']
             : [];
         $default_business_name = (string) $request->session()->get('business.name');
-        $saved_layout = array_merge([
-            'label_w' => '38',
-            'label_h' => '25',
-            'business_name_size' => '8',
-            'name_size' => '9',
-            'sku_size' => '8',
-            'price_size' => '12',
-            'costcode_size' => '8',
-            'barcode_height' => '42',
-            'barcode_width' => '94',
-            'barcode_bar_width' => '4',
-            'barcode_position' => 'bottom',
-            'price_type' => 'inclusive',
-            'label_business_name' => $default_business_name,
-            'show_business_name' => '1',
-            'show_name' => '1',
-            'show_sku' => '1',
-            'show_barcode' => '1',
-            'show_price' => '1',
-            'show_costcode' => '1',
-        ], $saved_layout);
+        $profiles = BrowserLabelLayout::normalizeProfiles(
+            is_array($common_settings['browser_label_profiles'] ?? null) ? $common_settings['browser_label_profiles'] : [],
+            $default_business_name
+        );
 
-        // Prefer the business-saved layout. Request values only override when present
-        // (Rebuild / Apply from the print toolbar). Opening from Labels must NOT pass
-        // stale barcode_width/height in the query string or they wipe the saved layout.
-        $pick = function (string $key, $default = null) use ($request, $saved_layout) {
+        // Saved layout, then toolbar values when the form is rebuilt.
+        $incoming = $saved_layout;
+        foreach (array_keys(BrowserLabelLayout::defaults($default_business_name)) as $key) {
             if ($request->exists($key)) {
-                return $request->input($key);
+                $incoming[$key] = $request->input($key);
             }
-
-            return $saved_layout[$key] ?? $default;
-        };
-
-        $business_name = trim((string) $pick('label_business_name', $default_business_name));
-        if ($business_name === '') {
-            $business_name = $default_business_name;
         }
-        $business_name = mb_substr(strip_tags($business_name), 0, 80);
+        $layout = BrowserLabelLayout::normalize($incoming, $default_business_name);
+        $pageBox = BrowserLabelLayout::pageBox($layout);
+
+        $business_name = $layout['label_business_name'] !== ''
+            ? $layout['label_business_name']
+            : $default_business_name;
         $currency_symbol = session('currency')['symbol'] ?? '';
 
-        $opts = [
-            'label_w' => max(20, min(100, (float) $pick('label_w', 38))),
-            'label_h' => max(15, min(80, (float) $pick('label_h', 25))),
-            'business_name_size' => max(6, min(28, (int) $pick('business_name_size', 8))),
-            'name_size' => max(6, min(32, (int) $pick('name_size', 9))),
-            'sku_size' => max(5, min(22, (int) $pick('sku_size', 8))),
-            'price_size' => max(6, min(36, (int) $pick('price_size', 12))),
-            'costcode_size' => max(5, min(22, (int) $pick('costcode_size', 8))),
-            'barcode_height' => max(16, min(90, (int) $pick('barcode_height', 42))),
-            'barcode_width' => max(40, min(100, (int) $pick('barcode_width', 94))),
-            'barcode_bar_width' => max(1, min(5, (int) $pick('barcode_bar_width', 4))),
-            'barcode_position' => in_array((string) $pick('barcode_position', 'bottom'), ['top', 'middle', 'bottom'], true)
-                ? (string) $pick('barcode_position', 'bottom')
-                : 'bottom',
-            'show_business_name' => true,
-            'show_name' => true,
-            'show_sku' => true,
-            'show_barcode' => true,
-            'show_price' => true,
-            'show_costcode' => true,
-            'price_type' => (string) $pick('price_type', 'inclusive') === 'exclusive' ? 'exclusive' : 'inclusive',
-            'auto_print' => $request->boolean('auto_print'),
-        ];
-
-        foreach (['show_business_name', 'show_name', 'show_sku', 'show_barcode', 'show_price', 'show_costcode'] as $flag) {
-            $v = $pick($flag, $saved_layout[$flag] ?? '1');
-            $opts[$flag] = ! in_array((string) $v, ['0', 'false', 'off', ''], true);
+        $opts = $layout;
+        $opts['auto_print'] = $request->boolean('auto_print');
+        foreach ([
+            'show_business_name', 'show_name', 'show_sku', 'show_barcode', 'show_price',
+            'show_costcode', 'show_brand', 'show_category',
+        ] as $flag) {
+            $opts[$flag] = ($layout[$flag] ?? '0') === '1';
         }
 
         $customLabels = session('business.custom_labels', []);
@@ -625,15 +586,33 @@ class LabelsController extends Controller
                 $name .= ' '.$details->variation_name;
             }
 
+            $brand = trim((string) ($details->brand ?? ''));
+            $category = '';
+            if (! empty($opts['show_category']) && ! empty($details->category_id)) {
+                $category = trim((string) optional(\App\Category::find($details->category_id))->name);
+            }
+
+            $requestedType = ($layout['barcode_format'] ?? 'auto') === 'auto'
+                ? (string) ($details->barcode_type ?? 'C128')
+                : (string) $layout['barcode_format'];
+            $barcodeType = BrowserLabelLayout::resolveBarcodeType($requestedType, (string) $sku);
+
             $barcodePng = '';
             try {
                 if ($sku !== '') {
-                    $barW = max(1, (int) $opts['barcode_bar_width']);
-                    $barH = max(20, (int) $opts['barcode_height']);
-                    $barcodePng = \DNS1D::getBarcodePNG($sku, 'C128', $barW, $barH, [0, 0, 0], false);
+                    $barW = max(1, min(4, (int) $opts['barcode_bar_width']));
+                    $barH = max(16, min(80, (int) $opts['barcode_height']));
+                    $barcodePng = \DNS1D::getBarcodePNG($sku, $barcodeType, $barW, $barH, [0, 0, 0], false);
                 }
             } catch (\Throwable $e) {
-                $barcodePng = '';
+                try {
+                    if ($sku !== '' && $barcodeType !== 'C128') {
+                        $barcodePng = \DNS1D::getBarcodePNG($sku, 'C128', 2, 40, [0, 0, 0], false);
+                        $barcodeType = 'C128';
+                    }
+                } catch (\Throwable $e2) {
+                    $barcodePng = '';
+                }
             }
 
             for ($i = 0; $i < $qty; $i++) {
@@ -642,9 +621,12 @@ class LabelsController extends Controller
                     'sku' => $sku,
                     'price' => $price,
                     'barcode_png' => $barcodePng,
+                    'barcode_type' => $barcodeType,
                     'costcode' => trim((string) ($details->product_custom_field1 ?? '')),
                     'supplier_code' => trim((string) ($details->product_custom_field2 ?? '')),
                     'supplier_name' => trim((string) ($details->supplier_name ?? '')),
+                    'brand' => $brand,
+                    'category' => $category,
                 ];
             }
         }
@@ -654,8 +636,22 @@ class LabelsController extends Controller
                 ->with('status', ['success' => 0, 'msg' => __('lang_v1.label_no_product_error')]);
         }
 
+        $presets = BrowserLabelLayout::presets();
+
         return view('labels.browser_print')
-            ->with(compact('stickers', 'business_name', 'currency_symbol', 'opts', 'costcodeLabel', 'supplierCodeLabel', 'printId'));
+            ->with(compact(
+                'stickers',
+                'business_name',
+                'currency_symbol',
+                'opts',
+                'costcodeLabel',
+                'supplierCodeLabel',
+                'printId',
+                'profiles',
+                'presets',
+                'pageBox',
+                'layout'
+            ));
     }
 
     /**
@@ -686,30 +682,28 @@ class LabelsController extends Controller
             return $request->input($key, $default);
         };
 
-        $layout = [
-            'label_w' => (string) max(20, min(100, (float) $get('label_w', 38))),
-            'label_h' => (string) max(15, min(80, (float) $get('label_h', 25))),
-            'business_name_size' => (string) max(6, min(28, (int) $get('business_name_size', 8))),
-            'name_size' => (string) max(6, min(32, (int) $get('name_size', 9))),
-            'sku_size' => (string) max(5, min(22, (int) $get('sku_size', 8))),
-            'price_size' => (string) max(6, min(36, (int) $get('price_size', 12))),
-            'costcode_size' => (string) max(5, min(22, (int) $get('costcode_size', 8))),
-            'barcode_height' => (string) max(16, min(90, (int) $get('barcode_height', 42))),
-            'barcode_width' => (string) max(40, min(100, (int) $get('barcode_width', 94))),
-            'barcode_bar_width' => (string) max(1, min(5, (int) $get('barcode_bar_width', 4))),
-            'barcode_position' => in_array((string) $get('barcode_position', 'bottom'), ['top', 'middle', 'bottom'], true)
-                ? (string) $get('barcode_position', 'bottom')
-                : 'bottom',
-            'price_type' => (string) $get('price_type', 'inclusive') === 'exclusive' ? 'exclusive' : 'inclusive',
-            'label_business_name' => mb_substr(strip_tags(trim((string) $get('label_business_name', ''))), 0, 80),
-        ];
-
-        foreach (['show_business_name', 'show_name', 'show_sku', 'show_barcode', 'show_price', 'show_costcode'] as $flag) {
-            $raw = $get($flag, '0');
-            $layout[$flag] = ! in_array((string) $raw, ['0', 'false', 'off', '', 'null'], true) ? '1' : '0';
+        $existingLayout = [];
+        $businessForMerge = Business::find($business_id);
+        $existingSettings = $businessForMerge && is_array($businessForMerge->common_settings)
+            ? $businessForMerge->common_settings
+            : [];
+        if (is_array($existingSettings['browser_label_layout'] ?? null)) {
+            $existingLayout = $existingSettings['browser_label_layout'];
         }
+        $raw = $existingLayout;
+        foreach (array_keys(BrowserLabelLayout::defaults()) as $key) {
+            if (array_key_exists($key, $in) || $request->exists($key)) {
+                $raw[$key] = $get($key);
+            }
+        }
+        $businessName = (string) $request->session()->get('business.name');
+        $layout = BrowserLabelLayout::normalize($raw, $businessName);
 
-        DB::transaction(function () use ($business_id, $layout, $request) {
+        $profileName = mb_substr(strip_tags(trim((string) $get('profile_name', ''))), 0, 40);
+        $profileId = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) $get('profile_id', ''));
+        $deleteProfileId = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) $get('delete_profile_id', ''));
+
+        DB::transaction(function () use ($business_id, $layout, $request, $profileName, $profileId, $deleteProfileId, $businessName) {
             $business = Business::where('id', $business_id)->lockForUpdate()->firstOrFail();
             $common_settings = $business->common_settings;
             if (is_string($common_settings)) {
@@ -718,25 +712,94 @@ class LabelsController extends Controller
             if (! is_array($common_settings)) {
                 $common_settings = [];
             }
+            $profiles = BrowserLabelLayout::normalizeProfiles(
+                is_array($common_settings['browser_label_profiles'] ?? null) ? $common_settings['browser_label_profiles'] : [],
+                $businessName
+            );
+            if ($deleteProfileId !== '') {
+                $profiles = array_values(array_filter($profiles, function ($profile) use ($deleteProfileId) {
+                    return ($profile['id'] ?? '') !== $deleteProfileId;
+                }));
+            }
+            if ($profileName !== '') {
+                $found = false;
+                foreach ($profiles as &$profile) {
+                    if ($profileId !== '' && ($profile['id'] ?? '') === $profileId) {
+                        $profile['name'] = $profileName;
+                        $profile['layout'] = $layout;
+                        $found = true;
+                        break;
+                    }
+                }
+                unset($profile);
+                if (! $found && count($profiles) < 12) {
+                    $profiles[] = [
+                        'id' => 'p'.substr(bin2hex(random_bytes(4)), 0, 8),
+                        'name' => $profileName,
+                        'layout' => $layout,
+                    ];
+                }
+            }
             $common_settings['browser_label_layout'] = $layout;
+            $common_settings['browser_label_profiles'] = $profiles;
             $business->common_settings = $common_settings;
             $business->save();
 
-            // Keep session business in sync so Labels page / other screens see new layout.
             $request->session()->put('business', $business->fresh());
         });
 
         $saved = Business::find($business_id);
-        $savedLayout = is_array($saved->common_settings ?? null)
-            ? ($saved->common_settings['browser_label_layout'] ?? $layout)
-            : $layout;
+        $savedSettings = is_array($saved->common_settings ?? null) ? $saved->common_settings : [];
+        $savedLayout = $savedSettings['browser_label_layout'] ?? $layout;
+        $savedProfiles = $savedSettings['browser_label_profiles'] ?? [];
 
         return response()->json([
             'success' => true,
             'layout' => $savedLayout,
+            'profiles' => $savedProfiles,
             'msg' => __('lang_v1.label_layout_saved_server'),
             'barcode_width' => $savedLayout['barcode_width'] ?? null,
             'barcode_height' => $savedLayout['barcode_height'] ?? null,
+        ]);
+    }
+
+    /**
+     * Rebuild one barcode image for the live preview. Does not change the product.
+     */
+    public function browserPrintBarcode(Request $request)
+    {
+        if (! auth()->check()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $sku = mb_substr(trim((string) $request->input('sku', '')), 0, 80);
+        if ($sku === '' || preg_match('/[\x00-\x1F]/', $sku)) {
+            return response()->json(['success' => false, 'msg' => 'Invalid barcode value'], 422);
+        }
+
+        $requested = (string) $request->input('barcode_format', 'C128');
+        if (strtolower($requested) === 'auto') {
+            $requested = 'C128';
+        }
+        $barcodeType = BrowserLabelLayout::resolveBarcodeType($requested, $sku);
+        $barW = max(1, min(4, (int) $request->input('barcode_bar_width', 2)));
+        $barH = max(16, min(80, (int) $request->input('barcode_height', 42)));
+
+        try {
+            $png = \DNS1D::getBarcodePNG($sku, $barcodeType, $barW, $barH, [0, 0, 0], false);
+        } catch (\Throwable $e) {
+            try {
+                $png = \DNS1D::getBarcodePNG($sku, 'C128', $barW, $barH, [0, 0, 0], false);
+                $barcodeType = 'C128';
+            } catch (\Throwable $e2) {
+                return response()->json(['success' => false, 'msg' => 'Barcode could not be drawn'], 422);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'png' => $png,
+            'barcode_type' => $barcodeType,
         ]);
     }
 

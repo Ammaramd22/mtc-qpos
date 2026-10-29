@@ -17,11 +17,20 @@
             --barcode-w: {{ $opts['barcode_width'] }}%;
             --barcode-h: {{ $opts['barcode_height'] }}px;
             --ink: #000;
+            --pad-t: {{ $opts['margin_top'] }}mm;
+            --pad-r: {{ $opts['margin_right'] }}mm;
+            --pad-b: {{ $opts['margin_bottom'] }}mm;
+            --pad-l: {{ $opts['margin_left'] }}mm;
+            --shift-x: {{ $opts['offset_x'] }}mm;
+            --shift-y: {{ $opts['offset_y'] }}mm;
+            --quiet: {{ $opts['quiet_zone'] }}mm;
+            --name-weight: {{ (int) $opts['name_weight'] }};
+            --price-weight: {{ (int) $opts['price_weight'] }};
         }
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: "{{ $opts['font_family'] }}", Helvetica, sans-serif;
             background: #1e293b;
             color: #e2e8f0;
         }
@@ -69,6 +78,48 @@
         .panel.fonts h2 { color: #fbbf24; }
         .panel.barcode h2 { color: #4ade80; }
         .panel.show h2 { color: #c084fc; }
+        .panel.preview h2 { color: #f8fafc; }
+        .live-preview-stage {
+            background: #334155;
+            padding: 12px;
+            border-radius: 8px;
+            display: block;
+            overflow: hidden;
+            max-width: 100%;
+        }
+        .live-preview-frame {
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+        }
+        .live-preview-zoom {
+            width: var(--label-w);
+            height: var(--label-h);
+            transform-origin: top left;
+        }
+        .print-orient-note {
+            margin: 8px 0 0;
+            font-size: 12px;
+            line-height: 1.35;
+            color: #fde68a;
+            max-width: 280px;
+        }
+        .live-preview-meta {
+            margin: 8px 0 0;
+            font-size: 12px;
+            line-height: 1.35;
+            color: #e2e8f0;
+            max-width: 280px;
+        }
+        .batch-title {
+            margin: 0;
+            padding: 14px 20px 0;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
         .fields {
             display: flex;
             flex-wrap: wrap;
@@ -148,32 +199,110 @@
         .sheet {
             padding: 20px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .sheet-page {
+            display: grid;
+            grid-template-columns: repeat({{ (int) $pageBox['columns'] }}, var(--label-w));
+            grid-auto-rows: var(--label-h);
+            column-gap: var(--screen-gap-x, 10px);
+            row-gap: var(--screen-gap-y, 10px);
+            width: max-content;
         }
 
-        /* ===== Sticker ===== */
+        /* ===== Sticker =====
+           The dashed frame is one physical sticker: width across the roll, height along the feed.
+           The print page uses those same millimetres. Rotation turns the artwork inside that box. */
         .label {
             width: var(--label-w);
             height: var(--label-h);
+            max-width: var(--label-w);
+            max-height: var(--label-h);
             background: #fff;
             color: var(--ink);
-            border: 1px dashed #64748b;
-            padding: 0.9mm 1.3mm 1mm;
-            display: flex;
-            flex-direction: column;
+            border: 0;
+            outline: 1px dashed #64748b;
+            outline-offset: -1px;
             overflow: hidden;
             page-break-inside: avoid;
             break-inside: avoid;
         }
+        .label-inner {
+            width: 100%;
+            height: 100%;
+            padding: var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+            min-height: 0;
+        }
+        .label-shift {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform: translate(var(--shift-x), var(--shift-y));
+        }
+        /* Rotation turns the artwork inside the fixed sticker. The page size stays width × height. */
+        .label.rot-0 .label-inner,
+        .label.rot-180 .label-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .label.rot-180 .label-inner {
+            transform: rotate(180deg);
+            transform-origin: center center;
+        }
+        .label.rot-90 .label-inner,
+        .label.rot-270 .label-inner {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            max-height: 100%;
+            transform-origin: center center;
+        }
+        .label.rot-90 .label-inner { transform: rotate(90deg) scale(calc(var(--label-h) / var(--label-w))); }
+        .label.rot-270 .label-inner { transform: rotate(-90deg) scale(calc(var(--label-h) / var(--label-w))); }
+        @media print {
+            .label, .label-shift, .label-inner {
+                border: 0 !important;
+                outline: none !important;
+                box-shadow: none !important;
+            }
+            .label.rot-0 .label-inner,
+            .label.rot-90 .label-inner,
+            .label.rot-180 .label-inner,
+            .label.rot-270 .label-inner {
+                position: absolute !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100% !important;
+            }
+            .label.rot-0 .label-inner { transform: none !important; }
+            .label.rot-180 .label-inner { transform: rotate(180deg) !important; transform-origin: center center !important; }
+            .label.rot-90 .label-inner { transform: rotate(90deg) scale(calc(var(--label-h) / var(--label-w))) !important; transform-origin: center center !important; }
+            .label.rot-270 .label-inner { transform: rotate(-90deg) scale(calc(var(--label-h) / var(--label-w))) !important; transform-origin: center center !important; }
+        }
         .label .head {
             flex: 0 0 auto;
-            text-align: center;
+            text-align: {{ $opts['align'] }};
             line-height: 1.05;
         }
         .label .biz {
             font-size: var(--biz-size);
-            font-weight: 900;
+            font-weight: {{ (int) $opts['business_name_weight'] }};
+            color: #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .label .meta {
+            font-size: var(--brand-size, 7px);
+            font-weight: 700;
             color: #000;
             white-space: nowrap;
             overflow: hidden;
@@ -181,7 +310,7 @@
         }
         .label .pname {
             font-size: var(--name-size);
-            font-weight: 800;
+            font-weight: var(--name-weight);
             color: #000;
             max-height: 2.2em;
             overflow: hidden;
@@ -198,6 +327,7 @@
             align-items: center;
             min-height: 0;
             width: 100%;
+            overflow: hidden;
         }
         /* Barcode position */
         .label.bc-top .body { justify-content: flex-start; }
@@ -207,24 +337,42 @@
         .label .barcode-wrap {
             width: var(--barcode-w);
             max-width: 100%;
+            max-height: var(--barcode-h);
             line-height: 0;
-            flex: 0 0 auto;
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-left: var(--quiet);
+            padding-right: var(--quiet);
+            box-sizing: border-box;
         }
         .label .barcode-wrap img {
-            width: 100%;
-            height: var(--barcode-h);
-            object-fit: fill;
+            display: block;
+            width: auto;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            object-position: center;
             image-rendering: pixelated;
             filter: contrast(1.45) brightness(0.88);
             -webkit-filter: contrast(1.45) brightness(0.88);
         }
         .label .sku {
+            flex: 0 0 auto;
+            max-width: 100%;
             font-size: var(--sku-size);
             font-weight: 800;
             color: #000;
             letter-spacing: .03em;
             line-height: 1.05;
             margin-top: 0.2mm;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Footer: Cost Code (left) · Price (right) — no divider line */
@@ -233,15 +381,19 @@
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
-            gap: 1.5mm;
+            gap: 1mm;
             width: 100%;
-            margin-top: 0.5mm;
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden;
+            margin-top: 0.3mm;
             padding-top: 0;
             border-top: none;
-            min-height: calc(var(--price-size) * 1.15px);
+            min-height: 0;
         }
         .label .footer .cc {
-            flex: 0 1 42%;
+            flex: 1 1 auto;
+            min-width: 0;
             font-size: var(--costcode-size);
             font-weight: 900;
             color: #000;
@@ -252,38 +404,88 @@
             text-align: left;
         }
         .label .footer .price {
-            flex: 0 1 55%;
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 100%;
             text-align: right;
             font-size: var(--price-size);
-            font-weight: 900;
+            font-weight: var(--price-weight);
             color: #000;
             line-height: 1.05;
             white-space: nowrap;
-            overflow: visible;
-            letter-spacing: -0.01em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0;
         }
-
+    </style>
+    @php
+        $printRotate = (string) ($pageBox['rotate'] ?? '0');
+        $pageW = $pageBox['page_w'];
+        $pageH = $pageBox['page_h'];
+        $cols = (int) $pageBox['columns'];
+        $gapX = $pageBox['gap_x'];
+        $gapY = $pageBox['gap_y'];
+    @endphp
+    <style id="label-print-css">
+        @page { size: {{ $pageW }}mm {{ $pageH }}mm; margin: 0; @if(($opts['media'] ?? 'roll') !== 'sheet' && (float) $pageW > (float) $pageH) page-orientation: rotate-right; @endif }
         @media print {
-            body { background: #fff; }
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+                width: {{ $pageW }}mm !important;
+                height: auto !important;
+            }
             .toolbar, .no-print { display: none !important; }
-            .sheet { padding: 0; gap: 0; display: block; }
-            .label {
-                border: none;
-                margin: 0;
+            .sheet { display: block !important; padding: 0 !important; margin: 0 !important; gap: 0 !important; width: {{ $pageW }}mm !important; }
+            .sheet-page {
+                width: {{ $pageW }}mm !important;
+                height: {{ $pageH }}mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: grid !important;
+                grid-template-columns: repeat({{ $cols }}, {{ $pageBox['label_w'] }}mm);
+                grid-auto-rows: {{ $pageBox['label_h'] }}mm;
+                column-gap: {{ $gapX }}mm;
+                row-gap: {{ $gapY }}mm;
+                align-content: start;
                 page-break-after: always;
                 break-after: page;
+                overflow: hidden !important;
             }
-            .label:last-child {
-                page-break-after: auto;
-                break-after: auto;
+            .sheet-page:last-child { page-break-after: auto; break-after: auto; }
+            .label {
+                width: {{ $pageBox['label_w'] }}mm !important;
+                height: {{ $pageBox['label_h'] }}mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                background: #fff !important;
+                overflow: hidden !important;
+                position: relative !important;
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+            .label-shift {
+                width: 100%;
+                height: 100%;
+                transform: translate(var(--shift-x), var(--shift-y));
+            }
+            .label-inner {
+                box-sizing: border-box !important;
+                background: #fff !important;
+                overflow: hidden !important;
+                padding: var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l) !important;
             }
             .label .barcode-wrap img {
-                filter: contrast(1.6) brightness(0.82);
-                -webkit-filter: contrast(1.6) brightness(0.82);
+                filter: contrast(1.35) brightness(0.9);
+                -webkit-filter: contrast(1.35) brightness(0.9);
             }
-            @page {
-                size: {{ $opts['label_w'] }}mm {{ $opts['label_h'] }}mm;
-                margin: 0;
+            .label img.label-shot {
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                object-fit: fill;
             }
         }
     </style>
@@ -317,6 +519,18 @@
         @endif
 
         <div class="panel-row">
+            <div class="panel preview">
+                <h2>@lang('lang_v1.label_live_preview')</h2>
+                    <div class="live-preview-stage">
+                    <div class="live-preview-frame">
+                    <div class="live-preview-zoom">
+                        @include('labels.partials.browser_sticker', ['sticker' => $stickers[0]])
+                    </div>
+                    </div>
+                </div>
+                <p class="live-preview-meta" id="live_preview_meta"></p>
+                <p class="print-orient-note" id="print_orient_note"></p>
+            </div>
             <div class="panel">
                 <h2>@lang('lang_v1.label_size')</h2>
                 <div class="fields">
@@ -328,7 +542,76 @@
                         <span>@lang('lang_v1.label_height_mm')</span>
                         <input type="number" name="label_h" id="opt_label_h" value="{{ $opts['label_h'] }}" min="15" max="80" step="0.5">
                     </label>
+                    <label class="field" style="min-width:180px;">
+                        <span>@lang('lang_v1.label_print_rotation')</span>
+                        <small>@lang('lang_v1.label_print_rotation_help')</small>
+                        <select name="print_rotate" id="opt_print_rotate" style="max-width:220px;">
+                            <option value="0" @if($printRotate === '0') selected @endif>@lang('lang_v1.label_rotate_0')</option>
+                            <option value="90" @if($printRotate === '90') selected @endif>@lang('lang_v1.label_rotate_90')</option>
+                            <option value="180" @if($printRotate === '180') selected @endif>@lang('lang_v1.label_rotate_180')</option>
+                            <option value="270" @if($printRotate === '270') selected @endif>@lang('lang_v1.label_rotate_270')</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_media')</span>
+                        <select name="media" id="opt_media">
+                            <option value="roll" @if(($opts['media'] ?? 'roll') === 'roll') selected @endif>@lang('lang_v1.label_media_roll')</option>
+                            <option value="sheet" @if(($opts['media'] ?? '') === 'sheet') selected @endif>@lang('lang_v1.label_media_sheet')</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_columns')</span>
+                        <input type="number" name="columns" id="opt_columns" value="{{ $opts['columns'] }}" min="1" max="6">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_rows')</span>
+                        <input type="number" name="rows" id="opt_rows" value="{{ $opts['rows'] }}" min="1" max="20">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_gap_x')</span>
+                        <input type="number" name="gap_x" id="opt_gap_x" value="{{ $opts['gap_x'] }}" min="0" max="20" step="0.5">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_gap_y')</span>
+                        <input type="number" name="gap_y" id="opt_gap_y" value="{{ $opts['gap_y'] }}" min="0" max="20" step="0.5">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_offset_x')</span>
+                        <input type="number" name="offset_x" id="opt_offset_x" class="live-mm" data-var="--shift-x" value="{{ $opts['offset_x'] }}" min="-15" max="15" step="0.5">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_offset_y')</span>
+                        <input type="number" name="offset_y" id="opt_offset_y" class="live-mm" data-var="--shift-y" value="{{ $opts['offset_y'] }}" min="-15" max="15" step="0.5">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_margin_top')</span>
+                        <input type="number" name="margin_top" id="opt_margin_top" class="live-mm" data-var="--pad-t" value="{{ $opts['margin_top'] }}" min="0" max="8" step="0.1">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_margin_right')</span>
+                        <input type="number" name="margin_right" class="live-mm" data-var="--pad-r" value="{{ $opts['margin_right'] }}" min="0" max="8" step="0.1">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_margin_bottom')</span>
+                        <input type="number" name="margin_bottom" class="live-mm" data-var="--pad-b" value="{{ $opts['margin_bottom'] }}" min="0" max="8" step="0.1">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_margin_left')</span>
+                        <input type="number" name="margin_left" class="live-mm" data-var="--pad-l" value="{{ $opts['margin_left'] }}" min="0" max="8" step="0.1">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_preset')</span>
+                        <select id="opt_preset">
+                            <option value="">@lang('lang_v1.label_preset')</option>
+                            @foreach($presets as $presetKey => $preset)
+                                <option value="{{ $presetKey }}">@lang('lang_v1.label_preset_'.$presetKey)</option>
+                            @endforeach
+                        </select>
+                    </label>
                 </div>
+                @if($printRotate !== '0')
+                    <p class="hint" style="color:#fde68a;">This layout is rotated {{ $printRotate }}°. Choose 0° — upright if the shop name should sit at the top. The preview shows the print.</p>
+                @endif
             </div>
 
             <div class="panel fonts">
@@ -359,6 +642,22 @@
                         <input type="number" name="costcode_size" class="live-font" data-var="--costcode-size" value="{{ $opts['costcode_size'] }}" min="5" max="22">
                     </label>
                     <label class="field">
+                        <span>@lang('product.product_name') weight</span>
+                        <select name="name_weight" class="live-weight" data-var="--name-weight">
+                            @foreach(['400' => 'Regular', '700' => 'Bold', '800' => 'Extra bold', '900' => 'Black'] as $w => $wLabel)
+                                <option value="{{ $w }}" @if((string) $opts['name_weight'] === (string) $w) selected @endif>{{ $wLabel }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.price') weight</span>
+                        <select name="price_weight" class="live-weight" data-var="--price-weight">
+                            @foreach(['400' => 'Regular', '700' => 'Bold', '800' => 'Extra bold', '900' => 'Black'] as $w => $wLabel)
+                                <option value="{{ $w }}" @if((string) $opts['price_weight'] === (string) $w) selected @endif>{{ $wLabel }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="field">
                         <span>@lang('lang_v1.price') @lang('lang_v1.type')</span>
                         <select name="price_type">
                             <option value="inclusive" @if($opts['price_type']==='inclusive') selected @endif>{{ __('product.inc_of_tax') }}</option>
@@ -371,6 +670,35 @@
             <div class="panel barcode">
                 <h2>Barcode</h2>
                 <div class="fields">
+                    <label class="field">
+                        <span>@lang('lang_v1.barcode_format')</span>
+                        <select name="barcode_format" id="opt_barcode_format">
+                            <option value="auto" @if(($opts['barcode_format'] ?? 'auto') === 'auto') selected @endif>@lang('lang_v1.barcode_format_auto')</option>
+                            @foreach(\App\Utils\BrowserLabelLayout::BARCODE_TYPES as $bcType)
+                                <option value="{{ $bcType }}" @if(($opts['barcode_format'] ?? '') === $bcType) selected @endif>{{ $bcType }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_quiet_zone')</span>
+                        <input type="number" name="quiet_zone" class="live-mm" data-var="--quiet" value="{{ $opts['quiet_zone'] }}" min="0" max="4" step="0.1">
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_font')</span>
+                        <select name="font_family" id="opt_font">
+                            @foreach(\App\Utils\BrowserLabelLayout::FONTS as $fontName)
+                                <option value="{{ $fontName }}" @if(($opts['font_family'] ?? 'Arial') === $fontName) selected @endif>{{ $fontName }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>@lang('lang_v1.label_align')</span>
+                        <select name="align" id="opt_align">
+                            <option value="left" @if(($opts['align'] ?? '') === 'left') selected @endif>Left</option>
+                            <option value="center" @if(($opts['align'] ?? 'center') === 'center') selected @endif>Center</option>
+                            <option value="right" @if(($opts['align'] ?? '') === 'right') selected @endif>Right</option>
+                        </select>
+                    </label>
                     <label class="field">
                         <span>@lang('lang_v1.barcode_position')</span>
                         <select name="barcode_position" id="opt_bc_pos">
@@ -404,6 +732,8 @@
                     <label><input type="hidden" name="show_sku" value="0"><input type="checkbox" name="show_sku" value="1" class="live-toggle" data-target=".sku" @if($opts['show_sku']) checked @endif> SKU</label>
                     <label><input type="hidden" name="show_price" value="0"><input type="checkbox" name="show_price" value="1" class="live-toggle" data-target=".price" @if($opts['show_price']) checked @endif> @lang('lang_v1.price')</label>
                     <label><input type="hidden" name="show_costcode" value="0"><input type="checkbox" name="show_costcode" value="1" class="live-toggle" data-target=".cc" @if($opts['show_costcode']) checked @endif> {{ $costcodeLabel }}</label>
+                    <label><input type="hidden" name="show_brand" value="0"><input type="checkbox" name="show_brand" value="1" class="live-toggle" data-target=".brand" @if($opts['show_brand']) checked @endif> @lang('product.brand')</label>
+                    <label><input type="hidden" name="show_category" value="0"><input type="checkbox" name="show_category" value="1" class="live-toggle" data-target=".category" @if($opts['show_category']) checked @endif> @lang('product.category')</label>
                 </div>
                 <p style="margin:10px 0 0;font-size:11px;color:#94a3b8;">@lang('lang_v1.label_footer_fixed_help')</p>
             </div>
@@ -412,59 +742,38 @@
         <div class="actions">
             <button type="submit" class="btn-apply">@lang('lang_v1.apply_rebuild_barcode')</button>
             <button type="button" class="btn-save" id="btn_save_layout">@lang('lang_v1.save_label_layout')</button>
-            <button type="button" class="btn-print" onclick="window.print()">@lang('messages.print')</button>
+            <label class="field" style="min-width:160px;">
+                <span>@lang('lang_v1.label_profile')</span>
+                <select id="opt_profile">
+                    <option value="">—</option>
+                    @foreach($profiles as $profile)
+                        <option value="{{ $profile['id'] }}">{{ $profile['name'] }}</option>
+                    @endforeach
+                </select>
+            </label>
+            <label class="field" style="min-width:140px;">
+                <span>@lang('lang_v1.label_profile_name')</span>
+                <input type="text" name="profile_name" id="opt_profile_name" maxlength="40" value="">
+            </label>
+            <input type="hidden" name="profile_id" id="opt_profile_id" value="">
+            <input type="hidden" name="delete_profile_id" id="opt_delete_profile" value="">
+            <button type="button" class="btn-save" id="btn_save_profile">@lang('lang_v1.label_save_profile')</button>
+            <button type="button" class="btn-close" id="btn_delete_profile">@lang('lang_v1.label_delete_profile')</button>
+            <button type="button" class="btn-close" id="btn_restore">@lang('lang_v1.label_restore_defaults')</button>
+            <button type="button" class="btn-print" id="btn_print">@lang('messages.print')</button>
             <button type="button" class="btn-close" onclick="window.close()">@lang('messages.close')</button>
             <span class="save-status" id="save_status"></span>
         </div>
     </form>
 
+    <h2 class="batch-title no-print">@lang('lang_v1.label_batch_preview')</h2>
     <div class="sheet">
-        @foreach($stickers as $sticker)
-            @php
-                $sym = trim((string) $currency_symbol);
-                if ($sym === '') {
-                    $sym = 'Rs';
-                }
-                // Proper currency display: "Rs 312.50" (space after symbol)
-                $amount = number_format(
-                    (float) $sticker['price'],
-                    session('business.currency_precision', 2),
-                    session('currency')['decimal_separator'] ?? '.',
-                    session('currency')['thousand_separator'] ?? ','
-                );
-                $priceText = rtrim($sym) . ' ' . $amount;
-                $cc = $sticker['costcode'] ?? '';
-            @endphp
-            <div class="label bc-{{ $bcPos }}">
-                <div class="head">
-                    @if($opts['show_business_name'])
-                        <div class="biz">{{ $business_name }}</div>
-                    @endif
-                    @if($opts['show_name'])
-                        <div class="pname">{{ $sticker['name'] }}</div>
-                    @endif
-                </div>
-
-                <div class="body">
-                    @if($opts['show_barcode'] && !empty($sticker['barcode_png']))
-                        <div class="barcode-wrap">
-                            <img src="data:image/png;base64,{{ $sticker['barcode_png'] }}" alt="{{ $sticker['sku'] }}">
-                        </div>
-                    @endif
-                    @if($opts['show_sku'])
-                        <div class="sku">{{ $sticker['sku'] }}</div>
-                    @endif
-                </div>
-
-                <div class="footer">
-                    <div class="cc">
-                        @if($opts['show_costcode'] && $cc !== ''){{ $cc }}@endif
-                    </div>
-                    <div class="price">
-                        @if($opts['show_price']){{ $priceText }}@endif
-                    </div>
-                </div>
-            </div>
+        @foreach(array_chunk($stickers, max(1, (int) ($pageBox['per_page'] ?? 1))) as $pageStickers)
+        <div class="sheet-page">
+        @foreach($pageStickers as $sticker)
+            @include('labels.partials.browser_sticker')
+        @endforeach
+        </div>
         @endforeach
     </div>
 
@@ -479,16 +788,38 @@
             var n = parseInt(el.value, 10);
             if (!v || isNaN(n)) return;
             root.style.setProperty(v, n + 'px');
-            // Keep footer tall enough for large price
-            if (v === '--price-size') {
-                document.querySelectorAll('.label .footer').forEach(function (f) {
-                    f.style.minHeight = (n * 1.15) + 'px';
-                });
-            }
         }
         document.querySelectorAll('.live-font').forEach(function (el) {
             el.addEventListener('input', function () { onFont(el); });
             onFont(el);
+        });
+        document.querySelectorAll('.live-weight').forEach(function (el) {
+            function onWeight() {
+                var v = el.getAttribute('data-var');
+                if (v) root.style.setProperty(v, String(parseInt(el.value, 10) || 400));
+            }
+            el.addEventListener('change', onWeight);
+            onWeight();
+        });
+        document.querySelectorAll('.live-mm').forEach(function (el) {
+            function onMm() {
+                var v = el.getAttribute('data-var');
+                var n = parseFloat(el.value);
+                if (!v || isNaN(n)) return;
+                root.style.setProperty(v, n + 'mm');
+            }
+            el.addEventListener('input', onMm);
+            onMm();
+        });
+        var fontEl = document.getElementById('opt_font');
+        if (fontEl) fontEl.addEventListener('change', function () {
+            document.body.style.fontFamily = fontEl.value + ', Helvetica, sans-serif';
+        });
+        var alignEl = document.getElementById('opt_align');
+        if (alignEl) alignEl.addEventListener('change', function () {
+            document.querySelectorAll('.label .head').forEach(function (node) {
+                node.style.textAlign = alignEl.value;
+            });
         });
 
         var bcW = document.getElementById('opt_bc_w');
@@ -515,11 +846,311 @@
 
         var lw = document.getElementById('opt_label_w');
         var lh = document.getElementById('opt_label_h');
-        if (lw) lw.addEventListener('input', function () {
-            root.style.setProperty('--label-w', (parseFloat(lw.value) || 38) + 'mm');
+        var rotEl = document.getElementById('opt_print_rotate');
+
+        function numVal(id, fallback) {
+            var el = document.getElementById(id);
+            var n = el ? parseFloat(el.value) : NaN;
+            return isNaN(n) ? fallback : n;
+        }
+
+        function applyRotation(rot) {
+            if (['0', '90', '180', '270'].indexOf(rot) < 0) rot = '0';
+            document.querySelectorAll('.label').forEach(function (lab) {
+                lab.classList.remove('rot-0', 'rot-90', 'rot-180', 'rot-270');
+                lab.classList.add('rot-' + rot);
+            });
+            return rot;
+        }
+
+        function writePrintCss() {
+            var w = parseFloat(lw && lw.value) || {{ (float) $opts['label_w'] }};
+            var h = parseFloat(lh && lh.value) || {{ (float) $opts['label_h'] }};
+            var rot = rotEl ? String(rotEl.value) : @json($printRotate);
+            rot = applyRotation(rot);
+            var mediaEl = document.getElementById('opt_media');
+            var media = mediaEl ? mediaEl.value : 'roll';
+            var cols = Math.max(1, Math.min(6, parseInt(numVal('opt_columns', 1), 10) || 1));
+            var rows = Math.max(1, Math.min(20, parseInt(numVal('opt_rows', 1), 10) || 1));
+            var gapX = Math.max(0, numVal('opt_gap_x', 0));
+            var gapY = Math.max(0, numVal('opt_gap_y', 0));
+            var pageW, pageH;
+            if (media === 'sheet') {
+                pageW = (cols * w) + (Math.max(0, cols - 1) * gapX);
+                pageH = (rows * h) + (Math.max(0, rows - 1) * gapY);
+            } else {
+                cols = 1;
+                gapX = 0;
+                gapY = 0;
+                pageW = w;
+                pageH = h;
+            }
+            root.style.setProperty('--screen-gap-x', (media === 'sheet' ? gapX : 3) + 'mm');
+            root.style.setProperty('--screen-gap-y', (media === 'sheet' ? gapY : 3) + 'mm');
+            var pageWm = Math.round(pageW * 100) / 100;
+            var pageHm = Math.round(pageH * 100) / 100;
+            var meta = document.getElementById('live_preview_meta');
+            if (meta) {
+                meta.textContent = 'Sticker ' + w + ' × ' + h + ' mm. Content ' + rot + '°. One print page ' + pageWm + ' × ' + pageHm + ' mm. 0° puts the shop name at the top.';
+            }
+            var feedFix = media !== 'sheet' && pageW > pageH + 0.05;
+            var note = document.getElementById('print_orient_note');
+            if (note) {
+                if (feedFix) {
+                    note.textContent = 'Print window: Orientation Landscape, margins None, scale 100. The printer turns a wide sticker, so this page is turned ahead of it. One copy is one sticker.';
+                } else if (pageH > pageW + 0.05) {
+                    note.textContent = 'Print window: Orientation Portrait, paper ' + pageWm + ' × ' + pageHm + ' mm, margins None, scale 100.';
+                } else {
+                    note.textContent = 'Print window: paper ' + pageWm + ' × ' + pageHm + ' mm, margins None, scale 100.';
+                }
+            }
+            var css = '@page{size:' + pageW + 'mm ' + pageH + 'mm;margin:0;' + (feedFix ? 'page-orientation:rotate-right;' : '') + '}'
+                + '@media print{'
+                + 'html,body{margin:0 !important;padding:0 !important;background:#fff !important;width:' + pageW + 'mm !important;height:auto !important;}'
+                + '.toolbar,.no-print{display:none !important;}'
+                + '.sheet{display:block !important;padding:0 !important;margin:0 !important;gap:0 !important;width:' + pageW + 'mm !important;}'
+                + '.sheet-page{width:' + pageW + 'mm !important;height:' + pageH + 'mm !important;margin:0 !important;padding:0 !important;display:grid !important;grid-template-columns:repeat(' + cols + ',' + w + 'mm);grid-auto-rows:' + h + 'mm;column-gap:' + gapX + 'mm;row-gap:' + gapY + 'mm;align-content:start;page-break-after:always;break-after:page;overflow:hidden !important;}'
+                + '.sheet-page:last-child{page-break-after:auto;break-after:auto;}'
+                + '.label{width:' + w + 'mm !important;height:' + h + 'mm !important;max-height:' + h + 'mm !important;margin:0 !important;padding:0 !important;border:0 !important;outline:none !important;box-shadow:none !important;background:#fff !important;overflow:hidden !important;position:relative !important;page-break-after:auto !important;break-after:auto !important;}'
+                + '.label-shift{position:relative;width:100%;height:100%;transform:translate(var(--shift-x),var(--shift-y));}'
+                + '.label-inner{box-sizing:border-box !important;background:#fff !important;overflow:hidden !important;padding:var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l) !important;}'
+                + '.label .barcode-wrap img{filter:contrast(1.35) brightness(0.9);-webkit-filter:contrast(1.35) brightness(0.9);}'
+                + '}';
+            var tag = document.getElementById('label-print-css');
+            if (tag) tag.textContent = css;
+            if (typeof scheduleShots === 'function') scheduleShots();
+        }
+
+        function fitPreview() {
+            var frame = document.querySelector('.live-preview-frame');
+            var zoom = document.querySelector('.live-preview-zoom');
+            if (!frame || !zoom) return;
+            var w = parseFloat(lw && lw.value) || 38;
+            var h = parseFloat(lh && lh.value) || 25;
+            var pxW = w * 96 / 25.4;
+            var pxH = h * 96 / 25.4;
+            var avail = frame.clientWidth;
+            if (!avail || avail < 40) {
+                avail = 240;
+            }
+            var scale = avail / pxW;
+            if (scale > 3) scale = 3;
+            if (scale < 0.4) scale = 0.4;
+            zoom.style.transform = 'scale(' + scale + ')';
+            frame.style.height = Math.ceil(pxH * scale) + 'px';
+        }
+        function syncLabelSize() {
+            var w = parseFloat(lw && lw.value) || 38;
+            var h = parseFloat(lh && lh.value) || 25;
+            root.style.setProperty('--label-w', w + 'mm');
+            root.style.setProperty('--label-h', h + 'mm');
+            writePrintCss();
+            fitPreview();
+        }
+        window.addEventListener('resize', fitPreview);
+        if (lw) lw.addEventListener('input', syncLabelSize);
+        if (lh) lh.addEventListener('input', syncLabelSize);
+        if (rotEl) rotEl.addEventListener('change', writePrintCss);
+        ['opt_media', 'opt_columns', 'opt_rows', 'opt_gap_x', 'opt_gap_y'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.addEventListener('change', writePrintCss);
+            if (el) el.addEventListener('input', writePrintCss);
         });
-        if (lh) lh.addEventListener('input', function () {
-            root.style.setProperty('--label-h', (parseFloat(lh.value) || 25) + 'mm');
+        syncLabelSize();
+
+        var printBtn = document.getElementById('btn_print');
+        var shotCache = new WeakMap();
+        var shotToken = 0;
+        var shotTimer = null;
+        var printingShots = false;
+
+        function sheetLabels() {
+            return Array.prototype.slice.call(document.querySelectorAll('.sheet .label'));
+        }
+
+        function currentRot() {
+            var rot = rotEl ? String(rotEl.value) : @json($printRotate);
+            return ['0', '90', '180', '270'].indexOf(rot) < 0 ? '0' : rot;
+        }
+
+        // 90° and 270° lay the artwork out in a box that is taller than the sticker
+        // (the sticker width becomes the layout height) and only then rotate it.
+        // Print pagination uses that layout height, so a 38 mm box on a 25 mm
+        // sticker continues onto the next label. A bitmap is exactly one sticker.
+        function rotationNeedsBitmap(rot) {
+            return false;
+        }
+
+        function copyLabelVars(node) {
+            var cs = getComputedStyle(root);
+            ['--label-w','--label-h','--biz-size','--name-size','--sku-size','--price-size','--costcode-size','--barcode-w','--barcode-h','--pad-t','--pad-r','--pad-b','--pad-l','--shift-x','--shift-y','--quiet','--name-weight','--price-weight'].forEach(function (name) {
+                var value = cs.getPropertyValue(name);
+                if (value) node.style.setProperty(name, value.trim());
+            });
+        }
+
+        function rasterizeLabel(label) {
+            return new Promise(function (resolve) {
+                var rect = label.getBoundingClientRect();
+                var w = Math.max(1, Math.round(rect.width));
+                var h = Math.max(1, Math.round(rect.height));
+                var scale = 4;
+                var css = '';
+                document.querySelectorAll('head style').forEach(function (tag) {
+                    if (tag.id === 'label-print-css') return;
+                    css += tag.textContent || '';
+                });
+                css = css.replace(/<\/style/gi, '<\\/style');
+                var clone = label.cloneNode(true);
+                clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+                copyLabelVars(clone);
+                clone.style.width = w + 'px';
+                clone.style.height = h + 'px';
+                clone.style.border = '0';
+                clone.style.boxShadow = 'none';
+                clone.style.margin = '0';
+                var family = getComputedStyle(document.body).fontFamily || 'Arial, sans-serif';
+                var xhtml = new XMLSerializer().serializeToString(clone);
+                var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:' + w + 'px;height:' + h + 'px;margin:0;background:#fff;overflow:hidden;font-family:' + family + '"><style><![CDATA[' + css + ']]></style>' + xhtml + '</div></foreignObject></svg>';
+                var img = new Image();
+                img.onload = function () {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = w * scale;
+                    canvas.height = h * scale;
+                    var ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = function () { resolve(''); };
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+            });
+        }
+
+        function refreshShots() {
+            var rot = currentRot();
+            var token = ++shotToken;
+            if (!rotationNeedsBitmap(rot) || printingShots) return Promise.resolve();
+            var labels = sheetLabels();
+            return Promise.all(labels.map(rasterizeLabel)).then(function (urls) {
+                if (token !== shotToken || printingShots) return;
+                labels.forEach(function (lab, i) { shotCache.set(lab, urls[i] || ''); });
+            });
+        }
+
+        function scheduleShots() {
+            clearTimeout(shotTimer);
+            shotTimer = setTimeout(refreshShots, 200);
+        }
+
+        function applyShotsForPrint() {
+            if (printingShots) return;
+            var rot = currentRot();
+            if (!rotationNeedsBitmap(rot)) return;
+            var labels = sheetLabels();
+            var ready = labels.length > 0 && labels.every(function (lab) { return !!shotCache.get(lab); });
+            if (!ready) {
+                labels.forEach(function (lab) {
+                    var inner = lab.querySelector('.label-inner');
+                    if (!inner) return;
+                    inner.style.setProperty('width', '100%', 'important');
+                    inner.style.setProperty('height', '100%', 'important');
+                    inner.style.setProperty('max-height', '100%', 'important');
+                    inner.style.setProperty('transform-origin', 'center center', 'important');
+                    inner.style.setProperty('transform', rot === '270' ? 'rotate(-90deg)' : 'rotate(90deg)', 'important');
+                });
+                return;
+            }
+            printingShots = true;
+            labels.forEach(function (lab) {
+                lab.setAttribute('data-print-html', lab.innerHTML);
+                lab.classList.remove('rot-90', 'rot-180', 'rot-270');
+                lab.classList.add('rot-0', 'is-raster');
+                lab.innerHTML = '<img class="label-shot" alt="" src="' + shotCache.get(lab) + '" style="width:100%;height:100%;max-height:100%;display:block;object-fit:fill;border:0;">';
+            });
+        }
+
+        function restoreAfterPrint() {
+            sheetLabels().forEach(function (lab) {
+                var html = lab.getAttribute('data-print-html');
+                if (html != null) {
+                    lab.innerHTML = html;
+                    lab.removeAttribute('data-print-html');
+                    lab.classList.remove('is-raster');
+                }
+                var inner = lab.querySelector('.label-inner');
+                if (inner) {
+                    inner.style.width = '';
+                    inner.style.height = '';
+                    inner.style.maxHeight = '';
+                    inner.style.transform = '';
+                    inner.style.transformOrigin = '';
+                }
+            });
+            printingShots = false;
+            writePrintCss();
+        }
+
+        window.addEventListener('beforeprint', applyShotsForPrint);
+        window.addEventListener('afterprint', restoreAfterPrint);
+
+        if (printBtn) printBtn.addEventListener('click', function () {
+            writePrintCss();
+            refreshShots().then(function () {
+                applyShotsForPrint();
+                window.print();
+            });
+        });
+        scheduleShots();
+
+        var barcodeTimer = null;
+        function refreshBarcodeImages() {
+            var formatEl = document.getElementById('opt_barcode_format');
+            var barEl = document.getElementById('opt_bc_bar');
+            var heightEl = document.getElementById('opt_bc_h');
+            var seen = {};
+            document.querySelectorAll('.label[data-sku]').forEach(function (lab) {
+                var sku = lab.getAttribute('data-sku') || '';
+                if (!sku || seen[sku]) return;
+                seen[sku] = true;
+                var body = new URLSearchParams();
+                body.append('sku', sku);
+                body.append('barcode_format', formatEl ? formatEl.value : 'auto');
+                body.append('barcode_bar_width', barEl ? barEl.value : '2');
+                body.append('barcode_height', heightEl ? heightEl.value : '42');
+                fetch(@json(url('/labels/browser-print/barcode')), {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken()
+                    },
+                    body: body.toString()
+                }).then(function (response) {
+                    return response.ok ? response.json() : null;
+                }).then(function (result) {
+                    if (!result || !result.success || !result.png) return;
+                    document.querySelectorAll('.label[data-sku]').forEach(function (el) {
+                        if (el.getAttribute('data-sku') !== sku) return;
+                        var img = el.querySelector('.js-barcode');
+                        if (img) img.src = 'data:image/png;base64,' + result.png;
+                    });
+                }).catch(function () {});
+            });
+        }
+        function scheduleBarcodeRefresh() {
+            clearTimeout(barcodeTimer);
+            barcodeTimer = setTimeout(refreshBarcodeImages, 250);
+        }
+        ['opt_barcode_format', 'opt_bc_bar', 'opt_bc_h'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('change', scheduleBarcodeRefresh);
+            el.addEventListener('input', scheduleBarcodeRefresh);
         });
 
         document.querySelectorAll('.live-toggle').forEach(function (cb) {
@@ -552,15 +1183,19 @@
                 barcode_position: 'opt_bc_pos',
                 label_w: 'opt_label_w',
                 label_h: 'opt_label_h',
+                print_rotate: 'opt_print_rotate',
                 label_business_name: 'opt_business_name'
             };
             Object.keys(forceIds).forEach(function (key) {
                 var el = document.getElementById(forceIds[key]);
                 if (el) data[key] = el.value;
             });
-            ['show_business_name','show_name','show_barcode','show_sku','show_price','show_costcode'].forEach(function (k) {
+            ['show_business_name','show_name','show_barcode','show_sku','show_price','show_costcode','show_brand','show_category'].forEach(function (k) {
                 if (typeof data[k] === 'undefined') data[k] = '0';
             });
+            delete data.profile_name;
+            delete data.profile_id;
+            delete data.delete_profile_id;
             return data;
         }
 
@@ -586,6 +1221,7 @@
                 barcode_position: 'opt_bc_pos',
                 label_w: 'opt_label_w',
                 label_h: 'opt_label_h',
+                print_rotate: 'opt_print_rotate',
                 label_business_name: 'opt_business_name'
             };
             Object.keys(map).forEach(function (key) {
@@ -602,10 +1238,60 @@
                 });
                 bcPos.value = layout.barcode_position;
             }
+            syncLabelSize();
         }
 
-        function saveLayout(showStatus) {
+        var PRESETS = @json($presets);
+        var PROFILES = @json($profiles);
+        var DEFAULTS = @json(\App\Utils\BrowserLabelLayout::defaults($business_name));
+
+        function setNamed(key, value) {
+            if (!form) return;
+            var nodes = form.querySelectorAll('[name="' + key + '"]');
+            nodes.forEach(function (node) {
+                if (node.type === 'checkbox') {
+                    var on = value === true || value === 1 || value === '1';
+                    node.checked = on;
+                    node.dispatchEvent(new Event('change'));
+                } else if (node.type === 'hidden') {
+                    return;
+                } else if (value !== null && typeof value !== 'undefined') {
+                    node.value = value;
+                    node.dispatchEvent(new Event('input', { bubbles: true }));
+                    node.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+
+        var presetEl = document.getElementById('opt_preset');
+        if (presetEl) presetEl.addEventListener('change', function () {
+            var preset = PRESETS[presetEl.value];
+            if (!preset) return;
+            Object.keys(preset).forEach(function (key) { setNamed(key, preset[key]); });
+            syncLabelSize();
+        });
+
+        var profileEl = document.getElementById('opt_profile');
+        if (profileEl) profileEl.addEventListener('change', function () {
+            var id = profileEl.value;
+            var idField = document.getElementById('opt_profile_id');
+            if (idField) idField.value = id;
+            var found = null;
+            PROFILES.forEach(function (profile) {
+                if (profile.id === id) found = profile;
+            });
+            if (!found) return;
+            var nameField = document.getElementById('opt_profile_name');
+            if (nameField) nameField.value = found.name || '';
+            Object.keys(found.layout || {}).forEach(function (key) { setNamed(key, found.layout[key]); });
+            syncLabelSize();
+        });
+
+        function saveLayout(showStatus, extra) {
             var data = collectLayout();
+            if (extra) {
+                Object.keys(extra).forEach(function (key) { data[key] = extra[key]; });
+            }
             if (showStatus !== false) {
                 setSaveStatus(@json(__('lang_v1.saving_label_layout')), false);
             }
@@ -661,6 +1347,52 @@
                 throw error;
             });
         }
+
+        var saveProfileBtn = document.getElementById('btn_save_profile');
+        if (saveProfileBtn) saveProfileBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            var nameField = document.getElementById('opt_profile_name');
+            var name = nameField ? nameField.value.trim() : '';
+            if (!name) {
+                setSaveStatus('Enter a profile name.', true);
+                return;
+            }
+            saveProfileBtn.disabled = true;
+            saveLayout(true, {
+                profile_name: name,
+                profile_id: (document.getElementById('opt_profile') || {}).value || ''
+            }).then(function () {
+                HTMLFormElement.prototype.submit.call(form);
+            }).catch(function () {
+                saveProfileBtn.disabled = false;
+            });
+        });
+
+        var deleteProfileBtn = document.getElementById('btn_delete_profile');
+        if (deleteProfileBtn) deleteProfileBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            var id = (document.getElementById('opt_profile') || {}).value || '';
+            if (!id) return;
+            deleteProfileBtn.disabled = true;
+            saveLayout(true, { delete_profile_id: id }).then(function () {
+                HTMLFormElement.prototype.submit.call(form);
+            }).catch(function () {
+                deleteProfileBtn.disabled = false;
+            });
+        });
+
+        var restoreBtn = document.getElementById('btn_restore');
+        if (restoreBtn) restoreBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            Object.keys(DEFAULTS).forEach(function (key) { setNamed(key, DEFAULTS[key]); });
+            syncLabelSize();
+            restoreBtn.disabled = true;
+            saveLayout(true).then(function () {
+                HTMLFormElement.prototype.submit.call(form);
+            }).catch(function () {
+                restoreBtn.disabled = false;
+            });
+        });
 
         var saveBtn = document.getElementById('btn_save_layout');
         if (saveBtn) saveBtn.addEventListener('click', function (e) {

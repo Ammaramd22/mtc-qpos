@@ -10,6 +10,7 @@ use App\System;
 use App\TaxRate;
 use App\Unit;
 use App\User;
+use App\Utils\BrowserLabelLayout;
 use App\Utils\BusinessUtil;
 use App\Utils\InstallBusinessModules;
 use App\Utils\ModuleUtil;
@@ -899,30 +900,13 @@ class BusinessController extends Controller
                 if (! is_array($raw_label_layout)) {
                     $raw_label_layout = [];
                 }
-                $browser_label_layout = [
-                    'label_business_name' => mb_substr(strip_tags(trim((string) ($raw_label_layout['label_business_name'] ?? $business->name))), 0, 80),
-                    'label_w' => (string) max(20, min(100, (float) ($raw_label_layout['label_w'] ?? 38))),
-                    'label_h' => (string) max(15, min(80, (float) ($raw_label_layout['label_h'] ?? 25))),
-                    'business_name_size' => (string) max(6, min(28, (int) ($raw_label_layout['business_name_size'] ?? 8))),
-                    'name_size' => (string) max(6, min(32, (int) ($raw_label_layout['name_size'] ?? 9))),
-                    'sku_size' => (string) max(5, min(22, (int) ($raw_label_layout['sku_size'] ?? 8))),
-                    'price_size' => (string) max(6, min(36, (int) ($raw_label_layout['price_size'] ?? 12))),
-                    'costcode_size' => (string) max(5, min(22, (int) ($raw_label_layout['costcode_size'] ?? 8))),
-                    'barcode_width' => (string) max(40, min(100, (int) ($raw_label_layout['barcode_width'] ?? 94))),
-                    'barcode_height' => (string) max(16, min(90, (int) ($raw_label_layout['barcode_height'] ?? 42))),
-                    'barcode_bar_width' => (string) max(1, min(5, (int) ($raw_label_layout['barcode_bar_width'] ?? 4))),
-                    'barcode_position' => in_array(($raw_label_layout['barcode_position'] ?? ''), ['top', 'middle', 'bottom'], true)
-                        ? $raw_label_layout['barcode_position']
-                        : 'bottom',
-                    'price_type' => ($raw_label_layout['price_type'] ?? '') === 'exclusive' ? 'exclusive' : 'inclusive',
-                ];
-                foreach (['show_business_name', 'show_name', 'show_sku', 'show_barcode', 'show_price', 'show_costcode'] as $label_flag) {
-                    $browser_label_layout[$label_flag] = ! empty($raw_label_layout[$label_flag])
-                        && ! in_array((string) $raw_label_layout[$label_flag], ['0', 'false', 'off'], true)
-                            ? '1'
-                            : '0';
-                }
-                $common_settings['browser_label_layout'] = $browser_label_layout;
+                $existing_label_layout = is_array($common_settings['browser_label_layout'] ?? null)
+                    ? $common_settings['browser_label_layout']
+                    : [];
+                $common_settings['browser_label_layout'] = BrowserLabelLayout::normalize(
+                    array_merge($existing_label_layout, $raw_label_layout),
+                    (string) ($business->name ?? '')
+                );
             }
 
             // A 10-letter unique keyword is the source of the 0-9 mapping.

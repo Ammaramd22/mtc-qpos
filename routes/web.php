@@ -355,6 +355,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::match(['get', 'post'], '/labels/browser-print', [LabelsController::class, 'browserPrint']);
     Route::post('/labels/browser-print/prepare', [LabelsController::class, 'prepareBrowserPrint']);
     Route::post('/labels/browser-print/layout', [LabelsController::class, 'saveBrowserPrintLayout']);
+    Route::post('/labels/browser-print/barcode', [LabelsController::class, 'browserPrintBarcode']);
 
     //Reports...
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.hub');

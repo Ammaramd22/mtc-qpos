@@ -2,27 +2,7 @@
     $labelLayout = !empty($common_settings['browser_label_layout']) && is_array($common_settings['browser_label_layout'])
         ? $common_settings['browser_label_layout']
         : [];
-    $labelDefaults = [
-        'label_business_name' => session('business.name', $business->name ?? ''),
-        'label_w' => '38',
-        'label_h' => '25',
-        'business_name_size' => '8',
-        'name_size' => '9',
-        'sku_size' => '8',
-        'price_size' => '12',
-        'costcode_size' => '8',
-        'barcode_width' => '94',
-        'barcode_height' => '42',
-        'barcode_bar_width' => '4',
-        'barcode_position' => 'bottom',
-        'price_type' => 'inclusive',
-        'show_business_name' => '1',
-        'show_name' => '1',
-        'show_sku' => '1',
-        'show_barcode' => '1',
-        'show_price' => '1',
-        'show_costcode' => '1',
-    ];
+    $labelDefaults = \App\Utils\BrowserLabelLayout::defaults(session('business.name', $business->name ?? ''));
     $labelLayout = array_merge($labelDefaults, $labelLayout);
 @endphp
 
@@ -64,6 +44,107 @@
                         <input type="number" class="form-control" min="15" max="80" step="0.5"
                             name="common_settings[browser_label_layout][label_h]"
                             value="{{ $labelLayout['label_h'] }}">
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_media')</label>
+                        <select class="form-control" name="common_settings[browser_label_layout][media]">
+                            <option value="roll" @if(($labelLayout['media'] ?? 'roll') === 'roll') selected @endif>@lang('lang_v1.label_media_roll')</option>
+                            <option value="sheet" @if(($labelLayout['media'] ?? '') === 'sheet') selected @endif>@lang('lang_v1.label_media_sheet')</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_print_rotation')</label>
+                        <select class="form-control" name="common_settings[browser_label_layout][print_rotate]">
+                            <option value="0" @if((string) ($labelLayout['print_rotate'] ?? '0') === '0') selected @endif>@lang('lang_v1.label_rotate_0')</option>
+                            <option value="90" @if((string) ($labelLayout['print_rotate'] ?? '') === '90') selected @endif>@lang('lang_v1.label_rotate_90')</option>
+                            <option value="180" @if((string) ($labelLayout['print_rotate'] ?? '') === '180') selected @endif>@lang('lang_v1.label_rotate_180')</option>
+                            <option value="270" @if((string) ($labelLayout['print_rotate'] ?? '') === '270') selected @endif>@lang('lang_v1.label_rotate_270')</option>
+                        </select>
+                        <p class="tw-text-xs tw-text-gray-500 tw-mt-1">@lang('lang_v1.label_print_rotation_help')</p>
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_offset_x')</label>
+                        <input type="number" class="form-control" min="-15" max="15" step="0.5" name="common_settings[browser_label_layout][offset_x]" value="{{ $labelLayout['offset_x'] ?? 0 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_offset_y')</label>
+                        <input type="number" class="form-control" min="-15" max="15" step="0.5" name="common_settings[browser_label_layout][offset_y]" value="{{ $labelLayout['offset_y'] ?? 0 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_columns')</label>
+                        <input type="number" class="form-control" min="1" max="6" name="common_settings[browser_label_layout][columns]" value="{{ $labelLayout['columns'] ?? 1 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_rows')</label>
+                        <input type="number" class="form-control" min="1" max="20" name="common_settings[browser_label_layout][rows]" value="{{ $labelLayout['rows'] ?? 1 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_gap_x')</label>
+                        <input type="number" class="form-control" min="0" max="20" step="0.5" name="common_settings[browser_label_layout][gap_x]" value="{{ $labelLayout['gap_x'] ?? 2 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_gap_y')</label>
+                        <input type="number" class="form-control" min="0" max="20" step="0.5" name="common_settings[browser_label_layout][gap_y]" value="{{ $labelLayout['gap_y'] ?? 2 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_margin_top')</label>
+                        <input type="number" class="form-control" min="0" max="8" step="0.1" name="common_settings[browser_label_layout][margin_top]" value="{{ $labelLayout['margin_top'] ?? 0.6 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_margin_right')</label>
+                        <input type="number" class="form-control" min="0" max="8" step="0.1" name="common_settings[browser_label_layout][margin_right]" value="{{ $labelLayout['margin_right'] ?? 1 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_margin_bottom')</label>
+                        <input type="number" class="form-control" min="0" max="8" step="0.1" name="common_settings[browser_label_layout][margin_bottom]" value="{{ $labelLayout['margin_bottom'] ?? 0.5 }}">
+                    </div>
+                </div>
+                <div class="col-md-2 col-sm-4">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_margin_left')</label>
+                        <input type="number" class="form-control" min="0" max="8" step="0.1" name="common_settings[browser_label_layout][margin_left]" value="{{ $labelLayout['margin_left'] ?? 1 }}">
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_font')</label>
+                        <select class="form-control" name="common_settings[browser_label_layout][font_family]">
+                            @foreach(\App\Utils\BrowserLabelLayout::FONTS as $fontName)
+                                <option value="{{ $fontName }}" @if(($labelLayout['font_family'] ?? 'Arial') === $fontName) selected @endif>{{ $fontName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label>@lang('lang_v1.label_align')</label>
+                        <select class="form-control" name="common_settings[browser_label_layout][align]">
+                            <option value="left" @if(($labelLayout['align'] ?? '') === 'left') selected @endif>Left</option>
+                            <option value="center" @if(($labelLayout['align'] ?? 'center') === 'center') selected @endif>Center</option>
+                            <option value="right" @if(($labelLayout['align'] ?? '') === 'right') selected @endif>Right</option>
+                        </select>
                     </div>
                 </div>
                 <div class="col-md-4 col-sm-6">
@@ -147,6 +228,17 @@
                 </div>
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
+                        <label>@lang('lang_v1.barcode_format')</label>
+                        <select class="form-control" name="common_settings[browser_label_layout][barcode_format]">
+                            <option value="auto" @if(($labelLayout['barcode_format'] ?? 'auto') === 'auto') selected @endif>@lang('lang_v1.barcode_format_auto')</option>
+                            @foreach(\App\Utils\BrowserLabelLayout::BARCODE_TYPES as $bcType)
+                                <option value="{{ $bcType }}" @if(($labelLayout['barcode_format'] ?? '') === $bcType) selected @endif>{{ $bcType }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
                         <label>@lang('lang_v1.barcode_position')</label>
                         <select class="form-control" name="common_settings[browser_label_layout][barcode_position]">
                             <option value="top" @if($labelLayout['barcode_position'] === 'top') selected @endif>@lang('lang_v1.barcode_pos_top')</option>
@@ -170,6 +262,8 @@
                         'show_sku' => 'SKU / '.__('lang_v1.barcode_text'),
                         'show_price' => __('lang_v1.price'),
                         'show_costcode' => __('lang_v1.costcode'),
+                        'show_brand' => __('product.brand'),
+                        'show_category' => __('product.category'),
                     ];
                 @endphp
                 @foreach($displayOptions as $option => $label)
