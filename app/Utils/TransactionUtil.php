@@ -2229,6 +2229,7 @@ class TransactionUtil extends Util
         $output['design'] = $il->design;
         $table_tax_headings = $this->vsposDecodeToArray($il->table_tax_headings);
         $output['table_tax_headings'] = ! empty($table_tax_headings) ? array_filter($table_tax_headings, 'strlen') : null;
+        $output = InvoicePrintAppearance::applyToDetails($output, $il);
 
         return (object) $output;
     }
@@ -7252,9 +7253,7 @@ class TransactionUtil extends Util
         }
 
         //Generate pdf
-        $body = view('sale_pos.receipts.'.$blade_file)
-                    ->with(compact('receipt_details', 'location_details', 'is_email_attachment'))
-                    ->render();
+        $body = InvoicePrintAppearance::render('sale_pos.receipts.'.$blade_file, compact('receipt_details', 'location_details', 'is_email_attachment'));
 
         $mpdf = new \Mpdf\Mpdf(['tempDir' => public_path('uploads/temp'),
             'mode' => 'utf-8',

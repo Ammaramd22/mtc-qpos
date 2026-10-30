@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>POS product loading harness</title>
+<style>
+  body { margin: 0; background: #0a0a0a; color: #f5f5f5; font-family: sans-serif; }
+  .layout { display: grid; grid-template-columns: 160px 1fr 280px; height: 100vh; gap: 8px; padding: 8px; box-sizing: border-box; }
+  aside, .cart { background: #111; border: 1px solid #333; border-radius: 12px; padding: 8px; }
+  button.cat { display: block; width: 100%; margin: 4px 0; padding: 8px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; }
+  button.cat.is-active { background: #f5c518; color: #111; font-weight: 700; }
+  #product_list_body { background: #111; border: 1px solid #333; border-radius: 12px; overflow: auto; height: 100%; }
+  #product_list_items { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 10px; }
+  #product_list_items > .product_box { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; min-height: 90px; padding: 8px; }
+  #product_list_items > .vspos-no-products,
+  #product_list_items > .vspos-products-loading,
+  #product_list_items > .vspos-products-error { grid-column: 1 / -1; text-align: center; }
+  .log { font-size: 12px; color: #bbb; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div>CATEGORY</div>
+    <button type="button" class="cat is-active" data-value="all">All Categories</button>
+    <button type="button" class="cat" data-value="attar">attar</button>
+    <button type="button" class="cat" data-value="empty">Empty Cat</button>
+  </aside>
+  <div id="product_list_body">
+    <div id="product_list_items"></div>
+  </div>
+  <div class="cart">
+    <div id="status" class="log"></div>
+  </div>
+</div>
+<input type="hidden" id="suggestion_page" value="1">
+<input type="hidden" id="location_id" value="1">
+<script src="../../public/js/jquery-3.7.1.min.js"></script>
+<script>
+window.LANG = window.LANG || {};
+window.jQuery.ajax = function (opts) {
+  var page = parseInt(opts.data && opts.data.page, 10) || 1;
+  var cat = (opts.data && opts.data.category_id) || 'all';
+  var html;
+  if (window.__failNext) {
+    window.__failNext = false;
+    var xhrFail = { abort: function () { this._aborted = true; } };
+    setTimeout(function () {
+      if (!xhrFail._aborted && opts.error) opts.error(xhrFail, 'error');
+    }, 30);
+    return xhrFail;
+  }
+  if (page > 1) {
+    html = '<input type="hidden" id="suggestion_end" value="1">';
+  } else if (cat === 'empty') {
+    html = '<input type="hidden" id="no_products_found"><div class="col-md-12 vspos-no-products"><h4>No Products to display</h4><button type="button" id="vspos_retry_products">Retry</button></div>';
+  } else {
+    var names = cat === 'attar'
+      ? ['ROSE BERRY', 'SAKEENA', 'WHITE OUD']
+      : ['ROSE BERRY', 'SABAYA', 'SAKEENA', 'SEWAK', 'SMART TASBIH', 'SULTAN', 'ULTRA POISON', 'WHITE OUD', 'YARA', 'YARA L', 'YARA 2', 'YARA 3'];
+    html = names.map(function (name, i) {
+      return '<div class="product_box" data-variation_id="' + (i + 1) + '" data-name="' + name + '"><strong>' + name + '</strong><div>30.00 Pc(s) in stock</div></div>';
+    }).join('');
+  }
+  var xhr = { abort: function () { this._aborted = true; } };
+  setTimeout(function () {
+    if (xhr._aborted) {
+      if (opts.error) opts.error(xhr, 'abort');
+      return;
+    }
+    if (opts.success) opts.success(html);
+  }, 30);
+  return xhr;
+};
+</script>
+<script src="../../public/js/pos.js"></script>
+<script>
+(function () {
+  var status = document.getElementById('status');
+  function note(msg) { status.textContent += msg + '\n'; }
+
+  document.querySelectorAll('button.cat').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('button.cat').forEach(function (b) { b.classList.remove('is-active'); });
+      btn.classList.add('is-active');
+      window.global_p_category_id = btn.getAttribute('data-value') === 'all' ? null : btn.getAttribute('data-value');
+      window.__vspos_suggest_ignore_scroll = true;
+      window.__vspos_suggest_end = false;
+      window.__vspos_suggest_recovered = false;
+      document.getElementById('suggestion_page').value = '1';
+      get_product_suggestion_list(window.global_p_category_id, null, '1', null);
+    });
+  });
+
+  // Initial load, then a scroll that used to append "No Products".
+  get_product_suggestion_list(null, null, '1', null);
+  setTimeout(function () {
+    var body = document.getElementById('product_list_body');
+    var items = document.getElementById('product_list_items');
+    var boxes = items.querySelectorAll('.product_box').length;
+    var empty = items.textContent.indexOf('No Products to display') !== -1;
+    note('initial cards=' + boxes + ' emptyShown=' + empty);
+    body.dispatchEvent(new Event('scroll'));
+    setTimeout(function () {
+      note('after scroll cards=' + items.querySelectorAll('.product_box').length + ' emptyShown=' + (items.textContent.indexOf('No Products to display') !== -1));
+      document.querySelector('button.cat[data-value="attar"]').click();
+      setTimeout(function () {
+        note('attar cards=' + items.querySelectorAll('.product_box').length + ' names=' + Array.prototype.map.call(items.querySelectorAll('.product_box'), function (el) { return el.getAttribute('data-name'); }).join(','));
+        document.querySelector('button.cat[data-value="empty"]').click();
+        setTimeout(function () {
+          note('emptyCat text=' + items.textContent.replace(/\s+/g, ' ').trim());
+          window.__failNext = true;
+          document.querySelector('button.cat[data-value="all"]').click();
+          setTimeout(function () {
+            note('error text=' + items.textContent.replace(/\s+/g, ' ').trim());
+            var retry = document.getElementById('vspos_retry_products');
+            if (retry) retry.click();
+            setTimeout(function () {
+              note('retry cards=' + items.querySelectorAll('.product_box').length + ' emptyShown=' + (items.textContent.indexOf('No Products to display') !== -1));
+              document.body.setAttribute('data-harness-done', '1');
+            }, 80);
+          }, 80);
+        }, 80);
+      }, 80);
+    }, 80);
+  }, 80);
+})();
+</script>
+</body>
+</html>

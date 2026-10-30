@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\InvoiceLayout;
+use App\Utils\InvoiceLayoutPreview;
+use App\Utils\InvoicePrintAppearance;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Validator;
@@ -41,8 +43,9 @@ class InvoiceLayoutController extends Controller
         $common_settings = session()->get('business.common_settings');
         $is_warranty_enabled = ! empty($common_settings['enable_product_warranty']) ? true : false;
         $has_number_formatter = class_exists(\NumberFormatter::class);
+        $preview_html = $this->initialPreviewHtml(request(), null, $designs);
 
-        return view('invoice_layout.create')->with(compact('designs', 'is_warranty_enabled', 'has_number_formatter'));
+        return view('invoice_layout.create')->with(compact('designs', 'is_warranty_enabled', 'has_number_formatter', 'preview_html'));
     }
 
     /**
@@ -112,6 +115,7 @@ class InvoiceLayoutController extends Controller
             $input['product_custom_fields'] = ! empty($request->input('product_custom_fields')) ? $request->input('product_custom_fields') : null;
             $input['contact_custom_fields'] = ! empty($request->input('contact_custom_fields')) ? $request->input('contact_custom_fields') : null;
             $input['location_custom_fields'] = ! empty($request->input('location_custom_fields')) ? $request->input('location_custom_fields') : null;
+            $input['common_settings'] = $this->withPrintAppearance($input['common_settings'] ?? []);
 
             InvoiceLayout::create($input);
             $output = ['success' => 1,
@@ -159,9 +163,10 @@ class InvoiceLayoutController extends Controller
 
         $designs = $this->getDesigns();
         $has_number_formatter = class_exists(\NumberFormatter::class);
+        $preview_html = $this->initialPreviewHtml(request(), $invoice_layout, $designs);
 
         return view('invoice_layout.edit')
-                ->with(compact('invoice_layout', 'designs', 'has_number_formatter'));
+                ->with(compact('invoice_layout', 'designs', 'has_number_formatter', 'preview_html'));
     }
 
     /**
@@ -258,7 +263,7 @@ class InvoiceLayoutController extends Controller
             foreach ($common_checkboxes as $ck) {
                 $common_settings[$ck] = ! empty($common_settings[$ck]) ? 1 : 0;
             }
-            $input['common_settings'] = $common_settings;
+            $input['common_settings'] = $this->withPrintAppearance($common_settings);
 
             $layout = InvoiceLayout::where('id', $id)
                         ->where('business_id', $business_id)
@@ -279,6 +284,64 @@ class InvoiceLayoutController extends Controller
 
         return redirect()->action([\App\Http\Controllers\InvoiceLayoutController::class, 'edit'], [$id])
             ->with('status', $output);
+    }
+
+    /**
+     * Sample invoice for the layout editor. Does not create a sale.
+     */
+    public function livePreview(Request $request)
+    {
+        if (! auth()->user()->can('invoice_settings.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $business_id = $request->session()->get('user.business_id');
+            $layout = null;
+            $layoutId = (int) $request->input('layout_id');
+            if ($layoutId > 0) {
+                $layout = InvoiceLayout::where('business_id', $business_id)->findOrFail($layoutId);
+            }
+            $html = InvoiceLayoutPreview::document($request, $layout, $this->getDesigns());
+        } catch (\Throwable $e) {
+            \Log::warning('Invoice layout preview failed: '.$e->getMessage());
+            $html = '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;padding:16px;background:#fff;color:#111"><strong>This design could not be previewed.</strong><p>'.e($e->getMessage()).'</p></body></html>';
+        }
+
+        return response($html, 200)->header('Content-Type', 'text/html; charset=UTF-8');
+    }
+
+    /**
+     * @param  array<string, string>  $designs
+     */
+    private function initialPreviewHtml(Request $request, ?InvoiceLayout $layout, array $designs): string
+    {
+        try {
+            if ($layout) {
+                return InvoiceLayoutPreview::documentForSavedLayout($request, $layout, $designs);
+            }
+
+            return InvoiceLayoutPreview::document($request, null, $designs);
+        } catch (\Throwable $e) {
+            \Log::warning('Invoice layout initial preview failed: '.$e->getMessage());
+
+            return '';
+        }
+    }
+
+    /**
+     * @param  mixed  $commonSettings
+     * @return array
+     */
+    private function withPrintAppearance($commonSettings)
+    {
+        if (! is_array($commonSettings)) {
+            $commonSettings = [];
+        }
+        $commonSettings['print_appearance'] = InvoicePrintAppearance::normalize($commonSettings['print_appearance'] ?? null);
+        $commonSettings['designer'] = InvoicePrintAppearance::normalizeSkin($commonSettings['designer'] ?? []);
+
+        return $commonSettings;
     }
 
     private function getDesigns()

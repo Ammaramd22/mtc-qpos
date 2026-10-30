@@ -16,6 +16,15 @@
     if (! is_array($shop_list_cols)) {
         $shop_list_cols = [];
     }
+    $has_product_size_col = false;
+    $has_product_color_col = false;
+    try {
+        $has_product_size_col = \Illuminate\Support\Facades\Schema::hasColumn('products', 'size');
+        $has_product_color_col = \Illuminate\Support\Facades\Schema::hasColumn('products', 'color');
+    } catch (\Throwable $e) {
+        $has_product_size_col = false;
+        $has_product_color_col = false;
+    }
 @endphp
 
     <!-- Content Header (Page header) -->
@@ -104,6 +113,32 @@
                                 'id' => 'product_list_filter_tyre_size',
                                 'placeholder' => __('product.tyre_size_placeholder'),
                                 'maxlength' => 50,
+                            ]) !!}
+                        </div>
+                    </div>
+                    @endif
+                    @if(!empty($has_product_size_col))
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            {!! Form::label('product_list_filter_size', __('product.size') . ':') !!}
+                            {!! Form::text('product_list_filter_size', null, [
+                                'class' => 'form-control',
+                                'id' => 'product_list_filter_size',
+                                'placeholder' => __('product.size_placeholder'),
+                                'maxlength' => 191,
+                            ]) !!}
+                        </div>
+                    </div>
+                    @endif
+                    @if(!empty($has_product_color_col))
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            {!! Form::label('product_list_filter_color', __('product.color') . ':') !!}
+                            {!! Form::text('product_list_filter_color', null, [
+                                'class' => 'form-control',
+                                'id' => 'product_list_filter_color',
+                                'placeholder' => __('product.color_placeholder'),
+                                'maxlength' => 191,
                             ]) !!}
                         </div>
                     </div>
@@ -383,6 +418,8 @@
                         d.category_id = $('#product_list_filter_category_id').val();
                         d.brand_id = $('#product_list_filter_brand_id').val();
                         d.tyre_size = $('#product_list_filter_tyre_size').val();
+                        d.size = $('#product_list_filter_size').val();
+                        d.color = $('#product_list_filter_color').val();
                         @foreach($shop_list_cols as $shop_col)
                         d.{{ $shop_col }} = $('#product_list_filter_{{ $shop_col }}').val();
                         @endforeach
@@ -427,6 +464,18 @@
                     {
                         data: 'tyre_size',
                         name: 'products.tyre_size'
+                    },
+                    @endif
+                    @if(!empty($has_product_size_col))
+                    {
+                        data: 'size',
+                        name: 'products.size'
+                    },
+                    @endif
+                    @if(!empty($has_product_color_col))
+                    {
+                        data: 'color',
+                        name: 'products.color'
                     },
                     @endif
                     @foreach($shop_list_cols as $shop_col)
@@ -662,7 +711,10 @@
                 }
             })
 
-            $('table#product_table tbody').on('click', 'a.activate-product', function(e) {
+            // The Actions menu is moved to document.body so DataTables scroll does not clip it.
+            // A handler bound only to the table body never sees that click, so the browser
+            // follows /products/activate/{id} and the controller used to return an empty page.
+            $(document).on('click', 'a.activate-product', function(e) {
                 e.preventDefault();
                 var href = $(this).attr('href');
                 $.ajax({
@@ -676,6 +728,9 @@
                         } else {
                             toastr.error(result.msg);
                         }
+                    },
+                    error: function() {
+                        toastr.error(LANG.something_went_wrong);
                     }
                 });
             });
@@ -694,7 +749,7 @@
 
             var tyreSizeFilterTimer = null;
             @php
-                $shop_filter_selector = '#product_list_filter_tyre_size';
+                $shop_filter_selector = '#product_list_filter_tyre_size, #product_list_filter_size, #product_list_filter_color';
                 foreach ($shop_list_cols as $shop_col) {
                     $shop_filter_selector .= ', #product_list_filter_'.$shop_col;
                 }

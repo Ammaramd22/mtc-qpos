@@ -35,18 +35,6 @@
                 : $('div#product_list_body');
         }
 
-        function showSearching() {
-            var $items = itemsContainer();
-            if (!$items.length) {
-                return;
-            }
-            $items.html(
-                '<div class="col-md-12 vspos-no-products">' +
-                    '<h4 class="text-center" style="color:#a3a3a3;margin:48px 12px 12px;">Searching...</h4>' +
-                    '</div>'
-            );
-        }
-
         function refreshProductGrid(term) {
             term = String(term || '').trim();
             window.global_p_search_term = term;
@@ -61,14 +49,12 @@
                 return;
             }
 
+            // Block the scroll handler before the page resets. Clearing the grid
+            // here used to fire a scroll event that requested page 2 and aborted page 1.
+            window.__vspos_suggest_ignore_scroll = true;
+            window.__vspos_suggest_end = false;
+            window.__vspos_suggest_recovered = false;
             $('input#suggestion_page').val(1);
-            var $items = itemsContainer();
-            if ($items.length) {
-                $items.html('');
-            }
-            if (term) {
-                showSearching();
-            }
 
             var is_enabled_stock = null;
             if ($('#is_enabled_stock').length) {

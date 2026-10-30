@@ -2097,6 +2097,7 @@ $(document).ready(function() {
             $grid.find('.pos-subcat-strip').remove();
             $grid.removeData('open-cat');
             $grid.find('.pos-card.cat').removeClass('is-active');
+            $('input#suggestion_page').val(1);
             get_product_suggestion_list(null, global_brand_id, $('input#location_id').val(), null);
             get_featured_products();
             $('.overlay-category').trigger('click');
@@ -2875,12 +2876,133 @@ function get_featured_products() {
     }
 }
 
+/* vspos-suggest-guard:start */
+function vsposSuggestClassifyHtml(html) {
+    html = html == null ? '' : String(html);
+    var matches = html.match(/class=["']product_box/g);
+    var count = matches ? matches.length : 0;
+    var isEnd = html.indexOf('id="suggestion_end"') !== -1;
+    var isEmpty = html.indexOf('id="no_products_found"') !== -1;
+    return {
+        html: html,
+        count: count,
+        hasProducts: count > 0,
+        isEnd: isEnd,
+        isEmpty: isEmpty,
+        valid: count > 0 || isEnd || isEmpty
+    };
+}
+
+function vsposSuggestShouldLoadNext(state) {
+    if (!state) {
+        return false;
+    }
+    if (state.ignoreScroll || state.loading || state.ended) {
+        return false;
+    }
+    var scrollHeight = Number(state.scrollHeight) || 0;
+    var clientHeight = Number(state.clientHeight) || 0;
+    var scrollTop = Number(state.scrollTop) || 0;
+    if (scrollHeight <= clientHeight + 8) {
+        return false;
+    }
+    if (scrollTop + clientHeight < scrollHeight - 48) {
+        return false;
+    }
+    return true;
+}
+
+function vsposSuggestApplyPlan(opts) {
+    opts = opts || {};
+    var pageSize = opts.pageSize || 50;
+    if (opts.reqId !== opts.currentReqId) {
+        return { action: 'ignore', end: !!opts.ended, stale: true };
+    }
+    var c = opts.classified || vsposSuggestClassifyHtml('');
+    if (!c.valid) {
+        if ((opts.page || 1) === 1) {
+            return { action: 'error', end: false };
+        }
+        return { action: 'rewind', end: false };
+    }
+    if (opts.page > 1 && (c.isEnd || (c.isEmpty && !c.hasProducts))) {
+        if (!opts.hasVisibleProducts) {
+            return { action: 'recover', end: false };
+        }
+        return { action: 'ignore', end: true };
+    }
+    var reachedEnd = !c.hasProducts || c.count < pageSize;
+    if ((opts.page || 1) === 1) {
+        return { action: 'replace', end: reachedEnd, html: c.html };
+    }
+    if (c.hasProducts) {
+        return { action: 'append', end: reachedEnd, html: c.html };
+    }
+    return { action: 'ignore', end: true };
+}
+/* vspos-suggest-guard:end */
+
+function vsposSuggestLoadingHtml() {
+    return '<div class="col-md-12 vspos-products-loading" id="vspos_products_loading">' +
+        '<h4 class="text-center vspos-no-products-title">' +
+        '<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Loading products...' +
+        '</h4></div>';
+}
+
+function vsposSuggestErrorHtml() {
+    return '<div class="col-md-12 vspos-no-products vspos-products-error">' +
+        '<h4 class="text-center vspos-no-products-title">Could not load products.</h4>' +
+        '<p class="text-center" style="margin-bottom:24px;">' +
+        '<button type="button" class="btn btn-sm btn-default" id="vspos_retry_products">Retry</button>' +
+        '</p></div>';
+}
+
+function vsposSuggestionItems() {
+    return $('div#product_list_items').length ? $('div#product_list_items') : $('div#product_list_body');
+}
+
+function vsposSuggestionContext() {
+    var is_enabled_stock = null;
+    if ($('#is_enabled_stock').length) {
+        is_enabled_stock = $('#is_enabled_stock').val();
+    }
+    var repair_model_id = null;
+    if ($('#repair_model_id').length) {
+        repair_model_id = $('#repair_model_id').val();
+    }
+    return {
+        category_id: typeof global_p_category_id !== 'undefined' ? global_p_category_id : null,
+        brand_id: typeof global_brand_id !== 'undefined' ? global_brand_id : null,
+        location_id: $('input#location_id').val() || $('#location_id').val() || '',
+        is_enabled_stock: is_enabled_stock,
+        repair_model_id: repair_model_id
+    };
+}
+
+function vsposMaybeFillSuggestionViewport() {
+    if (window.__vspos_suggest_loading || window.__vspos_suggest_end || window.__vspos_suggest_ignore_scroll) {
+        return;
+    }
+    var el = document.getElementById('product_list_body');
+    if (!el || el.scrollHeight > el.clientHeight + 8) {
+        return;
+    }
+    var page = parseInt($('#suggestion_page').val(), 10) || 1;
+    if (page >= 8) {
+        window.__vspos_suggest_end = true;
+        return;
+    }
+    $('#suggestion_page').val(page + 1);
+    var ctx = vsposSuggestionContext();
+    get_product_suggestion_list(ctx.category_id, ctx.brand_id, ctx.location_id, null, ctx.is_enabled_stock, ctx.repair_model_id);
+}
+
 function get_product_suggestion_list(category_id, brand_id, location_id, url = null, is_enabled_stock = null, repair_model_id = null) {
-    if($('div#product_list_body').length == 0) {
+    if ($('div#product_list_body').length == 0) {
         return false;
     }
 
-    var $items_container = $('div#product_list_items').length ? $('div#product_list_items') : $('div#product_list_body');
+    var $items_container = vsposSuggestionItems();
 
     if (url == null) {
         url = '/sells/pos/get-product-suggestion';
@@ -2888,29 +3010,48 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
 
     location_id = location_id || $('input#location_id').val() || $('#location_id').val() || '';
     if (!location_id) {
-        // Location not ready yet — retry briefly instead of rendering "No Products"
         window.__vspos_suggest_retry = (window.__vspos_suggest_retry || 0) + 1;
         if (window.__vspos_suggest_retry <= 15) {
             setTimeout(function () {
                 get_product_suggestion_list(category_id, brand_id, null, url, is_enabled_stock, repair_model_id);
             }, 120);
+        } else {
+            window.__vspos_suggest_ignore_scroll = false;
+            window.__vspos_suggest_loading = false;
+            $items_container.html(vsposSuggestErrorHtml());
         }
         return false;
     }
     window.__vspos_suggest_retry = 0;
 
-    $('#suggestion_page_loader').fadeIn(700);
-    var page = $('input#suggestion_page').val();
-    if (page == 1) {
-        $items_container.html('');
+    var page = parseInt($('input#suggestion_page').val(), 10);
+    if (!page || page < 1 || isNaN(page)) {
+        page = 1;
+        $('input#suggestion_page').val(1);
     }
-    if ($items_container.find('input#no_products_found').length > 0) {
-        $('#suggestion_page_loader').fadeOut(700);
+
+    // A scroll event during a reset must not replace page 1 with an empty later page.
+    if (page > 1 && (window.__vspos_suggest_loading || window.__vspos_suggest_end || window.__vspos_suggest_ignore_scroll)) {
+        $('input#suggestion_page').val(Math.max(1, page - 1));
         return false;
     }
 
-    window.__vspos_suggest_req = (window.__vspos_suggest_req || 0) + 1;
-    var reqId = window.__vspos_suggest_req;
+    if (page === 1) {
+        window.__vspos_suggest_ignore_scroll = true;
+        window.__vspos_suggest_end = false;
+        if (!window.__vspos_suggest_recovering) {
+            window.__vspos_suggest_recovered = false;
+        }
+        $items_container.html(vsposSuggestLoadingHtml());
+        $('#suggestion_page_loader').stop(true, true).hide();
+    } else {
+        $('#suggestion_page_loader').stop(true, true).fadeIn(150);
+    }
+
+    window.__vspos_suggest_loading = true;
+    window.__vspos_suggest_seq = (window.__vspos_suggest_seq || 0) + 1;
+    var reqId = window.__vspos_suggest_seq;
+    var reqPage = page;
     if (window.__vspos_suggest_xhr && window.__vspos_suggest_xhr.abort) {
         try { window.__vspos_suggest_xhr.abort(); } catch (e) {}
     }
@@ -2932,25 +3073,90 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
                 : (String($('#search_product').val() || '').trim() || undefined)
         },
         dataType: 'html',
-        success: function(result) {
-            if (reqId !== window.__vspos_suggest_req) {
+        success: function (result) {
+            if (reqId !== window.__vspos_suggest_seq) {
                 return;
             }
-            $items_container.append(result);
-            $('#suggestion_page_loader').fadeOut(700);
+            var classified = vsposSuggestClassifyHtml(result);
+            var plan = vsposSuggestApplyPlan({
+                reqId: reqId,
+                currentReqId: window.__vspos_suggest_seq,
+                page: reqPage,
+                classified: classified,
+                hasVisibleProducts: $items_container.find('.product_box').length > 0,
+                ended: window.__vspos_suggest_end,
+                pageSize: 50
+            });
+            if (plan.stale) {
+                return;
+            }
+
+            window.__vspos_suggest_loading = false;
+            $('#suggestion_page_loader').stop(true, true).hide();
+
+            if (plan.action === 'error') {
+                window.__vspos_suggest_ignore_scroll = false;
+                window.__vspos_suggest_end = false;
+                if (reqPage === 1) {
+                    $items_container.html(vsposSuggestErrorHtml());
+                } else {
+                    $('input#suggestion_page').val(Math.max(1, reqPage - 1));
+                }
+                return;
+            }
+            if (plan.action === 'rewind') {
+                window.__vspos_suggest_ignore_scroll = false;
+                $('input#suggestion_page').val(Math.max(1, reqPage - 1));
+                return;
+            }
+            if (plan.action === 'recover') {
+                window.__vspos_suggest_ignore_scroll = false;
+                if (window.__vspos_suggest_recovered) {
+                    window.__vspos_suggest_end = true;
+                    $items_container.html(vsposSuggestErrorHtml());
+                    return;
+                }
+                window.__vspos_suggest_recovered = true;
+                window.__vspos_suggest_recovering = true;
+                $('input#suggestion_page').val(1);
+                get_product_suggestion_list(category_id, brand_id, location_id, url, is_enabled_stock, repair_model_id);
+                window.__vspos_suggest_recovering = false;
+                return;
+            }
+            if (plan.action === 'ignore') {
+                window.__vspos_suggest_ignore_scroll = false;
+                window.__vspos_suggest_end = !!plan.end;
+                return;
+            }
+
+            window.__vspos_suggest_end = !!plan.end;
+            window.__vspos_suggest_ignore_scroll = true;
+            if (plan.action === 'replace') {
+                $items_container.html(plan.html);
+            } else if (plan.action === 'append') {
+                $items_container.find('#vspos_products_loading').remove();
+                $items_container.append(plan.html);
+            }
+            window.__vspos_suggest_ignore_scroll = false;
+
             if (typeof vsposApplyPosPriceMode === 'function' && !$('#is_pop_mode').length) {
                 vsposApplyPosPriceMode();
             }
+            if (!plan.end && classified.hasProducts) {
+                vsposMaybeFillSuggestionViewport();
+            }
         },
         error: function (xhr, status) {
-            if (status === 'abort' || reqId !== window.__vspos_suggest_req) {
+            if (status === 'abort' || reqId !== window.__vspos_suggest_seq) {
                 return;
             }
-            $('#suggestion_page_loader').fadeOut(700);
-            if (page == 1 && !$items_container.children().length) {
-                $items_container.html(
-                    '<div class="col-md-12"><h4 class="text-center text-muted">Could not load products. <a href="#" id="vspos_retry_products">Retry</a></h4></div>'
-                );
+            window.__vspos_suggest_loading = false;
+            window.__vspos_suggest_ignore_scroll = false;
+            $('#suggestion_page_loader').stop(true, true).hide();
+            if (reqPage === 1) {
+                $items_container.html(vsposSuggestErrorHtml());
+            } else {
+                $('input#suggestion_page').val(Math.max(1, reqPage - 1));
             }
         },
     });
@@ -2958,17 +3164,19 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
 
 $(document).on('click', '#vspos_retry_products', function (e) {
     e.preventDefault();
+    window.__vspos_suggest_ignore_scroll = true;
+    window.__vspos_suggest_end = false;
+    window.__vspos_suggest_recovered = false;
     $('input#suggestion_page').val(1);
-    var $items = $('div#product_list_items').length ? $('div#product_list_items') : $('div#product_list_body');
-    $items.html('');
-    if (typeof get_product_suggestion_list === 'function') {
-        get_product_suggestion_list(
-            typeof global_p_category_id !== 'undefined' ? global_p_category_id : null,
-            typeof global_brand_id !== 'undefined' ? global_brand_id : null,
-            $('input#location_id').val() || $('#location_id').val(),
-            null
-        );
-    }
+    var ctx = vsposSuggestionContext();
+    get_product_suggestion_list(
+        ctx.category_id,
+        ctx.brand_id,
+        ctx.location_id,
+        null,
+        ctx.is_enabled_stock,
+        ctx.repair_model_id
+    );
 });
 
 //Get recent transactions (POS) or recent purchases (POP)
@@ -4753,30 +4961,38 @@ $('table#pos_table tbody').on('change', 'input.pos_line_total', function() {
     pos_total_row();
 });
 
-$('div#product_list_body').on('scroll', function() {
-
-
-    if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
-        var page = parseInt($('#suggestion_page').val());
-        page += 1;
-        $('#suggestion_page').val(page);
-        var location_id = $('input#location_id').val();
-        var category_id = global_p_category_id;
-        var brand_id = global_brand_id;
-
-        var is_enabled_stock = null;
-        if ($("#is_enabled_stock").length) {
-            is_enabled_stock = $("#is_enabled_stock").val();
-        }
-
-        var device_model_id = null;
-        if ($("#repair_model_id").length) {
-            device_model_id = $("#repair_model_id").val();
-        }
-
-        get_product_suggestion_list(category_id, brand_id, location_id, null, is_enabled_stock, device_model_id);
+function vsposBindSuggestionScroll() {
+    var $list = $('div#product_list_body');
+    if (!$list.length || $list.data('vsposSuggestScroll')) {
+        return;
     }
-});
+    $list.data('vsposSuggestScroll', 1);
+    $list.on('scroll.vsposSuggest', function () {
+        if (!vsposSuggestShouldLoadNext({
+            ignoreScroll: window.__vspos_suggest_ignore_scroll,
+            loading: window.__vspos_suggest_loading,
+            ended: window.__vspos_suggest_end,
+            scrollTop: this.scrollTop,
+            scrollHeight: this.scrollHeight,
+            clientHeight: this.clientHeight
+        })) {
+            return;
+        }
+        var page = parseInt($('#suggestion_page').val(), 10) || 1;
+        $('#suggestion_page').val(page + 1);
+        var ctx = vsposSuggestionContext();
+        get_product_suggestion_list(
+            ctx.category_id,
+            ctx.brand_id,
+            ctx.location_id,
+            null,
+            ctx.is_enabled_stock,
+            ctx.repair_model_id
+        );
+    });
+}
+vsposBindSuggestionScroll();
+$(vsposBindSuggestionScroll);
 
 $(document).on('ifChecked', '#is_recurring', function() {
     $('#recurringInvoiceModal').modal('show');

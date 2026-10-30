@@ -493,6 +493,13 @@ html,
     padding: 0 !important;
     margin: 0 !important;
 }
+.vspos-touch-shell #product_list_items > .vspos-no-products,
+.vspos-touch-shell #product_list_items > .vspos-products-loading,
+.vspos-touch-shell #product_list_items > .vspos-products-error {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    float: none !important;
+}
 .vspos-touch-shell .product_box {
     min-height: 148px;
     padding: 10px 8px !important;

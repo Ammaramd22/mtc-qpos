@@ -33,6 +33,12 @@ html, body { margin: 0; padding: 0; }
     margin: 0 auto 4px;
     object-fit: contain;
 }
+.t80 .t80-letterhead {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 4px;
+}
 .t80 .t80-biz {
     margin: 0 0 2px;
     font-size: 13px;
@@ -281,7 +287,9 @@ html, body { margin: 0; padding: 0; }
 
 <div class="t80">
     <div class="t80-head">
-        @if(!empty($receipt_details->logo))
+        @if(!empty($receipt_details->letter_head))
+            <img src="{{ $receipt_details->letter_head }}" class="t80-letterhead" alt="">
+        @elseif(!empty($receipt_details->logo))
             <img src="{{ $receipt_details->logo }}" class="t80-logo" alt="">
         @endif
         @if(!empty($receipt_details->display_name))
@@ -318,6 +326,12 @@ html, body { margin: 0; padding: 0; }
             <span class="l">{{ $receipt_details->date_label ?? 'Date' }}</span>
             <span class="r">{{ $receipt_details->invoice_date }}</span>
         </div>
+        @if(!empty($receipt_details->due_date_label))
+            <div class="t80-row">
+                <span class="l">{{ $receipt_details->due_date_label }}</span>
+                <span class="r">{{ $receipt_details->due_date }}</span>
+            </div>
+        @endif
         @if(!empty($receipt_details->sales_person))
             <div class="t80-row">
                 <span class="l">{{ $receipt_details->sales_person_label ?? 'Cashier' }}</span>

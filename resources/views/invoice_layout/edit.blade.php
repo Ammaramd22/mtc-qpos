@@ -40,6 +40,12 @@
     </div>
   </div>
 
+  <div class="qpos-layout-edit-grid">
+    <div class="qpos-layout-edit-preview">
+      @include('invoice_layout.partials.live_preview')
+    </div>
+    <div class="qpos-layout-edit-main">
+
   @php
     $product_custom_fields = !empty($invoice_layout->product_custom_fields) ? $invoice_layout->product_custom_fields : [];
     $contact_custom_fields = !empty($invoice_layout->contact_custom_fields) ? $invoice_layout->contact_custom_fields : [];
@@ -50,7 +56,7 @@
     <div class="box-body">
       <div class="row">
 
-        <div class="col-sm-6">
+        <div class="col-sm-6" id="qposSectionLayout">
          <div class="form-group">
             {!! Form::label('name', __('invoice.layout_name') . ':*') !!}
               {!! Form::text('name', $invoice_layout->name, ['class' => 'form-control', 'required',
@@ -110,6 +116,11 @@
             </div>
 
           </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="col-sm-12">
+            @include('invoice_layout.partials.print_appearance_field')
+            @include('invoice_layout.partials.designer_fields')
         </div>
         <div class="clearfix"></div>
             <div class="col-sm-6">
@@ -194,7 +205,7 @@
       </div>
     </div>
   </div>
-  <div class="box box-solid">
+  <div class="box box-solid" id="qposSectionHeading">
     <div class="box-body">
       <div class="row">
         <div class="col-sm-3">
@@ -351,7 +362,7 @@
         </div>
         <div class="clearfix"></div>
         
-        <div class="col-sm-3">
+        <div class="col-sm-3" id="qposSectionBusiness">
           <div class="form-group">
             <div class="checkbox">
               <label>
@@ -384,7 +395,7 @@
           </div>
         </div>
         <div class="clearfix"></div>
-        <div class="col-sm-12">
+        <div class="col-sm-12" id="qposSectionCustomer">
           <h4>@lang('lang_v1.fields_for_customer_details'):</h4>
         </div>
        <div class="col-sm-3">
@@ -604,7 +615,7 @@
       </div>
     </div>
   </div>
-  <div class="box box-solid">
+  <div class="box box-solid" id="qposSectionTable">
     <div class="box-body">
       <div class="row">
         <div class="col-sm-3">
@@ -827,7 +838,7 @@
 
     </div>
   </div>
-  <div class="box box-solid">
+  <div class="box box-solid" id="qposSectionTotals">
     <div class="box-body">
       <div class="row">
         <div class="col-sm-3">
@@ -998,7 +1009,7 @@
           <hr/>
         </div>
         
-        <div class="col-sm-12">
+        <div class="col-sm-12" id="qposSectionFooter">
           <div class="form-group">
             {!! Form::label('footer_text', __('invoice.footer_text') . ':' ) !!}
               {!! Form::textarea('footer_text', $invoice_layout->footer_text, ['class' => 'form-control',
@@ -1209,6 +1220,9 @@
     <button type="submit" class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-lg">@lang('messages.update')</button>
   </div>
 </div>
+
+    </div>
+  </div>
 
   {!! Form::close() !!}
 </section>

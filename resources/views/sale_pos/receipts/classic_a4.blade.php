@@ -32,6 +32,12 @@
     width: auto;
     margin-bottom: 6px;
 }
+.a4-inv .a4-letterhead {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 10px;
+}
 .a4-inv .a4-biz-name {
     margin: 0 0 4px;
     font-size: 22px;
@@ -294,10 +300,13 @@
 </style>
 
 <div class="a4-inv">
+    @if(!empty($receipt_details->letter_head))
+        <img src="{{ $receipt_details->letter_head }}" class="a4-letterhead" alt="">
+    @endif
     {{-- Header --}}
     <div class="a4-top">
         <div class="a4-top-left">
-            @if(!empty($receipt_details->logo))
+            @if(empty($receipt_details->letter_head) && !empty($receipt_details->logo))
                 <img src="{{ $receipt_details->logo }}" class="a4-logo" alt="">
             @endif
             @if(!empty($receipt_details->display_name))
@@ -343,6 +352,10 @@
                     <strong>{{ $receipt_details->date_label }}:</strong>
                 @endif
                 {{ $receipt_details->invoice_date }}
+                @if(!empty($receipt_details->due_date_label))
+                    <br><strong>{{ $receipt_details->due_date_label }}:</strong>
+                    {{ $receipt_details->due_date }}
+                @endif
                 @if(!empty($receipt_details->sales_person))
                     <br><strong>{{ $receipt_details->sales_person_label ?? 'Sales Person' }}:</strong> {{ $receipt_details->sales_person }}
                 @endif

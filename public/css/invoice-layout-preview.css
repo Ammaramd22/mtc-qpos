@@ -1,0 +1,240 @@
+/* Invoice layout editor — live preview chrome. The receipt itself uses the print templates. */
+.qpos-live-preview {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    color: #111;
+    overflow: visible;
+}
+.qpos-live-preview-head,
+.qpos-live-preview-tools {
+    padding: 10px 12px;
+}
+.qpos-live-preview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: flex-start;
+    border-bottom: 1px solid #ececec;
+}
+.qpos-live-preview-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+.qpos-live-preview-note,
+.qpos-live-preview-status {
+    font-size: 12px;
+    color: #64748b;
+}
+.qpos-live-preview-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    align-items: flex-end;
+    border-bottom: 1px solid #ececec;
+}
+.qpos-tool {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0;
+    font-weight: 600;
+    min-width: 0;
+}
+.qpos-tool > span {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #64748b;
+}
+.qpos-tool select.form-control {
+    min-width: 140px;
+    max-width: 220px;
+    height: 30px;
+}
+.qpos-preview-modes,
+.qpos-tool-zoom > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+.qpos-live-preview-tools button,
+.qpos-live-preview-tools select {
+    pointer-events: auto;
+    cursor: pointer;
+}
+#qposLivePreview [data-qpos-mode].is-on {
+    background: #2563eb;
+    color: #fff;
+    border-color: #93c5fd;
+}
+.qpos-preview-stage {
+    background: #d4d4d8;
+    overflow: auto;
+    height: 75vh;
+    min-height: 560px;
+    max-height: 75vh;
+    padding: 12px 0 16px;
+}
+.qpos-preview-stage::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+.qpos-preview-stage::-webkit-scrollbar-thumb {
+    background: #64748b;
+    border-radius: 6px;
+}
+.qpos-preview-scaler {
+    position: relative;
+    min-height: 240px;
+}
+.qpos-preview-message {
+    margin: 12px 12px 0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #fff;
+    color: #111;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.qpos-preview-scaler iframe {
+    display: block;
+    border: 0;
+    background: #fff;
+    color-scheme: light;
+    margin: 0 auto;
+    min-height: 0;
+}
+.qpos-print-appearance {
+    margin-bottom: 8px;
+}
+.qpos-print-appearance-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+}
+.qpos-mode-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.qpos-mode-option {
+    flex: 1 1 180px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent;
+    color: inherit;
+}
+.qpos-mode-option input {
+    margin-right: 6px;
+}
+.qpos-mode-option .qpos-mode-title {
+    font-weight: 700;
+}
+.qpos-mode-option small {
+    display: block;
+    margin-top: 2px;
+    color: #64748b;
+    font-weight: 400;
+}
+.qpos-mode-option.is-selected {
+    border-color: #4f46e5;
+    box-shadow: inset 0 0 0 1px #4f46e5;
+    background: rgba(79, 70, 229, 0.08);
+}
+.qpos-layout-edit-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.qpos-designer-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.qpos-colour {
+    height: 34px;
+    padding: 2px 4px;
+}
+.qpos-section-flash {
+    outline: 2px solid #4f46e5;
+    outline-offset: 2px;
+}
+@media (min-width: 1100px) {
+    .qpos-layout-edit-grid {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    .qpos-layout-edit-main {
+        order: 1;
+        flex: 1 1 46%;
+        min-width: 0;
+        max-height: calc(100vh - 120px);
+        overflow: auto;
+    }
+    .qpos-layout-edit-preview {
+        order: 2;
+        flex: 1.3 1 54%;
+        width: auto;
+        min-width: 420px;
+        position: sticky;
+        top: 8px;
+    }
+    .qpos-layout-edit-preview .qpos-preview-stage {
+        height: calc(100vh - 210px);
+        min-height: 560px;
+        max-height: calc(100vh - 210px);
+    }
+}
+.qpos-layout-edit-grid.is-preview-only .qpos-layout-edit-main {
+    display: none;
+}
+.qpos-layout-edit-grid.is-preview-only .qpos-layout-edit-preview {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+    position: static;
+}
+html[data-vspos-theme="dark"] .qpos-live-preview {
+    background: #141414;
+    border-color: #2a2a2a;
+    color: #f5f5f5;
+}
+html[data-vspos-theme="dark"] .qpos-live-preview-head,
+html[data-vspos-theme="dark"] .qpos-live-preview-tools {
+    border-color: #2a2a2a;
+}
+html[data-vspos-theme="dark"] .qpos-live-preview-note,
+html[data-vspos-theme="dark"] .qpos-live-preview-status,
+html[data-vspos-theme="dark"] .qpos-tool > span,
+html[data-vspos-theme="dark"] .qpos-mode-option small {
+    color: #a3a3a3;
+}
+html[data-vspos-theme="dark"] .qpos-mode-option {
+    border-color: #3f3f46;
+    color: #f5f5f5;
+}
+html[data-vspos-theme="dark"] .qpos-preview-stage {
+    background: #3f3f46;
+}
+html[data-vspos-theme="dark"] .qpos-designer,
+html[data-vspos-theme="dark"] .qpos-designer .box-body {
+    background: transparent;
+    color: inherit;
+}
+@media print {
+    .qpos-live-preview,
+    .qpos-layout-edit-preview,
+    .qpos-print-appearance {
+        display: none !important;
+    }
+}

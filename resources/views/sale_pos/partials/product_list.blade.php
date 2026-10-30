@@ -1,3 +1,7 @@
+{{-- Page 2+ with no rows means the list ended. Do not render the empty state into the grid. --}}
+@if($products->isEmpty() && $products->currentPage() > 1)
+	<input type="hidden" class="vspos-suggestion-end" id="suggestion_end" value="1">
+@else
 @forelse($products as $product)
 	@php
 		$retail_price = isset($product->retail_price_baseline) ? $product->retail_price_baseline : $product->selling_price;
@@ -94,3 +98,4 @@
 		@endif
 	</div>
 @endforelse
+@endif

@@ -1,4 +1,4 @@
-﻿Barcode,Item Name,Supplier,Brand,Category,Sub Category,Cost,MRP,Opening Stock,Location,Tyre Size,Note
+﻿Barcode,Item Name,Supplier,Brand,Category,Sub Category,Cost,MRP,Opening Stock,Location,Tyre Size,Note,Size,Color
 8901001000011,Red Rice 5kg,Aadhil Traders,Fortune,Grocery,Rice,3800,5000,20,,
 8901001000028,Sunflower Oil 1L,Aadhil Traders,Fortune,Grocery,Oil,980,1250,15,,
 8901001000035,Full Cream Milk 1L,Fresh Farms,Anchor,Dairy,Milk,280,350,50,,

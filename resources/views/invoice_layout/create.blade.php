@@ -18,6 +18,7 @@
 <!-- Main content -->
 <section class="content">
 {!! Form::open(['url' => action([\App\Http\Controllers\InvoiceLayoutController::class, 'store']), 'method' => 'post', 'id' => 'add_invoice_layout_form', 'files' => true]) !!}
+  @include('invoice_layout.partials.live_preview')
   <div class="box box-solid">
     <div class="box-body">
       <div class="row">
@@ -77,6 +78,11 @@
             </div>
           </div>
 
+        </div>
+        <div class="clearfix"></div>
+        <div class="col-sm-12">
+            @include('invoice_layout.partials.print_appearance_field')
+            @include('invoice_layout.partials.designer_fields')
         </div>
         <div class="clearfix"></div>
             <div class="col-sm-6">

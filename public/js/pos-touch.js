@@ -469,6 +469,9 @@
                 return;
             }
             if (typeof get_product_suggestion_list === 'function') {
+                window.__vspos_suggest_ignore_scroll = true;
+                window.__vspos_suggest_end = false;
+                window.__vspos_suggest_recovered = false;
                 $('input#suggestion_page').val(1);
                 window.global_p_category_id = null;
                 get_product_suggestion_list(null, null, loc || null, null);
@@ -544,6 +547,9 @@
     }
 
     function reloadProducts(categoryId) {
+        window.__vspos_suggest_ignore_scroll = true;
+        window.__vspos_suggest_end = false;
+        window.__vspos_suggest_recovered = false;
         window.global_p_category_id = categoryId === 'all' || categoryId === null || categoryId === '' ? null : categoryId;
         $('input#suggestion_page').val(1);
         var loc = $('#location_id').val();

@@ -32,6 +32,16 @@
             @if(function_exists('tyre_shop_enabled') && tyre_shop_enabled())
             <th>@lang('product.tyre_size')</th>
             @endif
+            @php
+                $has_product_size_col = $has_product_size_col ?? \Illuminate\Support\Facades\Schema::hasColumn('products', 'size');
+                $has_product_color_col = $has_product_color_col ?? \Illuminate\Support\Facades\Schema::hasColumn('products', 'color');
+            @endphp
+            @if($has_product_size_col)
+            <th>@lang('product.size')</th>
+            @endif
+            @if($has_product_color_col)
+            <th>@lang('product.color')</th>
+            @endif
             @foreach($shop_list_cols as $shop_col)
             <th>@lang('product.'.$shop_col)</th>
             @endforeach

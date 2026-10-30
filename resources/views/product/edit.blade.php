@@ -63,6 +63,8 @@
               </div>
             </div>
 
+            @include('product.partials.size_color_fields')
+
             <div class="col-sm-4 @if(!session('business.enable_sub_units')) hide @endif">
               <div class="form-group">
                 {!! Form::label('sub_unit_ids', __('lang_v1.related_sub_units') . ':') !!} @show_tooltip(__('lang_v1.sub_units_tooltip'))

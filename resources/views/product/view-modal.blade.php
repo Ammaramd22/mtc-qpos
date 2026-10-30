@@ -421,6 +421,8 @@
 					@if(function_exists('tyre_shop_enabled') && tyre_shop_enabled())
 					<p><b>@lang('product.tyre_size'):</b> {{ $product->tyre_size ?: '—' }}</p>
 					@endif
+					<p><b>@lang('product.size'):</b> {{ $product->size ?: '—' }}</p>
+					<p><b>@lang('product.color'):</b> {{ $product->color ?: '—' }}</p>
 					@foreach(\App\Utils\ShopModeUtil::extraProductFields() as $shop_col => $meta)
 						@if(!empty($product->{$shop_col}))
 							<p><b>@lang($meta['label']):</b> {{ $product->{$shop_col} }}</p>

@@ -94,6 +94,8 @@ class ProductController extends Controller
 
             $has_supplier_col = \Illuminate\Support\Facades\Schema::hasColumn('products', 'supplier_id');
             $has_tyre_size_col = \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_size');
+            $has_size_col = \Illuminate\Support\Facades\Schema::hasColumn('products', 'size');
+            $has_color_col = \Illuminate\Support\Facades\Schema::hasColumn('products', 'color');
             $shop_list_cols = [];
             try {
                 $shop_list_cols = \App\Utils\ShopModeUtil::listColumns();
@@ -126,6 +128,8 @@ class ProductController extends Controller
                 'products.id',
                 'products.name as product',
                 $has_tyre_size_col ? 'products.tyre_size' : DB::raw('NULL as tyre_size'),
+                $has_size_col ? 'products.size' : DB::raw('NULL as size'),
+                $has_color_col ? 'products.color' : DB::raw('NULL as color'),
                 'products.type',
                 'c1.name as category',
                 'c2.name as sub_category',
@@ -185,6 +189,14 @@ class ProductController extends Controller
             $tyre_size = request()->get('tyre_size', null);
             if (! empty($tyre_size) && $has_tyre_size_col) {
                 $products->where('products.tyre_size', 'like', '%'.$tyre_size.'%');
+            }
+            $size = request()->get('size', null);
+            if (! empty($size) && $has_size_col) {
+                $products->where('products.size', 'like', '%'.$size.'%');
+            }
+            $color = request()->get('color', null);
+            if (! empty($color) && $has_color_col) {
+                $products->where('products.color', 'like', '%'.$color.'%');
             }
             foreach ($shop_list_cols as $shop_col) {
                 $filter_val = request()->get($shop_col, null);
@@ -342,11 +354,17 @@ class ProductController extends Controller
                     })
                     ->orWhere('products.sku', 'like', "%{$keyword}%");
                 })
-                ->filterColumn('products.name', function ($query, $keyword) use ($has_tyre_size_col) {
-                    $query->where(function ($q) use ($keyword, $has_tyre_size_col) {
+                ->filterColumn('products.name', function ($query, $keyword) use ($has_tyre_size_col, $has_size_col, $has_color_col) {
+                    $query->where(function ($q) use ($keyword, $has_tyre_size_col, $has_size_col, $has_color_col) {
                         $q->where('products.name', 'like', "%{$keyword}%");
                         if ($has_tyre_size_col) {
                             $q->orWhere('products.tyre_size', 'like', "%{$keyword}%");
+                        }
+                        if ($has_size_col) {
+                            $q->orWhere('products.size', 'like', "%{$keyword}%");
+                        }
+                        if ($has_color_col) {
+                            $q->orWhere('products.color', 'like', "%{$keyword}%");
                         }
                     });
                 })
@@ -514,8 +532,12 @@ class ProductController extends Controller
             abort(403, 'Unauthorized action.');
         }
         try {
+            if ($response = $this->sizeColorErrorResponse($request)) {
+                return $response;
+            }
+
             $business_id = $request->session()->get('user.business_id');
-            $form_fields = ['name', 'tyre_size', 'tyre_note', 'brand_id', 'unit_id', 'category_id', 'tax', 'type', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20', 'supplier_id'];
+            $form_fields = ['name', 'size', 'color', 'tyre_size', 'tyre_note', 'brand_id', 'unit_id', 'category_id', 'tax', 'type', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20', 'supplier_id'];
             $form_fields = array_merge($form_fields, \App\Utils\ShopModeUtil::extraProductFieldNames());
 
             $module_form_fields = $this->moduleUtil->getModuleFormField('product_form_fields');
@@ -570,6 +592,7 @@ class ProductController extends Controller
             if (! \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_size') || ! (new \App\Utils\TyreShopUtil())->moduleEnabled()) {
                 unset($product_details['tyre_size']);
             }
+            $this->assignSizeAndColor($product_details, $request);
             $this->applyTyreNoteAndAutoName($product_details, $request);
 
             DB::beginTransaction();
@@ -797,8 +820,12 @@ class ProductController extends Controller
         }
 
         try {
+            if ($response = $this->sizeColorErrorResponse($request)) {
+                return $response;
+            }
+
             $business_id = $request->session()->get('user.business_id');
-            $product_details = $request->only(['name', 'tyre_size', 'tyre_note', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20', 'supplier_id']);
+            $product_details = $request->only(['name', 'size', 'color', 'tyre_size', 'tyre_note', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20', 'supplier_id']);
             $product_details = array_merge($product_details, $request->only(\App\Utils\ShopModeUtil::extraProductFieldNames()));
             $product_details = \App\Utils\ShopModeUtil::sanitizeProductFields($product_details, $request);
 
@@ -817,6 +844,7 @@ class ProductController extends Controller
             }
 
             $this->applyTyreNoteAndAutoName($product_details, $request);
+            $this->assignSizeAndColor($product_details, $request);
 
             $product->name = $product_details['name'];
             if ((new \App\Utils\TyreShopUtil())->moduleEnabled()) {
@@ -865,6 +893,12 @@ class ProductController extends Controller
             $product->product_custom_field20 = $product_details['product_custom_field20'] ?? '';
             if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'supplier_id')) {
                 $product->supplier_id = ! empty($product_details['supplier_id']) ? $product_details['supplier_id'] : null;
+            }
+            if (array_key_exists('size', $product_details)) {
+                $product->size = $product_details['size'];
+            }
+            if (array_key_exists('color', $product_details)) {
+                $product->color = $product_details['color'];
             }
 
             $product->product_description = $product_details['product_description'];
@@ -1678,7 +1712,11 @@ class ProductController extends Controller
         }
 
         try {
-            $form_fields = ['name', 'tyre_size', 'tyre_note', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'tax_type', 'sku',
+            if ($response = $this->sizeColorErrorResponse($request, true)) {
+                return $response;
+            }
+
+            $form_fields = ['name', 'size', 'color', 'tyre_size', 'tyre_note', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'tax_type', 'sku',
                 'alert_quantity', 'type', 'sub_unit_ids', 'sub_category_id', 'weight', 'product_description', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20', 'supplier_id'];
             $form_fields = array_merge($form_fields, \App\Utils\ShopModeUtil::extraProductFieldNames());
 
@@ -1704,6 +1742,7 @@ class ProductController extends Controller
             if (! \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_size') || ! (new \App\Utils\TyreShopUtil())->moduleEnabled()) {
                 unset($product_details['tyre_size']);
             }
+            $this->assignSizeAndColor($product_details, $request);
             $this->applyTyreNoteAndAutoName($product_details, $request);
             if (! empty($request->input('enable_stock')) && $request->input('enable_stock') == 1) {
                 $product_details['enable_stock'] = 1;
@@ -2255,10 +2294,14 @@ class ProductController extends Controller
     }
 
     /**
-     * Activates the specified resource from storage.
+     * Reactivates an inactive product by clearing is_inactive on the same row.
+     * Stock, price, and history are not changed.
      *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
+     * The product-list Actions menu sends this as AJAX and receives JSON.
+     * A normal browser request is redirected to the product list with a notification.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
     public function activate($id)
     {
@@ -2266,26 +2309,55 @@ class ProductController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            try {
-                $business_id = request()->session()->get('user.business_id');
-                $product = Product::where('id', $id)
-                                ->where('business_id', $business_id)
-                                ->update(['is_inactive' => 0]);
+        try {
+            $business_id = request()->session()->get('user.business_id');
 
-                $output = ['success' => true,
-                    'msg' => __('lang_v1.updated_success'),
-                ];
-            } catch (\Exception $e) {
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
+            $product = Product::where('business_id', $business_id)
+                ->where('id', $id)
+                ->first(['id', 'is_inactive']);
 
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
+            if (empty($product)) {
+                $output = [
+                    'success' => 0,
+                    'msg' => __('lang_v1.product_not_found'),
                 ];
+            } elseif ((int) $product->is_inactive !== 1) {
+                $output = [
+                    'success' => 0,
+                    'msg' => __('lang_v1.product_already_active'),
+                ];
+            } else {
+                $updated = Product::where('business_id', $business_id)
+                    ->where('id', $product->id)
+                    ->where('is_inactive', 1)
+                    ->update(['is_inactive' => 0]);
+
+                if ($updated) {
+                    $output = [
+                        'success' => 1,
+                        'msg' => __('lang_v1.product_reactivated_success'),
+                    ];
+                } else {
+                    $output = [
+                        'success' => 0,
+                        'msg' => __('messages.something_went_wrong'),
+                    ];
+                }
             }
+        } catch (\Exception $e) {
+            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
+            $output = [
+                'success' => 0,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        if (request()->ajax()) {
             return $output;
         }
+
+        return redirect('products')->with('status', $output);
     }
 
     /**
@@ -2817,5 +2889,72 @@ class ProductController extends Controller
         $filename = 'products-export-'.\Carbon::now()->format('Y-m-d').'.xlsx';
 
         return Excel::download(new ProductsExport, $filename);
+    }
+
+    /**
+     * Optional Size and Color: empty becomes NULL. Rejects values longer than 191 characters.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  bool  $json
+     * @return \Illuminate\Http\RedirectResponse|array|null
+     */
+    private function sizeColorErrorResponse(Request $request, bool $json = false)
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->only(['size', 'color']), [
+            'size' => 'nullable|string|max:191',
+            'color' => 'nullable|string|max:191',
+        ]);
+
+        if (! $validator->fails()) {
+            return null;
+        }
+
+        $payload = [
+            'success' => 0,
+            'msg' => $validator->errors()->first(),
+        ];
+
+        if ($json) {
+            return $payload;
+        }
+
+        return redirect()->back()->withInput()->with('status', $payload);
+    }
+
+    /**
+     * Write nullable size and color onto the product attribute array.
+     * Leaves the keys off when the columns are not present, so older databases keep working.
+     *
+     * @param  array  $product_details
+     * @param  \Illuminate\Http\Request  $request
+     * @return void
+     */
+    private function assignSizeAndColor(array &$product_details, Request $request)
+    {
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'size') && $request->exists('size')) {
+            $product_details['size'] = $this->blankToNull($request->input('size'));
+        } else {
+            unset($product_details['size']);
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'color') && $request->exists('color')) {
+            $product_details['color'] = $this->blankToNull($request->input('color'));
+        } else {
+            unset($product_details['color']);
+        }
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return string|null
+     */
+    private function blankToNull($value)
+    {
+        if ($value === null) {
+            return null;
+        }
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }

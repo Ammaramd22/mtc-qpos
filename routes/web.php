@@ -415,6 +415,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('business-location', BusinessLocationController::class);
 
     //Invoice layouts..
+    Route::match(['post', 'put'], 'invoice-layouts/live-preview', [InvoiceLayoutController::class, 'livePreview'])->name('invoice-layouts.live-preview');
     Route::resource('invoice-layouts', InvoiceLayoutController::class);
 
     Route::post('get-expense-sub-categories', [ExpenseCategoryController::class, 'getSubCategories']);

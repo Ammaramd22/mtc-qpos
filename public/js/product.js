@@ -327,6 +327,14 @@ $(document).ready(function() {
                         },
                     },
                 },
+                size: {
+                    required: false,
+                    maxlength: 191,
+                },
+                color: {
+                    required: false,
+                    maxlength: 191,
+                },
             },
             messages: {
                 sku: {

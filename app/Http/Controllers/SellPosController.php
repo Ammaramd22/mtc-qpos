@@ -46,6 +46,7 @@ use App\TransactionSellLine;
 use App\TypesOfService;
 use App\User;
 use App\Utils\BusinessUtil;
+use App\Utils\InvoicePrintAppearance;
 use App\Utils\CashRegisterUtil;
 use App\Utils\ContactUtil;
 use App\Utils\ModuleUtil;
@@ -1179,7 +1180,7 @@ class SellPosController extends Controller
         }
 
         if ($is_package_slip) {
-            $output['html_content'] = view('sale_pos.receipts.packing_slip', compact('receipt_details'))->render();
+            $output['html_content'] = InvoicePrintAppearance::render('sale_pos.receipts.packing_slip', compact('receipt_details'));
             $output['print_title'] = ($receipt_details->invoice_no ?? '') . ' — ' . __('lang_v1.packing_slip');
             $output['paper_width'] = 80;
 
@@ -1187,7 +1188,7 @@ class SellPosController extends Controller
         }
 
         if ($is_delivery_note) {
-            $output['html_content'] = view('sale_pos.receipts.delivery_note', compact('receipt_details'))->render();
+            $output['html_content'] = InvoicePrintAppearance::render('sale_pos.receipts.delivery_note', compact('receipt_details'));
             $output['print_title'] = ($receipt_details->invoice_no ?? '') . ' — ' . __('lang_v1.delivery_note');
             $output['paper_width'] = 80;
             $output['design'] = 'delivery_note';
@@ -1225,7 +1226,7 @@ class SellPosController extends Controller
 
             $layout = !empty($design) ? 'sale_pos.receipts.' . $design : 'sale_pos.receipts.classic';
 
-            $output['html_content'] = view($layout, compact('receipt_details'))->render();
+            $output['html_content'] = InvoicePrintAppearance::render($layout, compact('receipt_details'));
             // Paper profile: A5 landscape / A4 / thermal 58|80
             if ($design === 'a5_half_landscape') {
                 $output['paper_width'] = 210;
@@ -3916,9 +3917,7 @@ class SellPosController extends Controller
         }
 
         //Generate pdf
-        $body = view('sale_pos.receipts.' . $blade_file)
-            ->with(compact('receipt_details', 'location_details', 'is_email_attachment'))
-            ->render();
+        $body = InvoicePrintAppearance::render('sale_pos.receipts.' . $blade_file, compact('receipt_details', 'location_details', 'is_email_attachment'));
 
         $mpdf = new \Mpdf\Mpdf(['tempDir' => public_path('uploads/temp'),
             'mode' => 'utf-8',
@@ -3955,9 +3954,7 @@ class SellPosController extends Controller
         $location_details = $receipt_contents['location_details'];
 
         //Generate pdf
-        $body = view('sale_pos.receipts.download_quotation_pdf')
-            ->with(compact('receipt_details', 'location_details', 'sub_status'))
-            ->render();
+        $body = InvoicePrintAppearance::render('sale_pos.receipts.download_quotation_pdf', compact('receipt_details', 'location_details', 'sub_status'));
         $pdf_name = (!empty($sub_status) && $sub_status == 'proforma') ? __('lang_v1.proforma_invoice') : 'QUOTATION';
         $mpdf = new \Mpdf\Mpdf(['tempDir' => public_path('uploads/temp'),
             'mode' => 'utf-8',
@@ -3994,9 +3991,7 @@ class SellPosController extends Controller
         $location_details = $receipt_contents['location_details'];
 
         //Generate pdf
-        $body = view('sale_pos.receipts.download_packing_list_pdf')
-            ->with(compact('receipt_details', 'location_details'))
-            ->render();
+        $body = InvoicePrintAppearance::render('sale_pos.receipts.download_packing_list_pdf', compact('receipt_details', 'location_details'));
 
         $mpdf = new \Mpdf\Mpdf(['tempDir' => public_path('uploads/temp'),
             'mode' => 'utf-8',

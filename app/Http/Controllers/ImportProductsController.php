@@ -139,12 +139,20 @@ class ImportProductsController extends Controller
                         $imported_data[] = $this->expandSimpleProductRow($row, $default_unit_name, $header_row);
                     }
                 } else {
+                    $size_idx = $this->findImportColumnIndex($header_row, ['size', 'product size']);
+                    $color_idx = $this->findImportColumnIndex($header_row, ['color', 'colour', 'product color']);
                     $imported_data = [];
                     foreach ($sheet as $row) {
                         if ($this->isImportRowEmpty($row)) {
                             continue;
                         }
-                        $imported_data[] = array_values($row);
+                        $row = array_values($row);
+                        $row = $this->mapSizeColorImportColumns(
+                            $row,
+                            $size_idx,
+                            $color_idx
+                        );
+                        $imported_data[] = $row;
                     }
                 }
 
@@ -364,6 +372,25 @@ class ImportProductsController extends Controller
                     $product_array['tyre_note'] = $tyre_note !== '' ? mb_substr($tyre_note, 0, 100) : null;
                     if (! \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_note')) {
                         unset($product_array['tyre_note']);
+                    }
+
+                    $size_raw = isset($value[40]) ? trim((string) $value[40]) : '';
+                    if (mb_strlen($size_raw) > 191) {
+                        $is_valid = false;
+                        $error_msg = "Size exceeds 191 characters in row no. $row_no";
+                        break;
+                    }
+                    $color_raw = isset($value[41]) ? trim((string) $value[41]) : '';
+                    if (mb_strlen($color_raw) > 191) {
+                        $is_valid = false;
+                        $error_msg = "Color exceeds 191 characters in row no. $row_no";
+                        break;
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'size')) {
+                        $product_array['size'] = $size_raw !== '' ? $size_raw : null;
+                    }
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'color')) {
+                        $product_array['color'] = $color_raw !== '' ? $color_raw : null;
                     }
 
                     if (\App\Product::shouldAutoBuildTyreName($product_array['tyre_size'] ?? null, $product_array['tyre_note'] ?? null)) {
@@ -1071,7 +1098,7 @@ class ImportProductsController extends Controller
      * Simple columns:
      * 0 Barcode, 1 Item Name, 2 Supplier, 3 Brand, 4 Category,
      * 5 Sub Category, 6 Cost, 7 MRP, 8 Opening Stock (opt), 9 Location (opt),
-     * 10 Tyre Size (opt)
+     * 10 Tyre Size (opt), 11 Note (opt). Size and Color are read by header name when present.
      */
     private function expandSimpleProductRow(array $row, string $default_unit_name, array $header = []): array
     {
@@ -1092,6 +1119,8 @@ class ImportProductsController extends Controller
         $location = $get(9);
         $tyre_size = $get(10);
         $tyre_note = $get(11);
+        $size = '';
+        $color = '';
 
         $tyre_size_idx = $this->findImportColumnIndex($header, ['tyre size', 'tyresize']);
         if ($tyre_size_idx !== null) {
@@ -1101,13 +1130,21 @@ class ImportProductsController extends Controller
         if ($tyre_note_idx !== null) {
             $tyre_note = isset($row[$tyre_note_idx]) ? trim((string) $row[$tyre_note_idx]) : $tyre_note;
         }
+        $size_idx = $this->findImportColumnIndex($header, ['size', 'product size']);
+        if ($size_idx !== null) {
+            $size = isset($row[$size_idx]) ? trim((string) $row[$size_idx]) : '';
+        }
+        $color_idx = $this->findImportColumnIndex($header, ['color', 'colour', 'product color']);
+        if ($color_idx !== null) {
+            $color = isset($row[$color_idx]) ? trim((string) $row[$color_idx]) : '';
+        }
 
         // Strip currency symbols / commas from money fields
         $cost = preg_replace('/[^0-9.\-]/', '', str_replace(',', '', $cost));
         $mrp = preg_replace('/[^0-9.\-]/', '', str_replace(',', '', $mrp));
         $opening_stock = preg_replace('/[^0-9.\-]/', '', str_replace(',', '', $opening_stock));
 
-        $legacy = array_fill(0, 40, '');
+        $legacy = array_fill(0, 42, '');
         $legacy[0] = $name;
         $legacy[1] = $brand;
         $legacy[2] = $default_unit_name;
@@ -1134,6 +1171,8 @@ class ImportProductsController extends Controller
         $legacy[37] = $supplier;
         $legacy[38] = $tyre_size;
         $legacy[39] = $tyre_note;
+        $legacy[40] = $size;
+        $legacy[41] = $color;
 
         return $legacy;
     }
@@ -1149,5 +1188,39 @@ class ImportProductsController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Copy Size and Color into import slots 40 and 41.
+     * Clears the original cells when they sit on a different positional column,
+     * so a trailing SIZE column is not also read as tyre note.
+     *
+     * @param  array  $row
+     * @param  int|null  $size_idx
+     * @param  int|null  $color_idx
+     * @return array
+     */
+    private function mapSizeColorImportColumns(array $row, ?int $size_idx, ?int $color_idx): array
+    {
+        $size_val = ($size_idx !== null) ? ($row[$size_idx] ?? '') : null;
+        $color_val = ($color_idx !== null) ? ($row[$color_idx] ?? '') : null;
+        $clear_indexes = [];
+        if ($size_idx !== null && $size_idx !== 40 && $size_idx !== 41) {
+            $clear_indexes[] = $size_idx;
+        }
+        if ($color_idx !== null && $color_idx !== 40 && $color_idx !== 41) {
+            $clear_indexes[] = $color_idx;
+        }
+        if ($size_idx !== null) {
+            $row[40] = $size_val;
+        }
+        if ($color_idx !== null) {
+            $row[41] = $color_val;
+        }
+        foreach ($clear_indexes as $clear_idx) {
+            $row[$clear_idx] = '';
+        }
+
+        return $row;
     }
 }
