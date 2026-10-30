@@ -11,11 +11,15 @@
     );
     $priceText = rtrim($sym).' '.$amount;
     $cc = $sticker['costcode'] ?? '';
+    $sizeText = trim((string) ($sticker['size'] ?? ''));
+    $colorText = trim((string) ($sticker['color'] ?? ''));
+    $sizeOn = ! empty($opts['show_size']) && $sizeText !== '';
+    $colorOn = ! empty($opts['show_color']) && $colorText !== '';
     $rotClass = in_array((string) ($printRotate ?? '0'), ['0', '90', '180', '270'], true)
         ? (string) $printRotate
         : '0';
 @endphp
-<div class="label bc-{{ $bcPos }} rot-{{ $rotClass }}" data-sku="{{ $sticker['sku'] }}">
+<div class="label bc-{{ $bcPos }} rot-{{ $rotClass }}" data-sku="{{ $sticker['sku'] }}" data-size="{{ $sizeText }}" data-color="{{ $colorText }}">
     <div class="label-shift">
         <div class="label-inner">
             <div class="head">
@@ -30,6 +34,16 @@
                 @endif
                 @if($opts['show_name'])
                     <div class="pname">{{ $sticker['name'] }}</div>
+                @endif
+                @if($sizeText !== '' || $colorText !== '')
+                    <div class="attr-line" @if(! $sizeOn && ! $colorOn) style="display:none" @endif>
+                        @if($sizeText !== '')
+                            <span class="label-size" @if(empty($opts['show_size'])) style="display:none" @endif>{{ __('product.size') }}: {{ $sizeText }}</span>
+                        @endif
+                        @if($colorText !== '')
+                            <span class="label-color" @if(empty($opts['show_color'])) style="display:none" @endif>{{ __('product.color') }}: {{ $colorText }}</span>
+                        @endif
+                    </div>
                 @endif
             </div>
             <div class="body">

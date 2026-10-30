@@ -3068,6 +3068,7 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
             repair_model_id: repair_model_id,
             for_pop: $('#is_pop_mode').length ? 1 : 0,
             price_group: $('#price_group').length ? ($('#price_group').val() || 0) : 0,
+            product_view: document.documentElement.classList.contains('vspos-product-view-list') ? 'list' : 'grid',
             term: (typeof window.global_p_search_term === 'string' && window.global_p_search_term !== '')
                 ? window.global_p_search_term
                 : (String($('#search_product').val() || '').trim() || undefined)

@@ -2455,7 +2455,13 @@ class SellPosController extends Controller
                 ? 'variations.dpp_inc_tax as selling_price'
                 : 'variations.default_sell_price as selling_price';
 
-            $products = $products->select(
+            // Category, size, and color are display-only for the POS list view.
+            $products->leftJoin('categories as pos_cat', function ($join) {
+                $join->on('p.category_id', '=', 'pos_cat.id')
+                    ->whereNull('pos_cat.deleted_at');
+            });
+
+            $suggestion_columns = [
                 'p.id as product_id',
                 'p.name',
                 'p.tyre_size',
@@ -2468,8 +2474,17 @@ class SellPosController extends Controller
                 DB::raw($price_col),
                 'variations.sub_sku',
                 'u.short_name as unit',
-                DB::raw('(SELECT purchase_price_inc_tax FROM purchase_lines WHERE variation_id = variations.id ORDER BY id DESC LIMIT 1) as last_purchased_price')
-            )
+                'pos_cat.name as category_name',
+                DB::raw('(SELECT purchase_price_inc_tax FROM purchase_lines WHERE variation_id = variations.id ORDER BY id DESC LIMIT 1) as last_purchased_price'),
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'size')) {
+                $suggestion_columns[] = 'p.size as product_size';
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'color')) {
+                $suggestion_columns[] = 'p.color as product_color';
+            }
+
+            $products = $products->select($suggestion_columns)
                 ->with(['media', 'group_prices'])
                 ->orderBy('p.name', 'asc')
                 ->paginate(50);
@@ -2504,8 +2519,10 @@ class SellPosController extends Controller
                 }
             }
 
+            $product_view = $request->get('product_view') === 'list' ? 'list' : 'grid';
+
             return view('sale_pos.partials.product_list')
-                ->with(compact('products', 'allowed_group_prices', 'show_prices', 'for_pop', 'active_price_group_id', 'term'));
+                ->with(compact('products', 'allowed_group_prices', 'show_prices', 'for_pop', 'active_price_group_id', 'term', 'product_view'));
         }
     }
 

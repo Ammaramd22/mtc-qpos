@@ -36,8 +36,9 @@
 					<label class="labels-search-label">@lang('lang_v1.search_product')</label>
 					<div class="labels-search-wrap">
 						<span class="labels-search-icon"><i class="fa fa-search"></i></span>
-						{!! Form::text('search_product', null, ['class' => 'form-control labels-search-input', 'id' => 'search_product_for_label', 'placeholder' => __('lang_v1.enter_product_name_to_print_labels'), 'autofocus']); !!}
+						{!! Form::text('search_product', null, ['class' => 'form-control labels-search-input', 'id' => 'search_product_for_label', 'placeholder' => __('lang_v1.enter_product_name_to_print_labels'), 'autofocus', 'autocomplete' => 'off', 'autocorrect' => 'off', 'spellcheck' => 'false', 'role' => 'combobox', 'aria-autocomplete' => 'list', 'aria-expanded' => 'false']); !!}
 					</div>
+					<p class="labels-search-status" id="labels_search_status" role="status"></p>
 					<p class="labels-search-hint">@lang('lang_v1.label_search_hint')</p>
 				</div>
 			</div>
@@ -105,8 +106,13 @@
 }
 .labels-guide-popover {
     max-width: 360px;
-    border: 1px solid rgba(125, 211, 252, .35);
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .12);
+    background: #ffffff;
+}
+html[data-vspos-theme="dark"] .labels-guide-popover {
+    border-color: rgba(125, 211, 252, .35);
     box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
     background: #0f172a;
 }
@@ -116,43 +122,55 @@
     border-radius: 12px;
 }
 .labels-guide-popover.bottom > .arrow:after {
-    border-bottom-color: #0f172a;
+    border-bottom-color: #ffffff;
 }
 .labels-guide-popover.top > .arrow:after {
+    border-top-color: #ffffff;
+}
+html[data-vspos-theme="dark"] .labels-guide-popover.bottom > .arrow:after {
+    border-bottom-color: #0f172a;
+}
+html[data-vspos-theme="dark"] .labels-guide-popover.top > .arrow:after {
     border-top-color: #0f172a;
 }
 .labels-guide-popover-inner {
     padding: 14px 16px;
-    color: #e2e8f0;
+    color: #111827;
 }
+html[data-vspos-theme="dark"] .labels-guide-popover-inner { color: #e2e8f0; }
 .labels-guide-popover-title {
     font-weight: 600;
-    color: #f8fafc;
+    color: #111827;
     margin-bottom: 8px;
     font-size: 14px;
 }
+html[data-vspos-theme="dark"] .labels-guide-popover-title { color: #f8fafc; }
 .labels-guide-popover-steps {
     margin: 0 0 10px;
     padding-left: 18px;
-    color: #cbd5e1;
+    color: #374151;
     font-size: 13px;
 }
+html[data-vspos-theme="dark"] .labels-guide-popover-steps { color: #cbd5e1; }
 .labels-guide-popover-steps li { margin-bottom: 4px; }
 .labels-guide-popover-note {
     margin: 0;
     font-size: 12px;
-    color: #94a3b8;
+    color: #4b5563;
     border-top: 1px solid rgba(148, 163, 184, .2);
     padding-top: 10px;
 }
-.labels-guide-popover-note a { color: #7dd3fc; text-decoration: underline; }
+.labels-guide-popover-note a { color: #1d4ed8; text-decoration: underline; }
+html[data-vspos-theme="dark"] .labels-guide-popover-note { color: #94a3b8; }
+html[data-vspos-theme="dark"] .labels-guide-popover-note a { color: #7dd3fc; }
 .labels-add-panel { padding: 4px 0 8px; }
 .labels-search-label {
 	display: block;
 	font-weight: 600;
-	color: #e2e8f0;
+	color: #111827;
 	margin-bottom: 8px;
 }
+html[data-vspos-theme="dark"] .labels-search-label { color: #e2e8f0; }
 .labels-search-wrap {
 	position: relative;
 	max-width: 720px;
@@ -163,9 +181,10 @@
 	left: 14px;
 	top: 50%;
 	transform: translateY(-50%);
-	color: #94a3b8;
+	color: #4b5563;
 	z-index: 2;
 }
+html[data-vspos-theme="dark"] .labels-search-icon { color: #94a3b8; }
 .labels-search-input {
 	padding-left: 42px !important;
 	height: 46px;
@@ -174,10 +193,11 @@
 }
 .labels-search-hint {
 	text-align: center;
-	color: #94a3b8;
+	color: #4b5563;
 	font-size: 13px;
 	margin: 10px 0 20px;
 }
+html[data-vspos-theme="dark"] .labels-search-hint { color: #94a3b8; }
 .labels-table-wrap { margin-top: 8px; }
 .labels-product-table {
 	margin-bottom: 0;
@@ -185,46 +205,131 @@
 	overflow: hidden;
 }
 .labels-product-table thead th {
-	background: #0f172a !important;
-	color: #f8fafc !important;
-	border-color: rgba(148, 163, 184, .22) !important;
+	background: #f8fafc !important;
+	color: #374151 !important;
+	border-color: #e5e7eb !important;
 	font-size: 12px;
 	text-transform: uppercase;
 	letter-spacing: .4px;
 }
 .labels-product-table tbody td {
 	vertical-align: middle !important;
+	background: #ffffff !important;
+	color: #111827 !important;
+	border-color: #e5e7eb !important;
+}
+.labels-product-table tbody tr:hover td {
+	background: #f8fafc !important;
+}
+html[data-vspos-theme="dark"] .labels-product-table thead th {
+	background: #0f172a !important;
+	color: #f8fafc !important;
+	border-color: rgba(148, 163, 184, .22) !important;
+}
+html[data-vspos-theme="dark"] .labels-product-table tbody td {
 	background: #0b1220 !important;
+	color: #e2e8f0 !important;
 	border-color: rgba(148, 163, 184, .18) !important;
 }
 .labels-qty-col { width: 140px; }
 .labels-action-col { width: 56px; text-align: center; }
-.labels-product-name { font-weight: 600; color: #f8fafc; }
-.labels-product-variation { color: #94a3b8; font-size: 12px; display: block; margin-top: 2px; }
+.labels-product-name { font-weight: 600; color: #111827; }
+.labels-product-variation { color: #4b5563; font-size: 12px; display: block; margin-top: 2px; }
+.labels-product-attrs { color: #1d4ed8; font-size: 12px; display: block; margin-top: 2px; }
+html[data-vspos-theme="dark"] .labels-product-name { color: #f8fafc; }
+html[data-vspos-theme="dark"] .labels-product-variation { color: #94a3b8; }
+html[data-vspos-theme="dark"] .labels-product-attrs { color: #7dd3fc; }
+.labels-search-status {
+	text-align: center;
+	min-height: 0;
+	margin: 6px 0 0;
+	font-size: 13px;
+	color: #4b5563;
+}
+html[data-vspos-theme="dark"] .labels-search-status { color: #94a3b8; }
+.labels-search-status:empty { display: none; }
+.labels-search-status.is-error { color: #fca5a5; }
+.labels-search-wrap.is-loading .labels-search-icon i {
+	display: inline-block;
+	animation: labels-search-spin .7s linear infinite;
+}
+@keyframes labels-search-spin { to { transform: rotate(360deg); } }
+.labels-row-flash td { background: rgba(56, 189, 248, .22) !important; }
+.labels-suggest-menu.ui-autocomplete,
+.ui-autocomplete.labels-suggest-menu {
+	z-index: 10050 !important;
+	max-height: 320px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	background: #ffffff;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	box-shadow: 0 12px 32px rgba(15, 23, 42, .12);
+	padding: 4px 0;
+}
+html[data-vspos-theme="dark"] .labels-suggest-menu.ui-autocomplete,
+html[data-vspos-theme="dark"] .ui-autocomplete.labels-suggest-menu {
+	background: #0f172a;
+	border-color: rgba(125, 211, 252, .35);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, .45);
+}
+.labels-suggest-menu .ui-menu-item-wrapper {
+	padding: 0;
+	border: 0 !important;
+	color: #111827;
+	background: transparent;
+}
+html[data-vspos-theme="dark"] .labels-suggest-menu .ui-menu-item-wrapper { color: #e2e8f0; }
+.labels-suggest-menu .ui-menu-item-wrapper.ui-state-active,
+.labels-suggest-menu .ui-state-active {
+	background: #1d4ed8 !important;
+	border: 0 !important;
+	color: #fff !important;
+	margin: 0;
+}
+.labels-suggest-item { padding: 8px 12px; line-height: 1.3; cursor: pointer; }
+.labels-suggest-name { font-weight: 600; color: #111827; }
+.labels-suggest-meta { font-size: 12px; color: #4b5563; margin-top: 2px; white-space: normal; }
+html[data-vspos-theme="dark"] .labels-suggest-name { color: #f8fafc; }
+html[data-vspos-theme="dark"] .labels-suggest-meta { color: #cbd5e1; }
+.labels-suggest-status .labels-suggest-item { cursor: default; color: #94a3b8; }
+.ui-state-active .labels-suggest-name,
+.ui-state-active .labels-suggest-meta { color: #fff; }
+@media (max-width: 640px) {
+	.labels-suggest-menu.ui-autocomplete { max-width: calc(100vw - 24px) !important; }
+}
 .labels-empty-state {
 	text-align: center;
 	padding: 36px 16px;
 	border: 1px dashed rgba(148, 163, 184, .35);
 	border-radius: 12px;
-	color: #94a3b8;
+	color: #4b5563;
 	margin-top: 12px;
 }
+html[data-vspos-theme="dark"] .labels-empty-state { color: #94a3b8; }
 .labels-empty-state i { font-size: 28px; margin-bottom: 10px; opacity: .7; }
 .labels-empty-state p { margin: 0; }
 .labels-actions-row { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(148, 163, 184, .18); }
 .labels-btn-row .tw-dw-btn { margin: 6px 8px; min-width: 200px; }
-.labels-export-disabled-hint { color: #94a3b8; margin: 8px 0 0; }
-.labels-export-disabled-hint a { color: #7dd3fc; text-decoration: underline; }
+.labels-export-disabled-hint { color: #4b5563; margin: 8px 0 0; }
+.labels-export-disabled-hint a { color: #1d4ed8; text-decoration: underline; }
+html[data-vspos-theme="dark"] .labels-export-disabled-hint { color: #94a3b8; }
+html[data-vspos-theme="dark"] .labels-export-disabled-hint a { color: #7dd3fc; }
 .labels-remove-row {
 	background: transparent;
-	border: 1px solid rgba(248, 113, 113, .45);
-	color: #fca5a5;
+	border: 1px solid #fecaca;
+	color: #b91c1c;
 	border-radius: 8px;
 	width: 34px;
 	height: 34px;
 	padding: 0;
 }
-.labels-remove-row:hover { background: rgba(248, 113, 113, .15); color: #fecaca; }
+.labels-remove-row:hover { background: #fef2f2; color: #991b1b; }
+html[data-vspos-theme="dark"] .labels-remove-row {
+	border-color: rgba(248, 113, 113, .45);
+	color: #fca5a5;
+}
+html[data-vspos-theme="dark"] .labels-remove-row:hover { background: rgba(248, 113, 113, .15); color: #fecaca; }
 </style>
 
 @stop
@@ -233,7 +338,7 @@
 		window.qposBrowserLabelLayout = @json($browser_label_layout ?? []);
 	</script>
 	{{-- Cache-bust: Cloudflare/LiteSpeed cache JS for 7 days; unique query forces fresh file --}}
-	<script src="{{ asset('js/labels.js?v=' . $asset_v . '-bpfix3') }}"></script>
+	<script src="{{ asset('js/labels.js?v=' . $asset_v . '-labelsearch1-lt1') }}"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
 			var $tip = $('.labels-info-tip');
@@ -273,7 +378,8 @@
 					headers: token ? { 'X-CSRF-TOKEN': token } : {}
 				}).done(function(res) {
 					if (res && res.success && res.print_id) {
-						window.open(base + '/labels/browser-print?print_id=' + encodeURIComponent(res.print_id), '_blank');
+						var theme = document.documentElement.getAttribute('data-vspos-theme') === 'light' ? 'light' : 'dark';
+						window.open(base + '/labels/browser-print?print_id=' + encodeURIComponent(res.print_id) + '&theme=' + theme, '_blank');
 					} else {
 						swal((res && res.msg) || (LANG.label_no_product_error || 'Add products first'));
 					}

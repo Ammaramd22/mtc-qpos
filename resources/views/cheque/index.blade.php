@@ -167,13 +167,24 @@
     .cheque-card .btn-group .dropdown-menu {
         position: absolute !important;
         z-index: 9999 !important;
-        background: #111111 !important;
-        border: 1px solid rgba(42, 42, 42, .25) !important;
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
     }
     .cheque-card .btn-group .dropdown-menu > li > a {
-        color: #d4d4d4 !important;
+        color: #111827 !important;
     }
     .cheque-card .btn-group .dropdown-menu > li > a:hover {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="dark"] .cheque-card .btn-group .dropdown-menu {
+        background: #111111 !important;
+        border-color: rgba(42, 42, 42, .25) !important;
+    }
+    html[data-vspos-theme="dark"] .cheque-card .btn-group .dropdown-menu > li > a {
+        color: #d4d4d4 !important;
+    }
+    html[data-vspos-theme="dark"] .cheque-card .btn-group .dropdown-menu > li > a:hover {
         background: rgba(34, 34, 34, .95) !important;
         color: #f5f5f5 !important;
     }
@@ -276,21 +287,36 @@
         background: transparent !important;
     }
     #chequeReportsModal .cheque-report-table td {
-        color: #d4d4d4 !important;
-        border-color: rgba(42, 42, 42, .14) !important;
-        background: transparent !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+        background: #ffffff !important;
         padding: 10px 16px !important;
         vertical-align: middle !important;
     }
     #chequeReportsModal .cheque-report-table tr:not(.cheque-report-total-row):hover td {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="dark"] #chequeReportsModal .cheque-report-table tr:not(.cheque-report-total-row):hover td {
         background: rgba(26, 26, 26, .55) !important;
+        color: #f5f5f5 !important;
     }
     #chequeReportsModal .table tr.cheque-report-total-row {
         background: rgba(26, 26, 26, .85) !important;
     }
     #chequeReportsModal .table tr.cheque-report-total-row td {
-        color: #f5f5f5 !important;
+        color: #111827 !important;
         font-weight: 700;
+        background: #f8fafc !important;
+    }
+    html[data-vspos-theme="dark"] #chequeReportsModal .cheque-report-table td {
+        color: #d4d4d4 !important;
+        border-color: rgba(42, 42, 42, .14) !important;
+        background: transparent !important;
+    }
+    html[data-vspos-theme="dark"] #chequeReportsModal .table tr.cheque-report-total-row td {
+        color: #f5f5f5 !important;
+        background: rgba(26, 26, 26, .85) !important;
     }
     #chequeReportsModal .badge {
         font-size: 11px !important;

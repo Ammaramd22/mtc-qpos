@@ -23,6 +23,14 @@ class LabelsController extends Controller
     protected $productUtil;
 
     /**
+     * Column names from SHOW COLUMNS, cached for this request.
+     * information_schema (used by Schema::hasColumn) is empty on some cPanel accounts.
+     *
+     * @var array<string, bool>|null
+     */
+    protected $productColumnCache = null;
+
+    /**
      * Constructor
      *
      * @param  TransactionUtil  $TransactionUtil
@@ -52,6 +60,9 @@ class LabelsController extends Controller
             $products = $this->transactionUtil->getPurchaseProducts($business_id, $purchase_id);
         } elseif ($product_id) {
             $products = $this->productUtil->getDetailsFromProduct($business_id, $product_id);
+        }
+        if (! empty($products)) {
+            $products = $this->attachSizeColor($products, $business_id);
         }
 
         //get price groups
@@ -90,6 +101,7 @@ class LabelsController extends Controller
             if (! empty($product_id)) {
                 $index = $request->input('row_count');
                 $products = $this->productUtil->getDetailsFromProduct($business_id, $product_id, $variation_id);
+                $products = $this->attachSizeColor($products, $business_id);
 
                 $price_groups = SellingPriceGroup::where('business_id', $business_id)
                                             ->active()
@@ -99,6 +111,132 @@ class LabelsController extends Controller
                         ->with(compact('products', 'index', 'price_groups'));
             }
         }
+    }
+
+    /**
+     * Suggestions for Print Labels. Does not add a product; the screen adds a row only after an explicit selection.
+     */
+    public function searchProducts(Request $request)
+    {
+        if (! auth()->check()) {
+            return response()->json([]);
+        }
+
+        $term = mb_substr(trim((string) $request->input('term', '')), 0, 80);
+        if (mb_strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        $business_id = (int) $request->session()->get('user.business_id');
+        if ($business_id < 1) {
+            return response()->json([]);
+        }
+
+        $hasSize = $this->productsHaveColumn('size');
+        $hasColor = $this->productsHaveColumn('color');
+        $hasHwSize = $this->productsHaveColumn('hw_size');
+        $hasHwColour = $this->productsHaveColumn('hw_colour');
+        $hasTyre = \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_size');
+        $like = '%'.addcslashes($term, '%_\\').'%';
+        $prefix = addcslashes($term, '%_\\').'%';
+
+        $query = Product::query()
+            ->join('variations', 'products.id', '=', 'variations.product_id')
+            ->leftJoin('product_variations as pv', 'variations.product_variation_id', '=', 'pv.id')
+            ->where('products.business_id', $business_id)
+            ->where('products.is_inactive', 0)
+            ->where('products.type', '!=', 'modifier')
+            ->whereNull('variations.deleted_at')
+            ->where(function ($q) use ($like, $term, $hasTyre) {
+                $q->where('products.name', 'like', $like)
+                    ->orWhere('products.sku', 'like', $like)
+                    ->orWhere('variations.sub_sku', 'like', $like);
+                if ($hasTyre) {
+                    $q->orWhere('products.tyre_size', 'like', $like);
+                }
+                if (ctype_digit($term)) {
+                    $stripped = ltrim($term, '0');
+                    if ($stripped === '') {
+                        $stripped = '0';
+                    }
+                    $q->orWhereRaw("TRIM(LEADING '0' FROM variations.sub_sku) = ?", [$stripped])
+                        ->orWhereRaw("TRIM(LEADING '0' FROM products.sku) = ?", [$stripped]);
+                }
+            });
+
+        $select = [
+            'products.id as product_id',
+            'products.name',
+            'products.sku as product_sku',
+            'products.type',
+            'variations.id as variation_id',
+            'variations.name as variation_name',
+            'variations.sub_sku',
+            'pv.name as product_variation_name',
+            'pv.is_dummy',
+        ];
+        if ($hasSize) {
+            $select[] = 'products.size';
+        }
+        if ($hasColor) {
+            $select[] = 'products.color';
+        }
+        if ($hasHwSize) {
+            $select[] = 'products.hw_size';
+        }
+        if ($hasHwColour) {
+            $select[] = 'products.hw_colour';
+        }
+        if ($hasTyre) {
+            $select[] = 'products.tyre_size';
+        }
+
+        $rows = $query->select($select)
+            ->orderByRaw(
+                'CASE WHEN variations.sub_sku = ? OR products.sku = ? THEN 0 WHEN products.name LIKE ? THEN 1 ELSE 2 END',
+                [$term, $term, $prefix]
+            )
+            ->orderBy('products.name')
+            ->orderBy('variations.sub_sku')
+            ->limit(25)
+            ->get();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $name = Product::formatNameWithTyreSize($row->name, $hasTyre ? ($row->tyre_size ?? null) : null);
+            $variationLabel = '';
+            $variationName = trim((string) ($row->variation_name ?? ''));
+            $isDummy = (int) ($row->is_dummy ?? 1) === 1 || strtoupper($variationName) === 'DUMMY';
+            if (! $isDummy && $variationName !== '') {
+                $template = trim((string) ($row->product_variation_name ?? ''));
+                $variationLabel = $template !== '' ? ($template.': '.$variationName) : $variationName;
+            }
+            $resolved = self::resolveLabelSizeColor(
+                $hasSize ? ($row->size ?? '') : '',
+                $hasColor ? ($row->color ?? '') : '',
+                $row->product_variation_name ?? '',
+                $row->variation_name ?? '',
+                $row->is_dummy ?? 1,
+                $hasHwSize ? ($row->hw_size ?? '') : '',
+                $hasHwColour ? ($row->hw_colour ?? '') : ''
+            );
+            $size = $resolved['size'];
+            $color = $resolved['color'];
+            $sku = trim((string) ($row->sub_sku ?: $row->product_sku));
+            $result[] = [
+                'label' => $name,
+                'value' => $name,
+                'product_id' => (int) $row->product_id,
+                'variation_id' => (int) $row->variation_id,
+                'name' => $name,
+                'sku' => $sku,
+                'size' => $size,
+                'color' => $color,
+                'variation' => $variationLabel,
+            ];
+        }
+
+        return response()->json($result);
     }
 
     /**
@@ -546,10 +684,7 @@ class LabelsController extends Controller
 
         $opts = $layout;
         $opts['auto_print'] = $request->boolean('auto_print');
-        foreach ([
-            'show_business_name', 'show_name', 'show_sku', 'show_barcode', 'show_price',
-            'show_costcode', 'show_brand', 'show_category',
-        ] as $flag) {
+        foreach (BrowserLabelLayout::showFlags() as $flag) {
             $opts[$flag] = ($layout[$flag] ?? '0') === '1';
         }
 
@@ -565,6 +700,7 @@ class LabelsController extends Controller
         $supplierCodeLabel = ! empty($productLabels['custom_field_2']) ? $productLabels['custom_field_2'] : __('lang_v1.supplier_code');
 
         $stickers = [];
+        $sizeColorCache = [];
         foreach ($products as $value) {
             if (empty($value['variation_id'])) {
                 continue;
@@ -591,6 +727,12 @@ class LabelsController extends Controller
             if (! empty($opts['show_category']) && ! empty($details->category_id)) {
                 $category = trim((string) optional(\App\Category::find($details->category_id))->name);
             }
+            $sizeColor = $this->sizeColorForLabel(
+                (int) ($value['product_id'] ?? $details->product_id ?? 0),
+                (int) ($value['variation_id'] ?? $details->variation_id ?? 0),
+                (int) $business_id,
+                $sizeColorCache
+            );
 
             $requestedType = ($layout['barcode_format'] ?? 'auto') === 'auto'
                 ? (string) ($details->barcode_type ?? 'C128')
@@ -627,6 +769,8 @@ class LabelsController extends Controller
                     'supplier_name' => trim((string) ($details->supplier_name ?? '')),
                     'brand' => $brand,
                     'category' => $category,
+                    'size' => $sizeColor['size'],
+                    'color' => $sizeColor['color'],
                 ];
             }
         }
@@ -875,5 +1019,178 @@ class LabelsController extends Controller
         $flat = array_values(array_unique($flat));
 
         return $flat !== [] ? $flat : array_values($default);
+    }
+
+    /**
+     * Size and color for the label list. Uses the selected variation when one exists.
+     *
+     * @param  iterable  $products
+     * @param  int  $business_id
+     * @return iterable
+     */
+    protected function attachSizeColor($products, $business_id)
+    {
+        $cache = [];
+        foreach ($products as $product) {
+            $pair = $this->sizeColorForLabel(
+                (int) ($product->product_id ?? 0),
+                (int) ($product->variation_id ?? 0),
+                (int) $business_id,
+                $cache
+            );
+            $product->size = $pair['size'];
+            $product->color = $pair['color'];
+        }
+
+        return $products;
+    }
+
+    /**
+     * Product Size and Color, then the selected variation's Size or Color template.
+     * Hardware size/colour fills a gap only when the dedicated value is empty.
+     *
+     * @param  array<string, array{size: string, color: string}>  $cache
+     * @return array{size: string, color: string}
+     */
+    protected function sizeColorForLabel(int $productId, int $variationId, int $businessId, array &$cache): array
+    {
+        $key = ($variationId > 0 ? 'v'.$variationId : 'p'.$productId).'@'.$businessId;
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+        $empty = ['size' => '', 'color' => ''];
+        if ($businessId < 1 || ($productId < 1 && $variationId < 1)) {
+            return $cache[$key] = $empty;
+        }
+
+        $columns = [
+            'size' => $this->productsHaveColumn('size'),
+            'color' => $this->productsHaveColumn('color'),
+            'hw_size' => $this->productsHaveColumn('hw_size'),
+            'hw_colour' => $this->productsHaveColumn('hw_colour'),
+        ];
+
+        try {
+            if ($variationId > 0) {
+                $query = DB::table('variations as v')
+                    ->join('products as p', 'p.id', '=', 'v.product_id')
+                    ->leftJoin('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+                    ->where('p.business_id', $businessId)
+                    ->where('v.id', $variationId)
+                    ->whereNull('v.deleted_at');
+                $select = ['pv.name as template_name', 'pv.is_dummy', 'v.name as variation_name'];
+            } else {
+                $query = DB::table('products as p')
+                    ->where('p.business_id', $businessId)
+                    ->where('p.id', $productId);
+                $select = [
+                    DB::raw("'' as template_name"),
+                    DB::raw('1 as is_dummy'),
+                    DB::raw("'' as variation_name"),
+                ];
+            }
+            foreach ($columns as $col => $present) {
+                if ($present) {
+                    $select[] = 'p.'.$col;
+                }
+            }
+            $row = $query->select($select)->first();
+        } catch (\Throwable $e) {
+            return $cache[$key] = $empty;
+        }
+
+        if (! $row) {
+            return $cache[$key] = $empty;
+        }
+
+        return $cache[$key] = self::resolveLabelSizeColor(
+            $columns['size'] ? ($row->size ?? '') : '',
+            $columns['color'] ? ($row->color ?? '') : '',
+            $row->template_name ?? '',
+            $row->variation_name ?? '',
+            $row->is_dummy ?? 1,
+            $columns['hw_size'] ? ($row->hw_size ?? '') : '',
+            $columns['hw_colour'] ? ($row->hw_colour ?? '') : ''
+        );
+    }
+
+    /**
+     * @param  mixed  $size
+     * @param  mixed  $color
+     * @param  mixed  $templateName
+     * @param  mixed  $variationName
+     * @param  mixed  $isDummy
+     * @param  mixed  $hwSize
+     * @param  mixed  $hwColour
+     * @return array{size: string, color: string}
+     */
+    public static function resolveLabelSizeColor($size, $color, $templateName = '', $variationName = '', $isDummy = 1, $hwSize = '', $hwColour = ''): array
+    {
+        $size = trim((string) $size);
+        $color = trim((string) $color);
+        $variationName = trim((string) $variationName);
+        $dummy = (int) $isDummy === 1 || strtoupper($variationName) === 'DUMMY' || $variationName === '';
+        if (! $dummy) {
+            $kind = self::labelAttributeKind((string) $templateName);
+            if ($kind === 'size' && $size === '') {
+                $size = $variationName;
+            } elseif ($kind === 'color' && $color === '') {
+                $color = $variationName;
+            }
+        }
+        if ($size === '') {
+            $size = trim((string) $hwSize);
+        }
+        if ($color === '') {
+            $color = trim((string) $hwColour);
+        }
+
+        return ['size' => $size, 'color' => $color];
+    }
+
+    public static function labelAttributeKind(string $template): string
+    {
+        $normalized = strtolower(trim($template));
+        $normalized = preg_replace('/[^a-z]+/i', ' ', $normalized);
+        $normalized = trim(preg_replace('/\s+/', ' ', (string) $normalized));
+        if (in_array($normalized, ['size', 'sizes', 'product size', 'item size'], true)) {
+            return 'size';
+        }
+        if (in_array($normalized, ['color', 'colour', 'colors', 'colours', 'product color', 'product colour', 'item color', 'item colour'], true)) {
+            return 'color';
+        }
+
+        return '';
+    }
+
+    protected function productsHaveColumn(string $column): bool
+    {
+        if ($this->productColumnCache === null) {
+            $this->productColumnCache = [];
+            try {
+                $table = DB::connection()->getTablePrefix().'products';
+                $wrapped = DB::connection()->getQueryGrammar()->wrapTable($table);
+                $rows = DB::select('SHOW COLUMNS FROM '.$wrapped);
+                foreach ($rows as $row) {
+                    $field = strtolower((string) ($row->Field ?? ''));
+                    if ($field !== '') {
+                        $this->productColumnCache[$field] = true;
+                    }
+                }
+            } catch (\Throwable $e) {
+                $this->productColumnCache = [];
+            }
+        }
+
+        $column = strtolower($column);
+        if ($this->productColumnCache !== []) {
+            return isset($this->productColumnCache[$column]);
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Schema::hasColumn('products', $column);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }

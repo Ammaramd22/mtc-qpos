@@ -1,5 +1,78 @@
 {{-- Touch POS main layout: Categories | Product photos | Cart --}}
-<script>window.__vspos_touch_ui = 1;</script>
+<link rel="stylesheet" href="{{ asset('css/pos-touch.css?v=' . config('constants.asset_version') . '&lv=5') }}">
+<script>
+window.__vspos_touch_ui = 1;
+try {
+    if (localStorage.getItem('qpos.pos.productView') === 'list') {
+        document.documentElement.classList.add('vspos-product-view-list');
+    }
+} catch (e) {}
+window.vsposSetProductView = function (mode, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.stopImmediatePropagation) {
+            event.stopImmediatePropagation();
+        }
+    }
+    if (window.__vsposViewLock) {
+        return false;
+    }
+    window.__vsposViewLock = true;
+    setTimeout(function () { window.__vsposViewLock = false; }, 400);
+    var list = mode === 'list';
+    document.documentElement.classList.toggle('vspos-product-view-list', list);
+    var shell = document.getElementById('vspos_touch_shell');
+    if (shell) {
+        shell.classList.toggle('vspos-product-view-list', list);
+    }
+    var buttons = document.querySelectorAll('.vspos-pos-view-btn');
+    for (var i = 0; i < buttons.length; i++) {
+        var on = buttons[i].getAttribute('data-pos-view') === (list ? 'list' : 'grid');
+        buttons[i].classList.toggle('is-active', on);
+        buttons[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    try {
+        localStorage.setItem('qpos.pos.productView', list ? 'list' : 'grid');
+    } catch (err) {}
+    if (window.jQuery && typeof window.get_product_suggestion_list === 'function') {
+        window.__vspos_suggest_ignore_scroll = true;
+        window.__vspos_suggest_end = false;
+        window.__vspos_suggest_recovered = false;
+        window.jQuery('input#suggestion_page').val(1);
+        var loc = window.jQuery('#location_id').val() || null;
+        var url = '/sells/pos/get-product-suggestion?product_view=' + (list ? 'list' : 'grid');
+        window.get_product_suggestion_list(window.global_p_category_id || null, window.global_brand_id || null, loc, url);
+    }
+    return false;
+};
+(function () {
+    function withView(url) {
+        var mode = document.documentElement.classList.contains('vspos-product-view-list') ? 'list' : 'grid';
+        var next = String(url || '/sells/pos/get-product-suggestion');
+        if (next.indexOf('product_view=') === -1) {
+            next += (next.indexOf('?') === -1 ? '?' : '&') + 'product_view=' + mode;
+        } else {
+            next = next.replace(/product_view=(list|grid)/, 'product_view=' + mode);
+        }
+        return next;
+    }
+    var tries = 0;
+    var timer = setInterval(function () {
+        tries += 1;
+        if (typeof window.get_product_suggestion_list === 'function' && !window.__vsposViewParamWrapped) {
+            window.__vsposViewParamWrapped = true;
+            var orig = window.get_product_suggestion_list;
+            window.get_product_suggestion_list = function (category_id, brand_id, location_id, url, is_enabled_stock, repair_model_id) {
+                return orig.call(this, category_id, brand_id, location_id, withView(url), is_enabled_stock, repair_model_id);
+            };
+        }
+        if (window.__vsposViewParamWrapped || tries > 40) {
+            clearInterval(timer);
+        }
+    }, 100);
+})();
+</script>
 @php
     $is_admin = auth()->user()->hasRole('Admin#'.session('user.business_id'));
     $can_sell = auth()->user()->can('sell.create') || auth()->user()->can('direct_sell.access');
@@ -115,6 +188,16 @@
                     <span>@lang('lang_v1.add_new_product')</span>
                 </button>
                 @endcan
+                <div class="vspos-pos-view-switch" role="group" aria-label="Product view">
+                    <button type="button" class="vspos-pos-view-btn is-active" data-pos-view="grid" aria-pressed="true" title="Grid view" onclick="return window.vsposSetProductView('grid', event)">
+                        <i class="fa fa-th-large" aria-hidden="true"></i>
+                        <span>Grid</span>
+                    </button>
+                    <button type="button" class="vspos-pos-view-btn" data-pos-view="list" aria-pressed="false" title="List view" onclick="return window.vsposSetProductView('list', event)">
+                        <i class="fa fa-list" aria-hidden="true"></i>
+                        <span>List</span>
+                    </button>
+                </div>
                 <div class="vspos-touch-products-title" id="vspos_touch_cat_title">@lang('lang_v1.all_category')</div>
             </div>
 

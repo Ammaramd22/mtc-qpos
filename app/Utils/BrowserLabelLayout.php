@@ -59,6 +59,19 @@ class BrowserLabelLayout
             'show_costcode' => '1',
             'show_brand' => '0',
             'show_category' => '0',
+            'show_size' => '0',
+            'show_color' => '0',
+        ];
+    }
+
+    /**
+     * Visibility flags stored with the layout. Missing keys stay off.
+     */
+    public static function showFlags(): array
+    {
+        return [
+            'show_business_name', 'show_name', 'show_sku', 'show_barcode', 'show_price',
+            'show_costcode', 'show_brand', 'show_category', 'show_size', 'show_color',
         ];
     }
 
@@ -71,40 +84,44 @@ class BrowserLabelLayout
                 'price_size' => '12', 'name_size' => '9', 'business_name_size' => '8',
                 'show_business_name' => '1', 'show_name' => '1', 'show_barcode' => '1',
                 'show_sku' => '1', 'show_price' => '1', 'show_costcode' => '1',
-                'show_brand' => '0', 'show_category' => '0',
+                'show_brand' => '0', 'show_category' => '0', 'show_size' => '0', 'show_color' => '0',
             ],
             'portrait_roll' => [
                 'label_w' => '25', 'label_h' => '38', 'print_rotate' => '0', 'media' => 'roll',
                 'columns' => '1', 'rows' => '1', 'align' => 'center', 'barcode_position' => 'middle',
                 'show_business_name' => '1', 'show_name' => '1', 'show_barcode' => '1',
                 'show_sku' => '1', 'show_price' => '1', 'show_costcode' => '1',
+                'show_size' => '0', 'show_color' => '0',
             ],
             'compact' => [
                 'label_w' => '38', 'label_h' => '25', 'print_rotate' => '0', 'media' => 'roll',
                 'business_name_size' => '7', 'name_size' => '8', 'price_size' => '11', 'sku_size' => '7',
                 'barcode_height' => '28', 'show_business_name' => '1', 'show_name' => '1',
                 'show_barcode' => '1', 'show_sku' => '1', 'show_price' => '1', 'show_costcode' => '0',
-                'show_brand' => '0', 'show_category' => '0',
+                'show_brand' => '0', 'show_category' => '0', 'show_size' => '0', 'show_color' => '0',
             ],
             'price' => [
                 'label_w' => '38', 'label_h' => '25', 'print_rotate' => '0', 'media' => 'roll',
                 'price_size' => '16', 'price_weight' => '900', 'name_size' => '8',
                 'show_business_name' => '0', 'show_name' => '1', 'show_barcode' => '1',
                 'show_sku' => '1', 'show_price' => '1', 'show_costcode' => '0',
-                'show_brand' => '0', 'show_category' => '0', 'barcode_position' => 'top',
+                'show_brand' => '0', 'show_category' => '0', 'show_size' => '0', 'show_color' => '0',
+                'barcode_position' => 'top',
             ],
             'barcode_only' => [
                 'label_w' => '38', 'label_h' => '25', 'print_rotate' => '0', 'media' => 'roll',
                 'barcode_height' => '48', 'barcode_width' => '96',
                 'show_business_name' => '0', 'show_name' => '0', 'show_barcode' => '1',
                 'show_sku' => '1', 'show_price' => '0', 'show_costcode' => '0',
-                'show_brand' => '0', 'show_category' => '0', 'barcode_position' => 'middle',
+                'show_brand' => '0', 'show_category' => '0', 'show_size' => '0', 'show_color' => '0',
+                'barcode_position' => 'middle',
             ],
             'two_column' => [
                 'media' => 'sheet', 'columns' => '2', 'rows' => '1', 'print_rotate' => '0',
                 'label_w' => '38', 'label_h' => '25', 'gap_x' => '2', 'gap_y' => '0',
                 'show_business_name' => '1', 'show_name' => '1', 'show_barcode' => '1',
                 'show_sku' => '1', 'show_price' => '1', 'show_costcode' => '1',
+                'show_size' => '0', 'show_color' => '0',
             ],
         ];
     }
@@ -178,10 +195,7 @@ class BrowserLabelLayout
             'label_business_name' => mb_substr(strip_tags(trim((string) ($src['label_business_name'] ?? $businessName))), 0, 80),
         ];
 
-        foreach ([
-            'show_business_name', 'show_name', 'show_sku', 'show_barcode', 'show_price',
-            'show_costcode', 'show_brand', 'show_category',
-        ] as $flagKey) {
+        foreach (self::showFlags() as $flagKey) {
             $layout[$flagKey] = $flag($flagKey);
         }
 

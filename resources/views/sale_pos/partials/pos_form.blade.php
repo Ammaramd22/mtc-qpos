@@ -890,9 +890,10 @@
 				font-size: 12px;
 				font-weight: 700;
 				line-height: 1.2;
-				color: #f5f5f5;
+				color: var(--vspos-text, #111827);
 				cursor: pointer;
 			}
+			html[data-vspos-theme="dark"] .vspos-line-name { color: #f5f5f5; }
 			.vspos-line-edit-ico {
 				margin-left: 6px;
 				font-size: 10px;
@@ -1008,8 +1009,9 @@
 			.vspos-rate-readonly {
 				font-weight: 700;
 				font-size: 13px;
-				color: #f5f5f5;
+				color: var(--vspos-text, #111827);
 			}
+			html[data-vspos-theme="dark"] .vspos-rate-readonly { color: #f5f5f5; }
 			.vspos-last-buy-hint {
 				display: block;
 				max-width: 90px;

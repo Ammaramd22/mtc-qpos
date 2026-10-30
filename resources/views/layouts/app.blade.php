@@ -81,7 +81,7 @@
     <link rel="stylesheet" href="{{ asset('css/pos-theme.css?v='.$asset_v) }}">
     @endif
     <link rel="stylesheet" href="{{ asset('css/print-preview.css?v='.$asset_v) }}">
-    <link rel="stylesheet" href="{{ asset('css/qpos-light.css?v='.$asset_v) }}">
+    <link rel="stylesheet" href="{{ asset('css/qpos-light.css?v='.$asset_v.'-lt2') }}">
 
     {{-- jQuery in <head> so $ exists before any body/POS scripts (vendor.js can 500 on some hosts). --}}
     <script src="{{ asset('js/jquery-3.7.1.min.js?v=' . $asset_v) }}"></script>

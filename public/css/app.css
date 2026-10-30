@@ -238,8 +238,11 @@
 .wizard > .content {
   /* background: #445867 !important; */
 }
-legend {
+html[data-vspos-theme="dark"] legend,
+html:not([data-vspos-theme="light"]) legend {
   color: #fff;
+}
+legend {
   margin-bottom: 6px;
   border-bottom: none;
 }

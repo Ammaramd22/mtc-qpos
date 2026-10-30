@@ -219,6 +219,43 @@
 					color: #f8fafc;
 					font-size: 13px;
 				}
+				html[data-vspos-theme="light"] .product-view-sheet,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-meta-col p,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-meta-col b,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-section-title,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses h5,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item .val,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-price-wrap h4,
+				html[data-vspos-theme="light"] .product-view-sheet .table,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-table {
+					color: #111827 !important;
+				}
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-table th small,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item .lbl,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses .text-muted {
+					color: #4b5563 !important;
+				}
+				html[data-vspos-theme="light"] .product-view-sheet .table > thead > tr > th,
+				html[data-vspos-theme="light"] .product-view-sheet .table > tbody > tr > th,
+				html[data-vspos-theme="light"] .product-view-sheet .table > tbody > tr > td,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-table th,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-table td,
+				html[data-vspos-theme="light"] .product-view-sheet tr.bg-green th {
+					background: #ffffff !important;
+					color: #111827 !important;
+					border-color: #e5e7eb !important;
+				}
+				html[data-vspos-theme="light"] .product-view-sheet .table > thead > tr > th,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-table th {
+					background: #f8fafc !important;
+				}
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses,
+				html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item {
+					background: #ffffff !important;
+					border-color: #e5e7eb !important;
+				}
 			}
 
 			/* Print / PDF: always light paper */

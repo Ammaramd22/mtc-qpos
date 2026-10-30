@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        (function () {
+            var theme = 'dark';
+            try {
+                var q = new URLSearchParams(window.location.search).get('theme');
+                if (q === 'light' || q === 'dark') {
+                    theme = q;
+                } else {
+                    for (var i = 0; i < localStorage.length; i++) {
+                        var key = localStorage.key(i);
+                        if (key && key.indexOf('vspos_theme_u_') === 0) {
+                            var saved = localStorage.getItem(key);
+                            if (saved === 'light' || saved === 'dark') {
+                                theme = saved;
+                                break;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {}
+            document.documentElement.setAttribute('data-vspos-theme', theme);
+        })();
+    </script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -320,6 +343,32 @@
             line-height: 1.1;
             margin-top: 0.7mm; /* sit a little below business name */
         }
+        .label .attr-line {
+            margin-top: 0.2mm;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            line-height: 1.05;
+            font-size: var(--sku-size, 8px);
+            font-weight: 700;
+            color: #000;
+            flex: 0 0 auto;
+        }
+        .label .attr-line .label-size,
+        .label .attr-line .label-color {
+            display: inline;
+            font-size: inherit;
+            font-weight: inherit;
+            color: #000;
+        }
+        .label .attr-line .label-size + .label-color {
+            margin-left: 1.2mm;
+        }
+        .label .attr-line .label-size[style*="display:none"] + .label-color,
+        .label .attr-line .label-size[style*="display: none"] + .label-color {
+            margin-left: 0;
+        }
         .label .body {
             flex: 1 1 auto;
             display: flex;
@@ -403,6 +452,35 @@
             text-overflow: ellipsis;
             text-align: left;
         }
+        html[data-vspos-theme="light"] body {
+            background: #f1f5f9;
+            color: #111827;
+        }
+        html[data-vspos-theme="light"] .toolbar,
+        html[data-vspos-theme="light"] .panel {
+            background: #ffffff;
+            border-color: #e5e7eb;
+            color: #111827;
+        }
+        html[data-vspos-theme="light"] .toolbar h1,
+        html[data-vspos-theme="light"] .field span,
+        html[data-vspos-theme="light"] .checks label,
+        html[data-vspos-theme="light"] .panel h2,
+        html[data-vspos-theme="light"] .panel.preview h2 { color: #111827; }
+        html[data-vspos-theme="light"] .hint,
+        html[data-vspos-theme="light"] .field small,
+        html[data-vspos-theme="light"] .batch-title,
+        html[data-vspos-theme="light"] .live-preview-meta { color: #4b5563; }
+        html[data-vspos-theme="light"] .print-orient-note { color: #92400e; }
+        html[data-vspos-theme="light"] .field input[type="number"],
+        html[data-vspos-theme="light"] .field input[type="text"],
+        html[data-vspos-theme="light"] .field select {
+            background: #ffffff;
+            color: #111827;
+            border-color: #d1d5db;
+        }
+        html[data-vspos-theme="light"] .save-status,
+        html[data-vspos-theme="light"] .live-note { color: #15803d; }
         .label .footer .price {
             flex: 0 1 auto;
             min-width: 0;
@@ -734,6 +812,8 @@
                     <label><input type="hidden" name="show_costcode" value="0"><input type="checkbox" name="show_costcode" value="1" class="live-toggle" data-target=".cc" @if($opts['show_costcode']) checked @endif> {{ $costcodeLabel }}</label>
                     <label><input type="hidden" name="show_brand" value="0"><input type="checkbox" name="show_brand" value="1" class="live-toggle" data-target=".brand" @if($opts['show_brand']) checked @endif> @lang('product.brand')</label>
                     <label><input type="hidden" name="show_category" value="0"><input type="checkbox" name="show_category" value="1" class="live-toggle" data-target=".category" @if($opts['show_category']) checked @endif> @lang('product.category')</label>
+                    <label><input type="hidden" name="show_size" value="0"><input type="checkbox" name="show_size" value="1" class="live-toggle" data-target=".label-size" @if(!empty($opts['show_size'])) checked @endif> @lang('product.size')</label>
+                    <label><input type="hidden" name="show_color" value="0"><input type="checkbox" name="show_color" value="1" class="live-toggle" data-target=".label-color" @if(!empty($opts['show_color'])) checked @endif> @lang('product.color')</label>
                 </div>
                 <p style="margin:10px 0 0;font-size:11px;color:#94a3b8;">@lang('lang_v1.label_footer_fixed_help')</p>
             </div>
@@ -1153,9 +1233,51 @@
             el.addEventListener('input', scheduleBarcodeRefresh);
         });
 
+        var attrCaptions = { size: @json(__('product.size')), color: @json(__('product.color')) };
+        function ensureAttrSpan(kind, show) {
+            var cls = kind === 'size' ? 'label-size' : 'label-color';
+            var attr = kind === 'size' ? 'data-size' : 'data-color';
+            document.querySelectorAll('.label').forEach(function (lab) {
+                var value = (lab.getAttribute(attr) || '').replace(/^\s+|\s+$/g, '');
+                var line = lab.querySelector('.attr-line');
+                var node = lab.querySelector('.' + cls);
+                if (!value) {
+                    if (node) node.style.display = 'none';
+                    return;
+                }
+                var head = lab.querySelector('.head');
+                if (!line && head) {
+                    line = document.createElement('div');
+                    line.className = 'attr-line';
+                    head.appendChild(line);
+                }
+                if (!node && line) {
+                    node = document.createElement('span');
+                    node.className = cls;
+                    node.textContent = attrCaptions[kind] + ': ' + value;
+                    if (kind === 'size') line.insertBefore(node, line.firstChild);
+                    else line.appendChild(node);
+                }
+                if (node) node.style.display = show ? '' : 'none';
+            });
+        }
+        function syncAttrLines() {
+            document.querySelectorAll('.label .attr-line').forEach(function (line) {
+                var any = false;
+                line.querySelectorAll('.label-size, .label-color').forEach(function (node) {
+                    if (node.style.display !== 'none') any = true;
+                });
+                line.style.display = any ? '' : 'none';
+            });
+        }
         document.querySelectorAll('.live-toggle').forEach(function (cb) {
             cb.addEventListener('change', function () {
                 var sel = cb.getAttribute('data-target');
+                if (sel === '.label-size' || sel === '.label-color') {
+                    ensureAttrSpan(sel === '.label-size' ? 'size' : 'color', cb.checked);
+                    syncAttrLines();
+                    return;
+                }
                 document.querySelectorAll('.label ' + sel).forEach(function (node) {
                     if (sel === '.cc' || sel === '.price') {
                         // keep cell, clear/show text via visibility
@@ -1164,8 +1286,10 @@
                         node.style.display = cb.checked ? '' : 'none';
                     }
                 });
+                syncAttrLines();
             });
         });
+        syncAttrLines();
 
         function collectLayout() {
             var data = {};
@@ -1190,7 +1314,7 @@
                 var el = document.getElementById(forceIds[key]);
                 if (el) data[key] = el.value;
             });
-            ['show_business_name','show_name','show_barcode','show_sku','show_price','show_costcode','show_brand','show_category'].forEach(function (k) {
+            ['show_business_name','show_name','show_barcode','show_sku','show_price','show_costcode','show_brand','show_category','show_size','show_color'].forEach(function (k) {
                 if (typeof data[k] === 'undefined') data[k] = '0';
             });
             delete data.profile_name;

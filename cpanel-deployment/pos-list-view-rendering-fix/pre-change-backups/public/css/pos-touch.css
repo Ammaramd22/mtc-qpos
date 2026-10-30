@@ -1,0 +1,3577 @@
+/* Touch POS layout - same dark QPOS theme, photo-first grid */
+body.vspos-touch-ui .content-wrapper,
+body.lockscreen.vspos-touch-ui .content {
+    padding: 0 !important;
+}
+
+/*
+ * Tokens live on html, not only .vspos-touch-shell.
+ * The qty modal is moved to document.body, so variables scoped to the shell
+ * are undefined there. An invalid var() then computes to the property's
+ * initial value (transparent for background), which is why the keypad
+ * floated over the cart with no card and no dimming.
+ */
+html,
+.vspos-touch-shell {
+    --touch-accent: #f5c518;
+    --touch-bg: #0a0a0a;
+    --touch-panel: #111;
+    --touch-border: #2a2a2a;
+    --touch-text: #f5f5f5;
+    --touch-muted: #737373;
+    --touch-soft: #a3a3a3;
+    --touch-meta: #d4d4d4;
+    --touch-surface: #161616;
+    --touch-surface-2: #1a1a1a;
+    --touch-input: #0a0a0a;
+    --touch-input-border: #333333;
+    --touch-price: #f5c518;
+    --touch-hover: #252525;
+    --touch-addon-bg: linear-gradient(180deg, #2a240e 0%, #1f1f1f 100%);
+    --touch-raised: #141414;
+    --touch-sunken: #0f0f0f;
+    --touch-key: #1f1f1f;
+}
+.vspos-touch-shell {
+    height: calc(100vh - 52px);
+    max-height: calc(100vh - 52px);
+    overflow: hidden;
+    background: var(--touch-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    box-sizing: border-box;
+    gap: 8px;
+}
+
+/* Customer above products + cart */
+.vspos-touch-top {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 8px;
+    flex-shrink: 0;
+}
+.vspos-touch-top-spacer {
+    display: flex;
+    align-items: stretch;
+    min-height: 0;
+}
+.vspos-touch-mobile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+.vspos-touch-reload-btn {
+    appearance: none;
+    width: 100%;
+    min-height: 58px;
+    border: 1px solid rgba(167, 139, 250, 0.35);
+    border-radius: 14px;
+    background: rgba(76, 29, 149, 0.35);
+    color: #c4b5fd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.1s;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    text-align: center;
+}
+.vspos-touch-reload-btn .fa-bolt {
+    color: #f5c518;
+    font-size: 18px;
+}
+.vspos-touch-reload-btn:hover,
+.vspos-touch-reload-btn:focus {
+    background: rgba(76, 29, 149, 0.5);
+    border-color: rgba(167, 139, 250, 0.55);
+    outline: none;
+}
+.vspos-touch-reload-btn:active {
+    transform: scale(0.98);
+}
+.vspos-touch-reload-btn span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.vspos-touch-reload-btn--mobile {
+    display: none;
+}
+.vspos-touch-repair-btn {
+    border-color: rgba(52, 211, 153, 0.35) !important;
+    background: rgba(6, 78, 59, 0.35) !important;
+    color: #6ee7b7 !important;
+}
+.vspos-touch-repair-btn .fa-tools {
+    color: #f5c518;
+}
+.vspos-touch-repair-btn:hover,
+.vspos-touch-repair-btn:focus {
+    background: rgba(6, 78, 59, 0.5) !important;
+    border-color: rgba(52, 211, 153, 0.55) !important;
+}
+.vspos-repair-pay-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 360px;
+    overflow-y: auto;
+}
+.vspos-repair-pay-item {
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 12px;
+    background: var(--touch-surface);
+}
+.vspos-repair-pay-item-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.vspos-repair-pay-charge {
+    color: #f5c518;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.vspos-repair-pay-meta,
+.vspos-repair-pay-issue {
+    font-size: 12px;
+    color: var(--touch-soft);
+    margin-bottom: 4px;
+}
+.vspos-repair-pay-add-btn {
+    margin-top: 8px;
+    width: 100%;
+}
+.vspos-repair-pay-help {
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+.vspos-touch-top-main {
+    min-width: 0;
+}
+.vspos-touch-customer {
+    background: var(--touch-panel);
+    border: 1px solid var(--touch-border);
+    border-radius: 14px;
+    padding: 8px 10px;
+}
+.vspos-touch-customer-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.vspos-touch-customer-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(245, 197, 24, 0.12);
+    color: var(--touch-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.vspos-touch-customer-inner .select2-container,
+.vspos-touch-customer-inner #customer_id {
+    flex: 1;
+    min-width: 0;
+}
+.vspos-touch-customer .select2-container--default .select2-selection--single {
+    height: 42px !important;
+    background: var(--touch-input) !important;
+    border: 1px solid var(--touch-input-border) !important;
+    border-radius: 10px !important;
+}
+.vspos-touch-customer .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 40px !important;
+    color: var(--touch-text) !important;
+    font-weight: 700;
+    padding-left: 12px;
+}
+.vspos-touch-customer .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px !important;
+}
+.vspos-touch-customer-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.vspos-touch-cust-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px !important;
+    border: 1px solid var(--touch-input-border) !important;
+    background: var(--touch-surface) !important;
+    color: var(--touch-accent) !important;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.vspos-touch-customer-meta {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.vspos-touch-layout {
+    display: grid;
+    /* cats | products (5-up) | wide cart */
+    grid-template-columns: 140px minmax(0, 1fr) minmax(420px, 46vw);
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* Categories */
+.vspos-touch-cats {
+    background: var(--touch-panel);
+    border: 1px solid var(--touch-border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+.vspos-touch-cats-head {
+    padding: 12px 12px 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--touch-accent);
+    border-bottom: 1px solid var(--touch-border);
+}
+.vspos-touch-cats-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    -webkit-overflow-scrolling: touch;
+}
+.vspos-touch-cat {
+    appearance: none;
+    border: 1px solid var(--touch-border);
+    background: var(--touch-surface);
+    color: var(--touch-text);
+    border-radius: 12px;
+    min-height: 52px;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    touch-action: manipulation;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.vspos-touch-cat:active {
+    transform: scale(0.98);
+}
+.vspos-touch-cat.is-active {
+    border-color: var(--touch-accent);
+    background: rgba(245, 197, 24, 0.12);
+    color: var(--touch-accent);
+    box-shadow: 0 0 0 1px rgba(245, 197, 24, 0.25);
+}
+.vspos-touch-cat--sub {
+    min-height: 44px;
+    margin-left: 8px;
+    font-size: 12px;
+    background: var(--touch-input);
+}
+.vspos-touch-cat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--touch-accent);
+    flex-shrink: 0;
+}
+.vspos-touch-subcats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Products */
+.vspos-touch-products {
+    background: var(--touch-panel);
+    border: 1px solid var(--touch-border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+.vspos-touch-products-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--touch-border);
+    flex-shrink: 0;
+}
+.vspos-touch-search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--touch-input);
+    border: 1px solid var(--touch-input-border);
+    border-radius: 12px;
+    padding: 0 10px;
+    min-height: 46px;
+}
+.vspos-touch-search i {
+    color: var(--touch-accent);
+}
+.vspos-touch-search .form-control {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: var(--touch-text) !important;
+    height: 44px;
+    font-weight: 600;
+}
+.vspos-touch-search .form-control::placeholder {
+    color: var(--touch-muted);
+    opacity: 1;
+}
+.vspos-touch-search-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--touch-accent);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.vspos-touch-add-product {
+    appearance: none;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 46px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(245, 197, 24, 0.55) !important;
+    background: rgba(245, 197, 24, 0.14) !important;
+    color: #f5c518 !important;
+    font-weight: 800;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s, transform .12s;
+}
+.vspos-touch-add-product:hover,
+.vspos-touch-add-product:focus {
+    background: rgba(245, 197, 24, 0.24) !important;
+    color: #ffe08a !important;
+}
+.vspos-touch-add-product:active {
+    transform: scale(0.97);
+}
+.vspos-touch-add-product i {
+    font-size: 14px;
+}
+@media (max-width: 900px) {
+    .vspos-touch-add-product span {
+        display: none;
+    }
+    .vspos-touch-add-product {
+        width: 46px;
+        padding: 0;
+    }
+}
+.vspos-touch-products-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--touch-muted);
+    white-space: nowrap;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Quick / workshop service chips (must live here â€” bar shows for vehicle mod
+   even when tyre_shop modal CSS is not included) */
+.vspos-tyre-svc-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 10px;
+    margin: 0;
+    border-bottom: 1px solid var(--touch-border);
+    flex-shrink: 0;
+    background: var(--touch-surface-2);
+}
+.vspos-tyre-svc-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--touch-accent);
+    margin-right: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.vspos-tyre-svc-btn {
+    appearance: none;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--touch-input-border);
+    background: var(--touch-surface);
+    color: var(--touch-text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: border-color .15s, background .15s, transform .1s;
+    white-space: nowrap;
+}
+.vspos-tyre-svc-btn:hover,
+.vspos-tyre-svc-btn:focus {
+    border-color: var(--touch-accent);
+    background: var(--touch-hover);
+    color: var(--touch-text);
+    outline: none;
+}
+.vspos-tyre-svc-btn:active {
+    transform: scale(0.97);
+}
+.vspos-tyre-svc-btn--addon {
+    border-color: #5a4a10;
+    background: var(--touch-addon-bg);
+    color: var(--touch-accent);
+}
+
+.vspos-touch-product-grid {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+.vspos-touch-shell #product_list_items {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+.vspos-touch-shell #product_list_items > .col-md-3,
+.vspos-touch-shell #product_list_items > .col-xs-4 {
+    width: 100% !important;
+    float: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+.vspos-touch-shell #product_list_items > .vspos-no-products,
+.vspos-touch-shell #product_list_items > .vspos-products-loading,
+.vspos-touch-shell #product_list_items > .vspos-products-error {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    float: none !important;
+}
+.vspos-touch-shell .product_box {
+    min-height: 148px;
+    padding: 10px 8px !important;
+    border-radius: 14px !important;
+    background: var(--touch-surface) !important;
+    border-color: var(--touch-border) !important;
+    color: var(--touch-text) !important;
+    box-shadow: none !important;
+    touch-action: manipulation;
+}
+.vspos-touch-shell .product_box .image-container {
+    height: 78px !important;
+    margin-bottom: 6px !important;
+}
+.vspos-touch-shell .product_box .text_div small {
+    color: var(--touch-meta) !important;
+}
+.vspos-touch-shell .product_box .text_div .text {
+    color: var(--touch-text) !important;
+}
+.vspos-touch-shell .product_box .product_price {
+    color: var(--touch-price) !important;
+    font-size: 13px !important;
+}
+.vspos-touch-shell .product_box.is-touch-added {
+    border-color: var(--touch-accent) !important;
+    box-shadow: 0 0 0 2px rgba(245, 197, 24, 0.4);
+}
+
+/* Cart */
+.vspos-touch-cart {
+    background: var(--touch-panel);
+    border: 1px solid var(--touch-border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+.vspos-touch-cart-inner {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 8px 10px 0 !important;
+    display: flex;
+    flex-direction: column;
+}
+/* Cart lines take remaining space; totals stay in footer below */
+.vspos-touch-shell .vspos-cart-toolbar {
+    flex-shrink: 0;
+}
+.vspos-touch-shell .pos_product_div {
+    flex: 1 1 auto;
+    min-height: 160px;
+    overflow: auto;
+}
+/* Empty cart â€” compact on touch (classic POS keeps taller empty state) */
+.vspos-touch-shell .vspos-empty-state {
+    min-height: 120px !important;
+    padding: 16px 12px !important;
+}
+.vspos-touch-shell .vspos-cart-watermark,
+.vspos-touch-shell .vspos-entry-bar {
+    display: none !important;
+}
+/* Fully hide classic summary cards (were leaking as icon strip) */
+.vspos-touch-shell .vspos-summary-bar {
+    display: none !important;
+}
+.vspos-touch-cart-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--touch-border);
+    padding: 10px 12px 12px;
+    background: #0d0d0d;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.vspos-touch-last-purchase {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: var(--touch-raised);
+    border: 1px solid #2a2a2a;
+}
+.vspos-tlp-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.vspos-tlp-kicker {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--touch-soft);
+}
+.vspos-tlp-invoice {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--touch-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vspos-tlp-amount {
+    font-size: 15px;
+    font-weight: 800;
+    color: #f5c518;
+    font-variant-numeric: tabular-nums;
+}
+.vspos-tlp-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.vspos-tlp-btn {
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    background: var(--touch-surface-2);
+    color: #f5c518;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.vspos-tlp-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+.vspos-tlp-btn:not(:disabled):active {
+    transform: scale(0.96);
+}
+.vspos-touch-compact-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vspos-touch-compact-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--touch-muted);
+}
+.vspos-touch-compact-row strong {
+    color: var(--touch-text);
+    margin-left: 2px;
+}
+.vspos-touch-mini-btn {
+    appearance: none;
+    border: 1px solid #333;
+    background: var(--touch-surface);
+    color: var(--touch-muted);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.vspos-touch-mini-btn strong {
+    color: var(--touch-accent);
+}
+.vspos-touch-compact-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+.vspos-touch-compact-total span {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--touch-muted);
+}
+.vspos-touch-cart-stats {
+    display: none;
+}
+.vspos-touch-total {
+    color: var(--touch-accent) !important;
+    font-size: 22px !important;
+    font-weight: 800 !important;
+}
+.vspos-touch-pay-btn {
+    appearance: none;
+    border: 0;
+    border-radius: 14px;
+    min-height: 56px;
+    background: linear-gradient(180deg, #ffd84a, #f5c518);
+    color: #111;
+    font-size: 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-shadow: 0 8px 20px rgba(245, 197, 24, 0.25);
+}
+.vspos-touch-pay-btn:active {
+    transform: scale(0.98);
+}
+
+/* Payment keypad */
+.vspos-touch-keypad {
+    margin-top: 12px;
+}
+.vspos-touch-keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.vspos-touch-keypad-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+.vspos-touch-key {
+    appearance: none;
+    border: 1px solid var(--touch-border, #333);
+    background: var(--touch-key, var(--touch-surface-2));
+    color: var(--touch-text, #fafafa);
+    border-radius: 12px;
+    min-height: 54px;
+    font-size: 22px;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.vspos-touch-key:active {
+    background: var(--touch-hover, #222);
+    border-color: var(--touch-accent);
+}
+.vspos-touch-key--back {
+    font-size: 18px;
+}
+.vspos-touch-key--clear {
+    background: #2a1515;
+    border-color: #5a2a2a;
+    color: #f87171;
+}
+.vspos-touch-key--exact {
+    background: rgba(245, 197, 24, 0.12);
+    border-color: rgba(245, 197, 24, 0.45);
+    color: var(--touch-accent);
+    font-size: 15px;
+}
+
+/* Touch payment popup â€” methods left, keypad right, list + sticky Complete */
+body.vspos-touch-ui #vspos_mobile_pay_popup.vspos-pay-v2 {
+    max-width: min(720px, calc(100vw - 16px));
+    width: min(720px, calc(100vw - 16px));
+    max-height: min(94vh, 94dvh, 860px) !important;
+    background: var(--vspos-panel-bg, var(--touch-panel, #111111));
+    color: var(--vspos-text, var(--touch-text, #f5f5f5));
+    border: 1px solid var(--vspos-panel-border, var(--touch-border, #2a2a2a));
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+body.vspos-touch-ui #vspos_mobile_pay_popup.vspos-pay-v2.vspos-mobile-pay-popup--open {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+body.vspos-touch-ui #vspos_mobile_pay_popup #vspos_pay_view_main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+body.vspos-touch-ui #vspos_mobile_pay_popup.vspos-mobile-pay-popup--multipay {
+    max-width: min(720px, 96vw);
+    max-height: min(94vh, 860px) !important;
+}
+
+.vspos-touch-pay {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 4px 4px;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+.vspos-touch-pay-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: calc(min(94dvh, 860px) - 128px - env(safe-area-inset-bottom, 0px));
+}
+.vspos-touch-pay-hero {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 10px;
+    align-items: stretch;
+    flex-shrink: 0;
+}
+.vspos-touch-pay-hero-main {
+    background: var(--touch-panel, #0c0c0c);
+    border: 1px solid var(--touch-border, #2a2a2a);
+    border-radius: 14px;
+    padding: 12px 14px;
+    min-width: 0;
+}
+.vspos-touch-pay-meters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.vspos-touch-pay-meter {
+    background: var(--touch-raised);
+    border: 1px solid var(--touch-border, #2a2a2a);
+    border-radius: 12px;
+    padding: 8px 6px;
+    text-align: center;
+    min-width: 0;
+}
+.vspos-touch-pay-meter span {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--touch-muted, #737373);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 4px;
+}
+.vspos-touch-pay-meter strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--touch-text);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+.vspos-touch-pay-meter--due strong { color: #f87171; }
+.vspos-touch-pay-meter--change strong { color: #4ade80; }
+
+.vspos-touch-pay-workspace {
+    display: grid;
+    grid-template-columns: minmax(140px, 0.9fr) minmax(200px, 1.2fr);
+    gap: 10px;
+    align-items: start;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: visible;
+}
+.vspos-touch-pay-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.vspos-touch-pay-method {
+    appearance: none;
+    border: 1px solid var(--touch-border, #333);
+    border-radius: 12px;
+    min-height: 46px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+    color: var(--touch-text, #fafafa);
+    background: var(--touch-surface-2);
+    text-align: left;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-content: flex-start;
+}
+.vspos-touch-pay-method > span:not(kbd) {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.vspos-touch-pay-method kbd {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.14);
+    color: inherit;
+    font-weight: 800;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-family: inherit;
+    min-width: 28px;
+    text-align: center;
+}
+.vspos-touch-pay-method .pos-fi-icon,
+.vspos-touch-pay-method i {
+    font-size: 17px;
+    width: 22px;
+    text-align: center;
+}
+.vspos-touch-pay-method:active { transform: scale(0.98); }
+.vspos-touch-pay-method--fullcash {
+    min-height: 56px;
+    background: linear-gradient(180deg, #ffd84a, #f5c518);
+    border-color: #f5c518;
+    color: #111;
+    font-size: 14px;
+    justify-content: space-between;
+}
+.vspos-touch-pay-method--fullcash .pos-fi-icon,
+.vspos-touch-pay-method--fullcash i { color: #111; font-size: 20px; }
+.vspos-touch-pay-method--fullcash kbd {
+    background: rgba(0,0,0,.18);
+    border: none;
+    color: #111;
+    font-weight: 800;
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 11px;
+}
+.vspos-touch-pay-method--cash {
+    border-color: rgba(245, 197, 24, 0.45);
+    background: rgba(245, 197, 24, 0.1);
+    color: #f5c518;
+}
+.vspos-touch-pay-method--card {
+    border-color: rgba(59, 130, 246, 0.55);
+    background: rgba(59, 130, 246, 0.14);
+    color: #93c5fd;
+}
+.vspos-touch-pay-method--bank {
+    border-color: rgba(16, 185, 129, 0.55);
+    background: rgba(16, 185, 129, 0.12);
+    color: #6ee7b7;
+}
+.vspos-touch-pay-method--credit {
+    border-color: rgba(168, 85, 247, 0.5);
+    background: rgba(168, 85, 247, 0.12);
+    color: #d8b4fe;
+}
+.vspos-touch-pay-method--cheque {
+    border-color: rgba(251, 191, 36, 0.45);
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+}
+
+.vspos-touch-pay-keypad-col {
+    background: var(--touch-sunken);
+    border: 1px solid var(--touch-border, #2a2a2a);
+    border-radius: 14px;
+    padding: 10px;
+    min-width: 0;
+    box-sizing: border-box;
+}
+/* Classic pay-v2 tender has side margins and a dark frame. Inside the touch
+   keypad column that frame sits on top of the column and misaligns the amount. */
+.vspos-touch-pay .vspos-pay-v2-tender {
+    margin: 0 0 8px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+.vspos-touch-pay-tender { margin-bottom: 8px; }
+.vspos-touch-pay-account {
+    margin: 0 0 8px;
+}
+.vspos-touch-pay-account-select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--touch-input-border, rgba(255, 255, 255, 0.14));
+    background: var(--touch-input, var(--touch-surface-2));
+    color: var(--touch-text);
+    font-size: 14px;
+    padding: 8px 10px;
+}
+.vspos-touch-pay-account-select:focus {
+    outline: none;
+    border-color: #f5c518;
+}
+.vspos-touch-pay-account-hint {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: var(--touch-muted, #737373);
+    line-height: 1.3;
+}
+.vspos-touch-pay-tender .vspos-pay-v2-input {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    height: 48px !important;
+    text-align: right;
+}
+.vspos-touch-pay-hint {
+    margin: 6px 0 0;
+    color: var(--touch-muted, #737373);
+    font-size: 11px;
+    text-align: center;
+}
+.vspos-touch-pay .vspos-touch-keypad { margin-top: 4px; }
+.vspos-touch-pay .vspos-touch-key { min-height: 44px; font-size: 18px; }
+
+.vspos-touch-pay-list-panel {
+    border: 1px solid var(--touch-border, #2a2a2a);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--touch-panel);
+    flex-shrink: 0;
+    min-width: 0;
+}
+.vspos-touch-pay-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--touch-border, #222);
+    color: var(--touch-soft);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.vspos-touch-pay-clear-list {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--touch-border, #333);
+    color: var(--touch-soft);
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    cursor: pointer;
+}
+.vspos-touch-pay-list {
+    min-height: 44px;
+    max-height: 160px;
+    overflow: auto;
+    padding: 6px;
+}
+.vspos-touch-pay-list-empty {
+    padding: 10px;
+    text-align: center;
+    color: var(--touch-muted, #737373);
+    font-size: 12px;
+}
+.vspos-touch-pay-line {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    row-gap: 6px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--touch-surface, #181818);
+    border: 1px solid var(--touch-border, #2a2a2a);
+    margin-bottom: 6px;
+}
+.vspos-touch-pay-line--existing {
+    border-color: rgba(34, 197, 94, 0.35);
+    background: rgba(34, 197, 94, 0.06);
+}
+.vspos-touch-pay-existing-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.18);
+    vertical-align: middle;
+}
+.vspos-touch-pay-line-main {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.vspos-touch-pay-line-method {
+    color: var(--touch-text);
+    font-weight: 700;
+    font-size: 13px;
+}
+.vspos-touch-pay-line-amt {
+    color: #f5c518;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+.vspos-touch-pay-line-account,
+.vspos-touch-pay-line-account-label {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 32px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: var(--touch-raised);
+    color: var(--touch-meta);
+    font-size: 12px;
+    padding: 4px 8px;
+}
+.vspos-touch-pay-line-account-label {
+    display: flex;
+    align-items: center;
+    border-style: dashed;
+    color: #737373;
+}
+.vspos-touch-pay-line-remove {
+    grid-column: 2;
+    grid-row: 1;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #3f1f1f;
+    background: #2a1515;
+    color: #f87171;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+.vspos-touch-pay-rows-host {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.vspos-touch-pay-footer {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 10px;
+    flex-shrink: 0;
+    padding-top: 4px;
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
+    background: var(--touch-panel);
+    z-index: 5;
+    position: relative;
+}
+body.vspos-touch-ui .vspos-touch-pay-footer .vspos-pay-v2-sec--cancel {
+    flex-direction: row;
+    min-height: 54px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    gap: 6px;
+}
+.vspos-touch-pay-complete {
+    appearance: none;
+    border: none;
+    border-radius: 12px;
+    background: #f5c518;
+    color: #111;
+    font-weight: 800;
+    font-size: 16px;
+    min-height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.vspos-touch-pay-complete:active { transform: scale(0.98); }
+.vspos-touch-pay-complete.is-ready {
+    box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.35);
+}
+.vspos-touch-cheque-sheet {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.72);
+    padding: 12px;
+    box-sizing: border-box;
+}
+/* When remounted on the pay popup root (POP / touch cheque flow) */
+#vspos_mobile_pay_popup > .vspos-touch-cheque-sheet {
+    position: absolute;
+    inset: 0;
+    z-index: 80;
+    border-radius: inherit;
+}
+.vspos-touch-cheque-sheet[hidden] {
+    display: none !important;
+}
+.vspos-touch-cheque-sheet.is-open {
+    display: flex !important;
+}
+.vspos-touch-cheque-sheet-card {
+    width: min(440px, 100%);
+    margin: auto;
+    max-height: 100%;
+    overflow: auto;
+    background: #121212;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+.vspos-touch-cheque-sheet-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.vspos-touch-cheque-sheet-head strong {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--touch-text);
+    font-size: 16px;
+}
+.vspos-touch-cheque-sheet-head p {
+    margin: 4px 0 0;
+    color: #737373;
+    font-size: 12px;
+}
+.vspos-touch-cheque-sheet-close {
+    appearance: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: var(--touch-surface-2);
+    color: var(--touch-soft);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+.vspos-touch-cheque-sheet-amount {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    background: var(--touch-surface-2);
+    border: 1px solid #2a2a2a;
+    color: var(--touch-soft);
+    font-size: 13px;
+}
+.vspos-touch-cheque-sheet-amount strong {
+    color: #f5c518;
+    font-size: 18px;
+    font-variant-numeric: tabular-nums;
+}
+.vspos-touch-cheque-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.vspos-touch-cheque-fields label {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    min-width: 0;
+}
+.vspos-touch-cheque-fields span {
+    color: var(--touch-soft);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.vspos-touch-cheque-input {
+    width: 100%;
+    min-height: 42px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    background: var(--touch-sunken);
+    color: var(--touch-text);
+    font-size: 14px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+}
+.vspos-touch-cheque-input:focus {
+    outline: none;
+    border-color: #f5c518;
+}
+.vspos-touch-cheque-field--date {
+    grid-column: 1 / -1;
+}
+@media (max-width: 520px) {
+    .vspos-touch-cheque-fields {
+        grid-template-columns: 1fr;
+    }
+    .vspos-touch-cheque-field--date {
+        grid-column: auto;
+    }
+}
+
+/* Bootstrap datepicker â€” dark for touch/POP cheque date */
+body.vspos-cheque-dp-open .datepicker,
+body.vspos-cheque-dp-open .datepicker.dropdown-menu,
+body.vspos-mobile-pay-open .datepicker.dropdown-menu,
+.datepicker.dropdown-menu.vspos-dp--cheque {
+    z-index: 30060 !important;
+    background: var(--touch-sunken) !important;
+    background-color: #0f0f0f !important;
+    border: 1px solid #2e2e2e !important;
+    border-radius: 14px !important;
+    box-shadow: 0 24px 56px rgba(0,0,0,.8) !important;
+    color: var(--touch-text) !important;
+    padding: 10px !important;
+}
+body.vspos-cheque-dp-open .datepicker:before,
+body.vspos-mobile-pay-open .datepicker.dropdown-menu:before,
+.datepicker.dropdown-menu.vspos-dp--cheque:before {
+    border-bottom-color: #2e2e2e !important;
+    border-top-color: #2e2e2e !important;
+}
+body.vspos-cheque-dp-open .datepicker:after,
+body.vspos-mobile-pay-open .datepicker.dropdown-menu:after,
+.datepicker.dropdown-menu.vspos-dp--cheque:after {
+    border-bottom-color: #0f0f0f !important;
+    border-top-color: #0f0f0f !important;
+}
+body.vspos-cheque-dp-open .datepicker th,
+body.vspos-cheque-dp-open .datepicker td,
+body.vspos-cheque-dp-open .datepicker .datepicker-switch,
+body.vspos-cheque-dp-open .datepicker .prev,
+body.vspos-cheque-dp-open .datepicker .next,
+.datepicker.dropdown-menu.vspos-dp--cheque th,
+.datepicker.dropdown-menu.vspos-dp--cheque td,
+.datepicker.dropdown-menu.vspos-dp--cheque .datepicker-switch,
+.datepicker.dropdown-menu.vspos-dp--cheque .prev,
+.datepicker.dropdown-menu.vspos-dp--cheque .next {
+    color: var(--touch-text) !important;
+    background: transparent !important;
+    text-shadow: none !important;
+}
+body.vspos-cheque-dp-open .datepicker .dow,
+.datepicker.dropdown-menu.vspos-dp--cheque .dow {
+    color: var(--touch-soft) !important;
+}
+body.vspos-cheque-dp-open .datepicker td.day:hover,
+.datepicker.dropdown-menu.vspos-dp--cheque td.day:hover {
+    background: var(--touch-key) !important;
+    color: #f5c518 !important;
+}
+body.vspos-cheque-dp-open .datepicker td.active,
+body.vspos-cheque-dp-open .datepicker td.active:hover,
+.datepicker.dropdown-menu.vspos-dp--cheque td.active,
+.datepicker.dropdown-menu.vspos-dp--cheque td.active:hover {
+    background: #f5c518 !important;
+    background-image: none !important;
+    color: #111 !important;
+    text-shadow: none !important;
+}
+body.vspos-cheque-dp-open .datepicker td.today,
+.datepicker.dropdown-menu.vspos-dp--cheque td.today {
+    background: rgba(245,197,24,.15) !important;
+    color: #f5c518 !important;
+}
+body.vspos-cheque-dp-open .datepicker td.old,
+body.vspos-cheque-dp-open .datepicker td.new,
+.datepicker.dropdown-menu.vspos-dp--cheque td.old,
+.datepicker.dropdown-menu.vspos-dp--cheque td.new {
+    color: #525252 !important;
+}
+body.vspos-cheque-dp-open .datepicker .prev:hover,
+body.vspos-cheque-dp-open .datepicker .next:hover,
+body.vspos-cheque-dp-open .datepicker .datepicker-switch:hover,
+.datepicker.dropdown-menu.vspos-dp--cheque .prev:hover,
+.datepicker.dropdown-menu.vspos-dp--cheque .next:hover,
+.datepicker.dropdown-menu.vspos-dp--cheque .datepicker-switch:hover {
+    background: var(--touch-surface-2) !important;
+    color: #f5c518 !important;
+}
+
+.vspos-touch-cheque-sheet-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1.7fr;
+    gap: 10px;
+    margin-top: 16px;
+    width: 100%;
+}
+.vspos-touch-cheque-btn {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 0;
+    font-weight: 800;
+    font-size: 14px;
+    line-height: 1.2;
+    cursor: pointer;
+    box-sizing: border-box;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+.vspos-touch-cheque-btn .pos-fi-icon,
+.vspos-touch-cheque-btn i,
+.vspos-touch-cheque-btn .fi {
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    color: inherit;
+}
+.vspos-touch-cheque-btn--cancel {
+    background: var(--touch-key) !important;
+    color: var(--touch-text) !important;
+    border: 1px solid #333 !important;
+}
+.vspos-touch-cheque-btn--cancel:hover {
+    background: #262626 !important;
+    border-color: #444 !important;
+}
+.vspos-touch-cheque-btn--add {
+    background: #f5c518 !important;
+    color: #111 !important;
+    box-shadow: 0 6px 16px rgba(245, 197, 24, 0.28);
+}
+.vspos-touch-cheque-btn--add:hover {
+    background: #ffd23a !important;
+    color: #111 !important;
+}
+.vspos-touch-cheque-btn--add:active,
+.vspos-touch-cheque-btn--cancel:active {
+    transform: scale(0.98);
+}
+
+/* Select2 bank dropdown inside cheque sheet (dark) */
+.vspos-touch-cheque-sheet .select2-container {
+    width: 100% !important;
+}
+.vspos-touch-cheque-sheet .select2-container--default .select2-selection--single {
+    min-height: 42px !important;
+    height: 42px !important;
+    border-radius: 10px !important;
+    border: 1px solid #333 !important;
+    background: var(--touch-sunken) !important;
+    color: var(--touch-text) !important;
+}
+.vspos-touch-cheque-sheet .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--touch-text) !important;
+    line-height: 40px !important;
+    padding-left: 12px !important;
+    padding-right: 28px !important;
+}
+.vspos-touch-cheque-sheet .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #737373 !important;
+}
+.vspos-touch-cheque-sheet .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px !important;
+}
+.vspos-touch-cheque-sheet .select2-container--default.select2-container--focus .select2-selection--single,
+.vspos-touch-cheque-sheet .select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #f5c518 !important;
+}
+.vspos-touch-cheque-sheet-card .select2-dropdown,
+.vspos-touch-cheque-sheet .select2-dropdown {
+    background: #121212 !important;
+    border: 1px solid #2e2e2e !important;
+    border-radius: 10px !important;
+    color: var(--touch-text) !important;
+    z-index: 30100 !important;
+}
+.vspos-touch-cheque-sheet-card .select2-search--dropdown .select2-search__field,
+.vspos-touch-cheque-sheet .select2-search--dropdown .select2-search__field {
+    background: var(--touch-sunken) !important;
+    border: 1px solid #333 !important;
+    color: var(--touch-text) !important;
+    border-radius: 8px !important;
+}
+.vspos-touch-cheque-sheet-card .select2-results__option,
+.vspos-touch-cheque-sheet .select2-results__option {
+    color: var(--touch-text) !important;
+    padding: 8px 12px !important;
+}
+.vspos-touch-cheque-sheet-card .select2-results__option--highlighted[aria-selected],
+.vspos-touch-cheque-sheet .select2-results__option--highlighted[aria-selected] {
+    background: #f5c518 !important;
+    color: #111 !important;
+}
+.vspos-touch-cheque-sheet-card .select2-results__option[aria-selected=true],
+.vspos-touch-cheque-sheet .select2-results__option[aria-selected=true] {
+    background: var(--touch-surface-2) !important;
+    color: #f5c518 !important;
+}
+
+.vspos-touch-pay-line-meta {
+    grid-column: 1 / -1;
+    color: #737373;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.vspos-touch-pay-kbd,
+.vspos-touch-pay-popup-kbd {
+    margin-left: 8px;
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(0,0,0,.2);
+    color: inherit;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-weight: 800;
+}
+.vspos-touch-pay-btn .vspos-touch-pay-kbd {
+    background: rgba(0,0,0,.2);
+    border: none;
+    color: #111;
+}
+
+body.vspos-touch-ui #vspos_mobile_pay_popup .vspos-pay-v2-head {
+    align-items: center;
+    padding: 12px 14px 4px;
+    flex-shrink: 0;
+}
+body.vspos-touch-ui #vspos_mobile_pay_popup .vspos-mobile-pay-popup-close {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid var(--vspos-header-btn-border, #333333);
+    background: var(--vspos-header-btn-bg, #1a1a1a);
+    color: var(--vspos-header-btn-text, #d4d4d4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+body.vspos-touch-ui #vspos_mobile_pay_popup .vspos-mobile-pay-popup-close:hover {
+    background: var(--vspos-header-btn-hover, #262626);
+    color: var(--vspos-text, #f5f5f5);
+}
+body.vspos-touch-ui #vspos_mobile_pay_popup .vspos-touch-pay-popup-kbd {
+    background: var(--vspos-header-btn-bg, rgba(0, 0, 0, 0.25));
+    border: 1px solid var(--vspos-header-btn-border, rgba(0, 0, 0, 0.2));
+    color: var(--vspos-text, inherit);
+}
+
+@media (max-width: 991px) {
+    body.vspos-touch-ui #vspos_mobile_pay_popup.vspos-pay-v2 {
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 18px 18px 0 0;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+        transform: translateY(110%);
+        max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 8px) !important;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    body.vspos-touch-ui #vspos_mobile_pay_popup.vspos-pay-v2.vspos-mobile-pay-popup--open {
+        transform: translateY(0);
+    }
+    .vspos-touch-pay-scroll {
+        max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 136px);
+    }
+}
+
+@media (max-width: 640px) {
+    .vspos-touch-pay-hero { grid-template-columns: 1fr; }
+    .vspos-touch-pay-workspace { grid-template-columns: 1fr; }
+    .vspos-touch-pay-methods {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    .vspos-touch-pay-method--fullcash { grid-column: 1 / -1; }
+    .vspos-touch-pay {
+        padding: 0 2px 2px;
+        gap: 8px;
+    }
+    .vspos-pay-v2 .vspos-pay-v2-hero-amount { font-size: 30px; }
+}
+
+@media (max-width: 400px) {
+    .vspos-touch-pay-method {
+        font-size: 12px;
+        padding: 8px;
+        gap: 6px;
+        min-height: 44px;
+    }
+    .vspos-touch-pay-method kbd {
+        min-width: 22px;
+        padding: 2px 4px;
+        font-size: 9px;
+    }
+    .vspos-touch-pay-meters { gap: 4px; }
+    .vspos-touch-pay-meter { padding: 6px 4px; }
+    .vspos-touch-pay-meter strong { font-size: 11px; }
+    .vspos-touch-pay-footer { grid-template-columns: 92px minmax(0, 1fr); gap: 8px; }
+    .vspos-touch-pay .vspos-touch-key { min-height: 42px; font-size: 17px; }
+    .vspos-pay-v2 .vspos-pay-v2-hero-amount { font-size: 28px; }
+}
+
+
+@media (max-width: 1100px) {
+    .vspos-touch-top {
+        grid-template-columns: 120px minmax(0, 1fr);
+    }
+    .vspos-touch-layout {
+        grid-template-columns: 120px minmax(0, 1fr) minmax(340px, 42vw);
+    }
+    .vspos-touch-shell #product_list_items {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    /*
+     * ROOT CAUSE (previous mobile rules):
+     * - .vspos-touch-shell { height:auto; overflow:visible } while
+     *   body.lockscreen #scrollable-container { overflow:hidden }
+     * - .vspos-touch-products used fixed ~52-56vh height
+     * - .vspos-touch-cart was flex:0 0 auto and grew below the fold
+     * Result: Pay button / totals permanently clipped with no page scroll.
+     *
+     * FIX: keep shell viewport-locked; split remaining height between
+     * products + cart; only item lists scroll; footer stays pinned.
+     */
+    body.lockscreen.vspos-touch-ui,
+    body.lockscreen.vspos-touch-ui .wrapper,
+    body.lockscreen.vspos-touch-ui .content-wrapper,
+    body.lockscreen.vspos-touch-ui main {
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100vh;
+        max-height: 100dvh;
+        overflow: hidden !important;
+    }
+    body.lockscreen.vspos-touch-ui #scrollable-container,
+    body.lockscreen.vspos-touch-ui .content {
+        height: auto !important;
+        max-height: none !important;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden !important;
+    }
+    body.lockscreen.vspos-touch-ui #scrollable-container {
+        display: flex;
+        flex-direction: column;
+    }
+    body.lockscreen.vspos-touch-ui #scrollable-container > footer {
+        display: none;
+    }
+    body.lockscreen.vspos-touch-ui #scrollable-container > section.content {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    body.lockscreen.vspos-touch-ui #scrollable-container > section.content > form {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    body.lockscreen.vspos-touch-ui #scrollable-container > section.content > form > .row,
+    body.lockscreen.vspos-touch-ui #scrollable-container > section.content > form > .row > .col-md-12 {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .vspos-touch-shell {
+        flex: 1 1 auto;
+        height: auto;
+        max-height: none;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+        padding: 6px;
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
+        gap: 6px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .vspos-touch-top {
+        display: flex;
+        flex-direction: column;
+        grid-template-columns: none;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    /* Keep photocopy/printout reachable on phones (was display:none) */
+    .vspos-touch-top-spacer {
+        display: none;
+    }
+    .vspos-touch-top-spacer:has(.vspos-touch-mobile-actions),
+    .vspos-touch-top-spacer:has(.vspos-touch-comm-btn) {
+        display: block;
+        order: 2;
+    }
+    .vspos-touch-top-main {
+        order: 1;
+    }
+    .vspos-touch-mobile-actions,
+    .vspos-touch-comm-actions {
+        flex-direction: row;
+        height: auto;
+        gap: 8px;
+    }
+    .vspos-touch-comm-btn {
+        flex: 1 1 0;
+        min-height: 44px;
+        justify-content: center;
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+    .vspos-touch-cats .vspos-touch-reload-btn--mobile,
+    .vspos-touch-cats .vspos-touch-repair-btn--mobile {
+        display: flex;
+        margin: 8px 8px 0;
+        width: calc(100% - 16px);
+        min-height: 44px;
+        flex-direction: row;
+        gap: 8px;
+        font-size: 11px;
+    }
+    .vspos-touch-top,
+    .vspos-touch-top-main,
+    .vspos-touch-customer,
+    .vspos-touch-customer-inner,
+    .vspos-touch-layout,
+    .vspos-touch-products,
+    .vspos-touch-products-toolbar,
+    .vspos-touch-search,
+    .vspos-touch-cart,
+    .vspos-touch-cart-inner,
+    .vspos-touch-cart-footer {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .vspos-touch-layout {
+        display: flex;
+        flex-direction: column;
+        grid-template-columns: none;
+        grid-template-rows: none;
+        flex: 1 1 auto;
+        min-height: 0;
+        height: auto;
+        overflow: hidden;
+        gap: 6px;
+        width: 100%;
+    }
+    /* Category chips must scroll inside the shell. Without min-width:0 the
+       nowrap row's min-content width (112px × each tab) stretches the POS
+       past the phone and clips the cart and Pay button. */
+    .vspos-touch-cats {
+        flex: 0 0 auto;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        max-height: none;
+        overflow: hidden;
+    }
+    .vspos-touch-cats-head {
+        display: none;
+    }
+    .vspos-touch-cats-scroll {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 8px;
+        gap: 8px;
+        scrollbar-width: thin;
+        box-sizing: border-box;
+    }
+    .vspos-touch-cat {
+        width: max-content;
+        max-width: calc(100vw - 48px);
+        min-width: 0;
+        min-height: 44px;
+        flex: 0 0 auto;
+        justify-content: center;
+        text-align: center;
+        padding: 10px 14px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    .vspos-touch-cat-label {
+        white-space: nowrap;
+    }
+    .vspos-touch-cat--sub {
+        min-width: 0;
+        margin-left: 0;
+    }
+    .vspos-touch-subcats {
+        flex-direction: row;
+        flex-wrap: nowrap;
+    }
+    /* Products + cart share leftover viewport; both can shrink (min-height:0) */
+    .vspos-touch-products {
+        flex: 1 1 48%;
+        min-height: 0;
+        height: auto;
+        max-height: none;
+        overflow: hidden;
+    }
+    .vspos-touch-products-toolbar {
+        gap: 8px;
+        padding: 8px 10px;
+    }
+    .vspos-touch-search {
+        min-height: 48px;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+    .vspos-touch-search .form-control {
+        height: 46px;
+        min-width: 0;
+        width: 100%;
+        flex: 1 1 auto;
+        font-size: 16px; /* avoids iOS zoom on focus */
+    }
+    .vspos-touch-search .form-control::placeholder {
+        font-size: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .vspos-touch-search-btn {
+        width: 44px;
+        height: 44px;
+    }
+    .vspos-touch-add-product {
+        width: 48px;
+        min-height: 48px;
+        padding: 0;
+    }
+    .vspos-touch-products-title {
+        display: none;
+    }
+    .vspos-tyre-svc-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding: 6px 10px;
+        scrollbar-width: thin;
+    }
+    .vspos-tyre-svc-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    .vspos-touch-shell #product_list_items {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .vspos-touch-product-grid {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .vspos-touch-shell .product_box {
+        min-height: 120px;
+        padding: 8px 6px !important;
+    }
+    .vspos-touch-shell .product_box .image-container {
+        height: 56px !important;
+    }
+    /* Cart panel always in viewport; footer (Pay) pinned; items scroll */
+    .vspos-touch-cart {
+        flex: 1 1 46%;
+        min-height: 0;
+        height: auto;
+        max-height: none;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+    }
+    .vspos-touch-cart-inner {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 6px 8px 0 !important;
+    }
+    .vspos-touch-shell .pos_product_div {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        overflow: auto;
+    }
+    .vspos-touch-shell .vspos-empty-state {
+        padding: 10px 8px !important;
+        min-height: 0 !important;
+    }
+    .vspos-touch-shell .vspos-empty-state-icon {
+        font-size: 24px !important;
+        margin-bottom: 4px !important;
+    }
+    .vspos-touch-shell .vspos-empty-state-title {
+        font-size: 14px !important;
+    }
+    .vspos-touch-shell .vspos-empty-state-sub {
+        font-size: 11px !important;
+        margin-top: 2px !important;
+    }
+    .vspos-touch-cart-footer {
+        flex: 0 0 auto;
+        padding: 8px 10px 10px;
+        gap: 8px;
+        position: relative;
+        z-index: 6;
+        background: #0d0d0d;
+    }
+    .vspos-touch-pay-btn {
+        min-height: 52px;
+        font-size: 17px;
+    }
+    .vspos-touch-customer {
+        padding: 6px 8px;
+        border-radius: 12px;
+    }
+    .vspos-touch-customer-icon {
+        width: 36px;
+        height: 36px;
+    }
+    .vspos-touch-cust-btn {
+        width: 44px;
+        height: 44px;
+    }
+    .vspos-touch-customer .select2-container--default .select2-selection--single {
+        height: 44px !important;
+    }
+    .vspos-touch-customer .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 42px !important;
+    }
+    .vspos-touch-customer .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 42px !important;
+    }
+}
+
+/* ==========================================================================
+   Touch mobile: neutralize classic POS mobile .box-body.pb-0 rules (app.css).
+   Classic mobile sets box-body to height:calc(100vh-60px)+overflow:hidden for the
+   full-page cart. Touch reuses .box-body.pb-0 on .vspos-touch-cart-inner (a small
+   panel), which clipped/collapsed #pos_table product rows while thead+Pay stayed
+   visible. Keep totals/Pay outside; only .pos_product_div scrolls.
+   ========================================================================== */
+@media (max-width: 900px) {
+    body.lockscreen.vspos-touch-ui #add_pos_sell_form .vspos-touch-cart-inner.box-body.pb-0,
+    body.lockscreen.vspos-touch-ui #edit_pos_sell_form .vspos-touch-cart-inner.box-body.pb-0,
+    body.vspos-touch-ui .vspos-touch-cart-inner.box-body.pb-0 {
+        height: auto !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        padding-bottom: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+    }
+
+    body.lockscreen.vspos-touch-ui #add_pos_sell_form .vspos-touch-cart-inner.box-body.pb-0 > .row:has(.pos_product_div),
+    body.lockscreen.vspos-touch-ui #edit_pos_sell_form .vspos-touch-cart-inner.box-body.pb-0 > .row:has(.pos_product_div),
+    body.vspos-touch-ui .vspos-touch-cart-inner > .row:has(.pos_product_div) {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    body.lockscreen.vspos-touch-ui #add_pos_sell_form .vspos-touch-cart-inner .pos_product_div,
+    body.lockscreen.vspos-touch-ui #edit_pos_sell_form .vspos-touch-cart-inner .pos_product_div,
+    body.vspos-touch-ui .vspos-touch-shell .pos_product_div {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        position: relative !important;
+    }
+
+    /* Classic fixed footer actions are for non-touch mobile POS only */
+    body.lockscreen.vspos-touch-ui .pos-form-actions {
+        position: static !important;
+        display: none !important;
+    }
+
+    /* Empty state stays hidden once a line is added. Row display is the card
+       grid later in this file — a table-row rule here used to win or fight it. */
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.pos-has-rows .pos-empty-state-row {
+        display: none !important;
+    }
+}
+
+/* Phones: 2-up product grid; viewport split (no fixed product height) */
+@media (max-width: 640px) {
+    .vspos-touch-shell {
+        padding: 4px;
+        padding-bottom: max(4px, env(safe-area-inset-bottom));
+        gap: 5px;
+        height: auto;
+        max-height: none;
+    }
+    .vspos-touch-customer-icon {
+        display: none;
+    }
+    .vspos-touch-shell #product_list_items {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .vspos-touch-shell .product_box {
+        min-height: 128px;
+        padding: 8px 6px !important;
+        border-radius: 12px !important;
+    }
+    .vspos-touch-shell .product_box .image-container {
+        height: 64px !important;
+        margin-bottom: 6px !important;
+    }
+    .vspos-touch-shell .product_box .text_div,
+    .vspos-touch-shell .product_box .text_div .text,
+    .vspos-touch-shell .product_box .product_price {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .vspos-touch-shell .product_box .text_div .text {
+        font-size: 13px !important;
+        line-height: 1.25 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        white-space: normal;
+    }
+    .vspos-touch-shell .product_box .product_price {
+        font-size: 14px !important;
+    }
+    .vspos-touch-products {
+        flex: 1 1 44%;
+        min-height: 0;
+        height: auto;
+    }
+    .vspos-touch-cart {
+        flex: 1 1 48%;
+        min-height: 0;
+    }
+    .vspos-touch-compact-summary,
+    .vspos-touch-compact-row,
+    .vspos-touch-compact-total {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .vspos-touch-compact-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        font-size: 12px;
+        gap: 6px;
+    }
+    .vspos-touch-compact-row > span,
+    .vspos-touch-compact-row > .vspos-touch-mini-btn {
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+        box-sizing: border-box;
+    }
+    .vspos-touch-compact-total {
+        align-items: baseline;
+        gap: 8px;
+    }
+    .vspos-touch-compact-total > span {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .vspos-touch-compact-total strong {
+        flex: 0 0 auto;
+        min-width: 0;
+        max-width: 68%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: right;
+    }
+    .vspos-touch-mini-btn {
+        min-height: 36px;
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 10px;
+    }
+    .vspos-touch-total {
+        font-size: 20px !important;
+    }
+    .vspos-tyre-svc-label {
+        font-size: 9px;
+    }
+    .vspos-touch-compact-summary {
+        gap: 6px;
+    }
+    .vspos-touch-pay-btn {
+        min-height: 50px;
+    }
+}
+
+/* Short phones (Galaxy S8+ ~740px tall): guarantee cart/Pay room */
+@media (max-width: 900px) and (max-height: 780px) {
+    .vspos-touch-products {
+        flex: 1 1 34%;
+        max-height: 42%;
+    }
+    .vspos-touch-cart {
+        flex: 1 1 auto;
+        min-height: 168px;
+    }
+    .vspos-tyre-svc-btn {
+        min-height: 36px;
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+    .vspos-touch-cat {
+        min-height: 40px;
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .vspos-touch-shell #product_list_items {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .vspos-touch-cat {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    .vspos-touch-total {
+        font-size: 18px !important;
+    }
+}
+
+/* Landscape phones: keep Pay visible on short height */
+@media (max-width: 900px) and (max-height: 480px) and (orientation: landscape) {
+    .vspos-touch-layout {
+        flex-direction: row;
+    }
+    .vspos-touch-cats {
+        display: none;
+    }
+    .vspos-touch-products {
+        flex: 1 1 55%;
+        min-height: 0;
+    }
+    .vspos-touch-cart {
+        flex: 1 1 45%;
+        min-height: 0;
+    }
+    .vspos-touch-shell #product_list_items {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+
+/* Touch qty keypad modal — centered card, opaque surface, above the POS */
+#vspos_touch_qty_modal.modal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 11000 !important;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important;
+    text-align: center;
+    overflow: hidden !important;
+    box-sizing: border-box;
+}
+#vspos_touch_qty_modal.modal.in,
+#vspos_touch_qty_modal.modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+body.vspos-touch-qty-open {
+    overflow: hidden !important;
+}
+body.vspos-touch-qty-open .modal-backdrop.vspos-touch-qty-backdrop {
+    z-index: 10990 !important;
+    background: rgba(6, 6, 6, 0.72) !important;
+    opacity: 1 !important;
+}
+body.vspos-touch-qty-open .vspos-touch-shell {
+    pointer-events: none;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-dialog,
+#vspos_touch_qty_modal .modal-dialog.vspos-touch-qty-dialog {
+    width: min(420px, 100%) !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    float: none !important;
+    left: auto !important;
+    right: auto !important;
+    position: relative !important;
+    transform: none !important;
+    text-align: left;
+    display: flex !important;
+    flex-direction: column;
+    pointer-events: auto;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-content {
+    background: var(--touch-panel, #111111) !important;
+    background-color: var(--touch-panel, #111111) !important;
+    color: var(--touch-text, #f5f5f5);
+    border: 1px solid var(--touch-border, #2a2a2a) !important;
+    border-radius: 18px;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+#vspos_touch_qty_modal .vspos-touch-qty-header,
+#vspos_touch_qty_modal .vspos-touch-qty-body,
+#vspos_touch_qty_modal .vspos-touch-qty-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
+    background: transparent;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 0 0 auto;
+    border-bottom: 1px solid var(--touch-border, #222);
+    padding-top: 14px;
+    padding-bottom: 12px;
+    position: relative;
+    float: none;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-header-text { flex: 1; min-width: 0; }
+#vspos_touch_qty_modal .vspos-touch-qty-header .modal-title {
+    margin: 0;
+    color: var(--touch-soft, #a3a3a3) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    line-height: 1.3;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-product {
+    margin: 4px 0 0;
+    color: var(--touch-text, #fafafa);
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-meta {
+    margin: 4px 0 0;
+    color: var(--touch-muted, #737373);
+    font-size: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: baseline;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-meta #vspos_touch_qty_price {
+    color: var(--touch-accent, #f5c518);
+    font-weight: 700;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-last-buy {
+    margin: 6px 0 0;
+    color: #fbbf24;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .01em;
+}
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-last-buy {
+    font-size: 14px;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-header .close {
+    color: var(--touch-soft, #a3a3a3) !important;
+    background: transparent !important;
+    border: 0 !important;
+    opacity: 1;
+    font-size: 26px;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    float: none !important;
+    flex-shrink: 0;
+    text-shadow: none;
+    box-shadow: none !important;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 12px;
+    padding-bottom: 10px;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 0 0 10px;
+    width: 100%;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-tab {
+    width: 100%;
+    border: 1px solid var(--touch-input-border, #333);
+    background: var(--touch-input, #0a0a0a);
+    color: var(--touch-soft, #a3a3a3);
+    border-radius: 12px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    height: 42px;
+    line-height: 40px;
+    box-sizing: border-box;
+    margin: 0;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-tab.is-active {
+    border-color: #f5c518;
+    color: #111;
+    background: #f5c518;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 0 0 12px;
+    width: 100%;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-display-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 2px;
+    margin: 0;
+    padding: 8px 10px;
+    min-height: 64px;
+    background: var(--touch-input, #0a0a0a) !important;
+    border: 1px solid var(--touch-input-border, #333);
+    border-radius: 12px;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-display-wrap.is-active {
+    border-color: #f5c518;
+    box-shadow: inset 0 0 0 1px #f5c518;
+    background: #141008 !important;
+}
+#vspos_touch_qty_modal .vspos-touch-field-label {
+    color: var(--touch-muted, #737373);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    line-height: 1.2;
+    min-width: 0;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-display-wrap.is-active .vspos-touch-field-label {
+    color: #f5c518;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-display-wrap > .vspos-touch-qty-display,
+#vspos_touch_qty_modal .vspos-touch-qty-display-wrap > input.vspos-touch-qty-display {
+    flex: 0 0 auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--touch-muted, #737373) !important;
+    -webkit-text-fill-color: var(--touch-muted, #737373) !important;
+    font-size: 1.35rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: left !important;
+    font-variant-numeric: tabular-nums;
+    box-sizing: border-box !important;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-display-wrap.is-active > .vspos-touch-qty-display,
+#vspos_touch_qty_modal .vspos-touch-qty-display-wrap.is-active > input.vspos-touch-qty-display {
+    color: #f5c518 !important;
+    -webkit-text-fill-color: #f5c518 !important;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-display::placeholder {
+    color: #525252;
+    -webkit-text-fill-color: #525252;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-unit {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    color: var(--touch-soft, #a3a3a3);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    white-space: nowrap;
+    pointer-events: none;
+}
+#vspos_touch_qty_modal #vspos_touch_qty_wrap {
+    position: relative;
+    padding-right: 44px;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-keypad {
+    margin: 0;
+    width: 100%;
+}
+#vspos_touch_qty_modal .vspos-touch-keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+#vspos_touch_qty_modal .vspos-touch-keypad-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+    width: 100%;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-keypad .vspos-touch-key {
+    min-height: 48px;
+    height: auto;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    background: var(--touch-key, #1f1f1f);
+    color: var(--touch-text, #fafafa);
+    border: 1px solid var(--touch-border, #333);
+}
+#vspos_touch_qty_modal .vspos-touch-qty-footer {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    flex: 0 0 auto;
+    border-top: 1px solid var(--touch-border, #222);
+    padding-top: 12px;
+    padding-bottom: 14px;
+    margin: 0;
+    background: var(--touch-panel, #111111);
+}
+#vspos_touch_qty_modal .vspos-touch-qty-cancel {
+    flex: 0 0 96px;
+    width: 96px;
+    min-width: 96px;
+    background: var(--touch-surface-2, #1a1a1a) !important;
+    border: 1px solid var(--touch-border, #333) !important;
+    color: var(--touch-text, #f5f5f5) !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 0 !important;
+    height: 48px !important;
+    line-height: 46px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-enter {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: #f5c518 !important;
+    border: none !important;
+    color: #111 !important;
+    border-radius: 12px !important;
+    font-weight: 800 !important;
+    font-size: 15px !important;
+    padding: 0 16px !important;
+    height: 48px !important;
+    line-height: 48px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* POP purchase: wider on desktop; same viewport cap as the sale modal */
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-dialog,
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .modal-dialog.vspos-touch-qty-dialog {
+    width: min(560px, 100%) !important;
+}
+#vspos_touch_qty_modal .vspos-touch-qty-mode-badge {
+    display: inline-block;
+    margin: 0 0 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #f5c518;
+    color: #111;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-header .modal-title {
+    color: var(--touch-text, #fafafa) !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    text-transform: none;
+    letter-spacing: 0;
+}
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-product {
+    font-size: 1.25rem;
+}
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-display-wrap > .vspos-touch-qty-display,
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-display-wrap > input.vspos-touch-qty-display {
+    font-size: 1.7rem !important;
+}
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-keypad .vspos-touch-key {
+    min-height: 52px;
+    font-size: 1.25rem;
+}
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-enter {
+    height: 52px !important;
+    line-height: 52px !important;
+    font-size: 16px !important;
+}
+#vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-content {
+    border-color: rgba(245, 197, 24, 0.45) !important;
+    box-shadow: 0 0 0 1px rgba(245, 197, 24, 0.2), 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+@media (max-height: 740px) {
+    #vspos_touch_qty_modal .vspos-touch-qty-keypad .vspos-touch-key,
+    #vspos_touch_qty_modal.vspos-touch-qty--purchase .vspos-touch-qty-keypad .vspos-touch-key {
+        min-height: 44px;
+        font-size: 1.15rem;
+    }
+    #vspos_touch_qty_modal .vspos-touch-qty-display-wrap {
+        min-height: 56px;
+    }
+    #vspos_touch_qty_modal .vspos-touch-keypad-grid,
+    #vspos_touch_qty_modal .vspos-touch-keypad-row {
+        gap: 6px;
+    }
+}
+
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-content,
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-footer {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-header {
+    border-bottom-color: #e5e7eb;
+}
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-product,
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-header .close {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-tab,
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-display-wrap,
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-keypad .vspos-touch-key,
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-cancel {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-display-wrap.is-active {
+    background: #fffbeb !important;
+    border-color: #f5c518 !important;
+}
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-tab.is-active {
+    background: #f5c518 !important;
+    color: #111111 !important;
+    border-color: #f5c518 !important;
+}
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-display-wrap > .vspos-touch-qty-display,
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-display-wrap > input.vspos-touch-qty-display {
+    color: #4b5563 !important;
+    -webkit-text-fill-color: #4b5563 !important;
+}
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-display-wrap.is-active > .vspos-touch-qty-display,
+html[data-vspos-theme="light"] #vspos_touch_qty_modal .vspos-touch-qty-display-wrap.is-active > input.vspos-touch-qty-display {
+    color: #a16207 !important;
+    -webkit-text-fill-color: #a16207 !important;
+}
+html[data-vspos-theme="light"] body.vspos-touch-qty-open .modal-backdrop.vspos-touch-qty-backdrop {
+    background: rgba(15, 23, 42, 0.45) !important;
+}
+
+/* ===== Communication: Photocopy / Printout above categories ===== */
+.vspos-touch-comm-bar,
+.vspos-touch-comm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0;
+    border-bottom: none;
+    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: stretch;
+}
+.vspos-touch-comm-btn {
+    appearance: none;
+    border: 1px solid #2a2a2a;
+    background: var(--touch-surface);
+    color: #fafafa;
+    border-radius: 12px;
+    min-height: 0;
+    flex: 1 1 0;
+    width: 100%;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: border-color .15s, background .15s, transform .1s;
+    box-sizing: border-box;
+}
+.vspos-touch-comm-btn span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vspos-touch-comm-btn i {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.vspos-touch-comm-btn--copy {
+    border-color: rgba(15, 118, 110, .55);
+}
+.vspos-touch-comm-btn--copy i { color: #14b8a6; }
+.vspos-touch-comm-btn--print {
+    border-color: rgba(3, 105, 161, .55);
+}
+.vspos-touch-comm-btn--print i { color: #38bdf8; }
+.vspos-touch-comm-btn:active {
+    transform: scale(0.97);
+}
+.vspos-touch-comm-btn:hover,
+.vspos-touch-comm-btn:focus {
+    background: #1c1c1c;
+    outline: none;
+}
+
+/* ===== Communication modal â€” match touch qty popup ===== */
+#vspos_communication_modal .vspos-comm-dialog,
+#vspos_communication_modal .modal-dialog.vspos-comm-dialog {
+    width: min(400px, 94vw) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+    float: none !important;
+    left: auto !important;
+    right: auto !important;
+    position: relative !important;
+    transform: none !important;
+}
+#vspos_communication_modal .vspos-comm-content {
+    background: var(--touch-panel);
+    border: 1px solid #2a2a2a;
+    border-radius: 18px;
+    overflow: hidden;
+}
+#vspos_communication_modal .vspos-comm-header,
+#vspos_communication_modal .vspos-comm-body,
+#vspos_communication_modal .vspos-comm-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
+}
+#vspos_communication_modal .vspos-comm-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border-bottom: 1px solid #222;
+    padding-top: 14px;
+    padding-bottom: 12px;
+}
+#vspos_communication_modal .vspos-comm-header .modal-title {
+    margin: 0;
+    color: var(--touch-soft);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+#vspos_communication_modal .vspos-touch-qty-product {
+    margin: 4px 0 0;
+    color: #fafafa;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+#vspos_communication_modal .vspos-touch-qty-meta {
+    margin: 4px 0 0;
+    color: #737373;
+    font-size: 12px;
+}
+#vspos_communication_modal .vspos-comm-header .close {
+    color: var(--touch-soft);
+    opacity: 1;
+    text-shadow: none;
+    font-size: 28px;
+    font-weight: 300;
+    margin-top: -6px;
+}
+#vspos_communication_modal .vspos-comm-body {
+    padding-top: 12px;
+    padding-bottom: 8px;
+}
+#vspos_communication_modal .vspos-comm-field {
+    margin: 0 0 12px;
+}
+#vspos_communication_modal .vspos-touch-field-label {
+    display: block;
+    color: #737373;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 6px;
+}
+#vspos_communication_modal .vspos-comm-select {
+    width: 100%;
+    appearance: none;
+    background: var(--touch-input);
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: #fafafa;
+    font-size: 14px;
+    font-weight: 700;
+    min-height: 44px;
+    padding: 8px 12px;
+}
+#vspos_communication_modal .vspos-comm-static {
+    margin: 0;
+    color: #fafafa;
+    font-size: 15px;
+    font-weight: 800;
+}
+#vspos_communication_modal .vspos-comm-seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+#vspos_communication_modal .vspos-comm-seg-btn {
+    appearance: none;
+    background: var(--touch-input);
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: var(--touch-text);
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 44px;
+    padding: 8px 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+#vspos_communication_modal .vspos-comm-seg-btn.is-active {
+    border-color: #f5c518;
+    box-shadow: inset 0 0 0 1px #f5c518;
+    background: #141008;
+    color: #fafafa;
+}
+#vspos_communication_modal .vspos-comm-qty-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+#vspos_communication_modal .vspos-touch-qty-display-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    min-height: 64px;
+    background: var(--touch-input);
+    border: 1px solid #333;
+    border-radius: 12px;
+    cursor: pointer;
+}
+#vspos_communication_modal .vspos-touch-qty-display-wrap.is-active {
+    border-color: #f5c518;
+    box-shadow: inset 0 0 0 1px #f5c518;
+    background: #141008;
+}
+#vspos_communication_modal .vspos-touch-qty-display-wrap.is-active .vspos-touch-field-label {
+    color: #f5c518;
+}
+#vspos_communication_modal .vspos-touch-qty-display-wrap > input.vspos-touch-qty-display {
+    width: 100% !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #fafafa !important;
+    font-size: 1.6rem;
+    font-weight: 800;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 32px;
+}
+#vspos_communication_modal .vspos-touch-qty-keypad {
+    margin: 0 0 4px;
+}
+#vspos_communication_modal .vspos-touch-keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+#vspos_communication_modal .vspos-touch-keypad-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+#vspos_communication_modal .vspos-touch-key {
+    appearance: none;
+    background: var(--touch-surface-2);
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: #fafafa;
+    font-size: 1.2rem;
+    font-weight: 700;
+    min-height: 48px;
+    width: 100%;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+#vspos_communication_modal .vspos-touch-key:active {
+    background: #262626;
+}
+#vspos_communication_modal .vspos-touch-key--clear {
+    color: #f87171;
+}
+#vspos_communication_modal .vspos-touch-key--exact {
+    color: #f5c518;
+    font-size: 14px;
+}
+#vspos_communication_modal .vspos-comm-footer {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    border-top: 1px solid #222;
+    padding-top: 12px;
+    padding-bottom: 14px;
+    margin: 0;
+}
+#vspos_communication_modal .vspos-touch-qty-cancel {
+    flex: 0 0 96px;
+    background: var(--touch-surface-2) !important;
+    border: 1px solid #333 !important;
+    color: var(--touch-text) !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    height: 48px !important;
+    margin: 0 !important;
+}
+#vspos_communication_modal .vspos-touch-qty-enter {
+    flex: 1 1 auto;
+    background: #f5c518 !important;
+    border: none !important;
+    color: #111 !important;
+    border-radius: 12px !important;
+    font-weight: 800 !important;
+    font-size: 15px !important;
+    height: 48px !important;
+    margin: 0 !important;
+}
+
+/* Phone / small tablet cart: card rows so qty, rate, and total stay inside the screen */
+@media (max-width: 900px) {
+    body.vspos-touch-ui .vspos-touch-shell .pos_product_div {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: auto !important;
+        border-spacing: 0 !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart colgroup,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart thead {
+        display: none;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    /* Card layout only while the cart is actually empty.
+       pos_sync_empty_state() adds .pos-has-rows when a product line exists.
+       An unconditional display:block here outranked that hide rule and left
+       "Your cart is empty" on screen next to real lines. */
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart:not(.pos-has-rows) tbody tr.pos-empty-state-row,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart:not(.pos-has-rows) tbody tr.pos-empty-state-row > td {
+        display: block !important;
+        width: 100% !important;
+        border: 0 !important;
+        background: transparent !important;
+        padding: 0 !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart.pos-has-rows tbody tr.pos-empty-state-row,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart.pos-has-rows tbody tr.pos-empty-state-row > td {
+        display: none !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.pos-has-rows tbody tr.product_row,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart tbody tr.product_row {
+        display: grid !important;
+        position: relative;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "product product"
+            "qty rate"
+            "total total";
+        column-gap: 10px;
+        row-gap: 8px;
+        align-items: center;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 10px 40px 10px 26px;
+        box-sizing: border-box;
+        overflow: hidden;
+        background: var(--touch-surface, #161616) !important;
+        border: 1px solid var(--touch-border, #262626);
+        border-left: 3px solid var(--touch-accent, #f5c518);
+        border-radius: 12px;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.pos-has-rows tbody tr.product_row > td,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart tbody tr.product_row > td {
+        display: block !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        background: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        vertical-align: middle !important;
+        overflow: hidden !important;
+        white-space: normal !important;
+        box-sizing: border-box !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-serial {
+        position: absolute;
+        left: 6px;
+        top: 10px;
+        width: 18px !important;
+        text-align: center;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-product {
+        grid-area: product;
+        padding-right: 4px !important;
+        overflow: hidden !important;
+        white-space: normal !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-action {
+        position: absolute;
+        right: 4px;
+        top: 6px;
+        width: 32px !important;
+        text-align: center;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart col.pos-col-qty,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart col.pos-col-unitprice,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart col.pos-col-subtotal,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-qty,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-unitprice,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-subtotal,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-product {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        width: auto !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-qty {
+        grid-area: qty;
+        overflow: hidden !important;
+        text-align: left;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-unitprice {
+        grid-area: rate;
+        display: block !important;
+        text-align: center;
+        overflow: hidden !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-subtotal {
+        grid-area: total;
+        display: flex !important;
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        align-self: stretch;
+        text-align: right;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart tbody tr.product_row > td.hide,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.pos-has-rows tbody tr.product_row > td.hide {
+        display: none !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart tbody tr.product_row > td:not(.pos-td-serial):not(.pos-td-product):not(.pos-td-qty):not(.pos-td-unitprice):not(.pos-td-subtotal):not(.pos-td-action):not(.hide) {
+        grid-column: 1 / -1;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-qty::before,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-unitprice::before,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-subtotal::before {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--touch-muted, #737373);
+        line-height: 1;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-qty::before,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-unitprice::before {
+        display: block;
+        margin-bottom: 3px;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-qty::before { content: "Qty"; text-align: center; }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-unitprice::before { content: "Rate"; text-align: center; }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-subtotal::before {
+        content: "Total";
+        display: block;
+        flex: 0 0 auto;
+        margin: 0;
+        text-align: left;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .vspos-qty-stepper,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .pos-td-qty .input-group.vspos-qty-stepper {
+        display: flex !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .vspos-qty-stepper .form-control.pos_quantity,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .vspos-qty-stepper input.pos_quantity {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: 1 1 auto !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart .vspos-rate-field {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart .vspos-rate-field input.pos_unit_price,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart td.pos-td-unitprice .form-control.pos_unit_price {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .vspos-line-total {
+        display: block !important;
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto;
+        max-width: 100%;
+        overflow: hidden;
+        text-align: right;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .vspos-line-total .pos_line_total_text,
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .pos_line_total_text {
+        display: block !important;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        font-size: 16px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis;
+        text-align: right;
+    }
+    body.vspos-touch-ui .vspos-touch-shell .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100%;
+        max-width: 100%;
+    }
+    body.vspos-touch-ui .vspos-touch-shell .row > [class*="col-"] {
+        min-width: 0;
+        max-width: 100%;
+        float: none;
+    }
+    body.lockscreen.vspos-touch-ui,
+    body.lockscreen.vspos-touch-ui #scrollable-container {
+        overflow-x: hidden !important;
+        max-width: 100%;
+    }
+    body.vspos-touch-ui .pos-header,
+    body.vspos-touch-ui .pos-header-shell,
+    body.vspos-touch-ui .pos-header-meta {
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    body.vspos-touch-ui .pos-header-shell {
+        overflow: hidden;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .vspos-line-remove {
+        width: 32px;
+        height: 32px;
+    }
+    body.vspos-touch-ui .vspos-touch-shell #pos_table .vspos-line-name {
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical;
+        white-space: normal !important;
+        overflow: hidden !important;
+    }
+    body.vspos-touch-ui .vspos-touch-cart-footer {
+        background: var(--touch-panel, #0d0d0d);
+    }
+    body.vspos-touch-ui .vspos-touch-compact-summary,
+    body.vspos-touch-ui .vspos-touch-compact-total,
+    body.vspos-touch-ui .vspos-touch-pay-btn {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 380px) {
+    body.vspos-touch-ui .vspos-touch-shell #pos_table.vspos-ticket-cart tbody tr.product_row {
+        gap: 6px 4px;
+        padding: 10px 8px 8px;
+    }
+    body.vspos-touch-ui .vspos-touch-shell .product_box {
+        min-height: 112px;
+    }
+}
+
+/* ==========================================================================
+   POS product list view. Grid cards stay as they are unless
+   html.vspos-product-view-list is set. The same product_box is the click target.
+   ========================================================================== */
+.vspos-plist-cells,
+.vspos-plist-head {
+    display: none;
+}
+.vspos-pos-view-switch {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 12px;
+    border: 1px solid var(--touch-border);
+    background: var(--touch-input);
+}
+.vspos-pos-view-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--touch-muted);
+    min-height: 38px;
+    padding: 0 10px;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.vspos-pos-view-btn:hover,
+.vspos-pos-view-btn:focus {
+    color: var(--touch-text);
+    outline: none;
+}
+.vspos-pos-view-btn.is-active {
+    background: rgba(245, 197, 24, 0.16);
+    color: #f5c518;
+}
+html[data-vspos-theme="light"] .vspos-pos-view-btn.is-active {
+    background: #fff7d6;
+    color: #92400e;
+}
+@media (max-width: 900px) {
+    .vspos-pos-view-btn span {
+        display: none;
+    }
+    .vspos-pos-view-btn {
+        width: 40px;
+        padding: 0;
+    }
+}
+
+html.vspos-product-view-list #product_list_body {
+    container-type: inline-size;
+    container-name: posproducts;
+}
+html.vspos-product-view-list .vspos-plist-head > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+html.vspos-product-view-list .vspos-plist-head {
+    display: grid !important;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    margin: 0 0 2px;
+    padding: 6px 8px;
+    background: var(--touch-panel);
+    border-bottom: 1px solid var(--touch-border);
+    color: var(--touch-muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+html.vspos-product-view-list .vspos-touch-shell .vspos-plist-cells {
+    display: contents;
+}
+html.vspos-product-view-list body.vspos-touch-ui .vspos-touch-shell #product_list_items,
+html.vspos-product-view-list .vspos-touch-shell #product_list_items {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 0 !important;
+    width: 100%;
+    min-width: 0;
+}
+html.vspos-product-view-list .vspos-touch-shell #product_list_items > .col-md-3,
+html.vspos-product-view-list .vspos-touch-shell #product_list_items > .col-xs-4 {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    float: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+html.vspos-product-view-list body.vspos-touch-ui .vspos-touch-shell .product_box.vspos-plist-grid,
+html.vspos-product-view-list .vspos-plist-head.vspos-plist-grid {
+    display: grid !important;
+    grid-template-columns: 36px minmax(0, 1fr) 120px 86px 92px 52px !important;
+    column-gap: 8px;
+    align-items: center;
+}
+html.vspos-product-view-list body.vspos-touch-ui .vspos-touch-shell .product_box,
+html.vspos-product-view-list .vspos-touch-shell .product_box {
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 6px 8px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid var(--touch-border) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--touch-text) !important;
+    text-align: left !important;
+    transform: none !important;
+    user-select: none;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+html.vspos-product-view-list .vspos-touch-shell .product_box:hover,
+html.vspos-product-view-list .vspos-touch-shell .product_box:active,
+html.vspos-product-view-list .vspos-touch-shell .product_box:focus {
+    transform: none !important;
+}
+html.vspos-product-view-list .vspos-touch-shell .product_box:hover {
+    background: var(--touch-hover) !important;
+}
+html.vspos-product-view-list .vspos-touch-shell .product_box:focus {
+    outline: 1px solid rgba(245, 197, 24, 0.7);
+    outline-offset: -1px;
+}
+html.vspos-product-view-list .vspos-touch-shell .product_box.is-touch-added,
+html.vspos-product-view-list .vspos-touch-shell .product_box.is-grid-selected {
+    background: rgba(245, 197, 24, 0.1) !important;
+    box-shadow: inset 3px 0 0 #f5c518 !important;
+}
+html.vspos-product-view-list .vspos-touch-shell .product_box .text_div {
+    display: none !important;
+}
+html.vspos-product-view-list body.vspos-touch-ui .vspos-touch-shell .product_box .image-container,
+html.vspos-product-view-list .vspos-touch-shell .product_box .image-container {
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    margin: 0 !important;
+    border-radius: 8px;
+    background-color: var(--touch-sunken, #0f0f0f);
+}
+html.vspos-product-view-list .vspos-plist-product {
+    min-width: 0;
+}
+html.vspos-product-view-list .vspos-plist-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--touch-text);
+}
+html.vspos-product-view-list .vspos-plist-cat,
+html.vspos-product-view-list .vspos-plist-last {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 1px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--touch-muted);
+}
+html.vspos-plist-filtered .vspos-plist-cat {
+    display: none !important;
+}
+html.vspos-product-view-list .vspos-plist-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+    margin-top: 2px;
+}
+html.vspos-product-view-list .vspos-plist-chip,
+html.vspos-product-view-list .vspos-plist-inline {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+    color: var(--touch-meta);
+}
+html.vspos-product-view-list .vspos-plist-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    border: 1px solid var(--touch-border);
+    background: var(--touch-surface-2);
+}
+html.vspos-product-view-list .vspos-plist-sku,
+html.vspos-product-view-list .vspos-plist-size,
+html.vspos-product-view-list .vspos-plist-color,
+html.vspos-product-view-list .vspos-plist-stock {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--touch-soft);
+    font-variant-numeric: tabular-nums;
+}
+html.vspos-product-view-list .vspos-plist-stock,
+html.vspos-product-view-list .vspos-plist-head-stock,
+html.vspos-product-view-list .vspos-plist-price,
+html.vspos-product-view-list .vspos-plist-head-price {
+    text-align: right;
+}
+html.vspos-product-view-list .vspos-plist-size,
+html.vspos-product-view-list .vspos-plist-color,
+html.vspos-product-view-list .vspos-plist-head-size,
+html.vspos-product-view-list .vspos-plist-head-color {
+    text-align: center;
+}
+html.vspos-product-view-list .vspos-plist-empty {
+    color: var(--touch-muted);
+    font-weight: 500;
+}
+html.vspos-product-view-list .vspos-touch-shell .product_box.product_out_of_stock .vspos-plist-stock,
+html.vspos-product-view-list .vspos-touch-shell .product_box.product_out_of_stock .vspos-plist-stock-m {
+    color: #f87171;
+}
+html.vspos-product-view-list .vspos-touch-shell .product_box .vspos-plist-price {
+    color: var(--touch-price) !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+html.vspos-product-view-list .vspos-plist-add {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 26px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid rgba(245, 197, 24, 0.55);
+    background: rgba(245, 197, 24, 0.14);
+    color: #f5c518;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+}
+html.vspos-product-view-list .vspos-plist-sku-m,
+html.vspos-product-view-list .vspos-plist-stock-m,
+html.vspos-product-view-list .vspos-plist-size,
+html.vspos-product-view-list .vspos-plist-color,
+html.vspos-product-view-list .vspos-plist-head-size,
+html.vspos-product-view-list .vspos-plist-head-color {
+    display: none;
+}
+
+@container posproducts (min-width: 780px) {
+    html.vspos-product-view-list.vspos-plist-has-size:not(.vspos-plist-has-color) body.vspos-touch-ui .vspos-touch-shell .product_box.vspos-plist-grid,
+    html.vspos-product-view-list.vspos-plist-has-size:not(.vspos-plist-has-color) .vspos-plist-head.vspos-plist-grid {
+        grid-template-columns: 36px minmax(0, 1fr) 116px 70px 84px 90px 52px !important;
+    }
+    html.vspos-product-view-list.vspos-plist-has-color:not(.vspos-plist-has-size) body.vspos-touch-ui .vspos-touch-shell .product_box.vspos-plist-grid,
+    html.vspos-product-view-list.vspos-plist-has-color:not(.vspos-plist-has-size) .vspos-plist-head.vspos-plist-grid {
+        grid-template-columns: 36px minmax(0, 1fr) 116px 78px 84px 90px 52px !important;
+    }
+    html.vspos-product-view-list.vspos-plist-has-size.vspos-plist-has-color body.vspos-touch-ui .vspos-touch-shell .product_box.vspos-plist-grid,
+    html.vspos-product-view-list.vspos-plist-has-size.vspos-plist-has-color .vspos-plist-head.vspos-plist-grid {
+        grid-template-columns: 36px minmax(0, 1fr) 112px 64px 72px 82px 88px 52px !important;
+    }
+    html.vspos-product-view-list.vspos-plist-has-size .vspos-plist-size,
+    html.vspos-product-view-list.vspos-plist-has-size .vspos-plist-head-size,
+    html.vspos-product-view-list.vspos-plist-has-color .vspos-plist-color,
+    html.vspos-product-view-list.vspos-plist-has-color .vspos-plist-head-color {
+        display: block;
+    }
+    html.vspos-product-view-list.vspos-plist-has-size .vspos-plist-chip-size,
+    html.vspos-product-view-list.vspos-plist-has-color .vspos-plist-chip-color {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    html.vspos-product-view-list body.vspos-touch-ui .vspos-touch-shell .product_box.vspos-plist-grid,
+    html.vspos-product-view-list .vspos-plist-head.vspos-plist-grid {
+        grid-template-columns: 34px minmax(0, 1fr) auto 48px !important;
+        column-gap: 8px;
+    }
+    html.vspos-product-view-list .vspos-plist-sku,
+    html.vspos-product-view-list .vspos-plist-stock,
+    html.vspos-product-view-list .vspos-plist-head-sku,
+    html.vspos-product-view-list .vspos-plist-head-stock,
+    html.vspos-product-view-list .vspos-plist-size,
+    html.vspos-product-view-list .vspos-plist-color,
+    html.vspos-product-view-list .vspos-plist-head-size,
+    html.vspos-product-view-list .vspos-plist-head-color {
+        display: none !important;
+    }
+    html.vspos-product-view-list .vspos-plist-sku-m,
+    html.vspos-product-view-list .vspos-plist-stock-m {
+        display: inline !important;
+    }
+    html.vspos-product-view-list .vspos-plist-chip-size,
+    html.vspos-product-view-list .vspos-plist-chip-color {
+        display: inline-flex !important;
+    }
+    html.vspos-product-view-list .vspos-plist-name {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    html.vspos-product-view-list body.vspos-touch-ui .vspos-touch-shell .product_box .image-container,
+    html.vspos-product-view-list .vspos-touch-shell .product_box .image-container {
+        width: 32px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+    }
+    html.vspos-product-view-list .vspos-plist-add {
+        min-width: 42px;
+        height: 28px;
+        padding: 0 6px;
+    }
+}

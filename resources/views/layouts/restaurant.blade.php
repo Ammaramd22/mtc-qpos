@@ -33,7 +33,7 @@
 
         @include('layouts.partials.css')
         <link rel="stylesheet" href="{{ asset('css/pos-theme.css?v='.$asset_v) }}">
-        <link rel="stylesheet" href="{{ asset('css/qpos-light.css?v='.$asset_v) }}">
+        <link rel="stylesheet" href="{{ asset('css/qpos-light.css?v='.$asset_v.'-lt2') }}">
 
         @yield('css')
     </head>

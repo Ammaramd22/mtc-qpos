@@ -349,6 +349,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     //Print Labels
     Route::get('/labels/show', [LabelsController::class, 'show']);
+    Route::get('/labels/search-products', [LabelsController::class, 'searchProducts']);
     Route::get('/labels/add-product-row', [LabelsController::class, 'addProductRow']);
     Route::get('/labels/preview', [LabelsController::class, 'preview']);
     Route::get('/labels/preview-weighing-scale', [LabelsController::class, 'previewWeighingScale']);

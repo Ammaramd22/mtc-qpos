@@ -506,9 +506,13 @@ html[data-vspos-theme="light"] body:not(.lockscreen) .select2-container--default
     border: 1px solid #d1d5db !important;
     -webkit-text-fill-color: #111827;
 }
-html[data-vspos-theme="light"] body:not(.lockscreen) .form-control::placeholder {
-    color: #9ca3af !important;
-    -webkit-text-fill-color: #9ca3af;
+html[data-vspos-theme="light"] body:not(.lockscreen) .form-control::placeholder,
+html[data-vspos-theme="light"] body:not(.lockscreen) .form-control::-webkit-input-placeholder,
+html[data-vspos-theme="light"] body:not(.lockscreen) textarea::placeholder,
+html[data-vspos-theme="light"] body:not(.lockscreen) input::placeholder {
+    color: #6b7280 !important;
+    -webkit-text-fill-color: #6b7280;
+    opacity: 1;
 }
 html[data-vspos-theme="light"] body:not(.lockscreen) .form-control:focus,
 html[data-vspos-theme="light"] body:not(.lockscreen) .select2-container--default.select2-container--focus .select2-selection--single,
@@ -1132,5 +1136,675 @@ html[data-vspos-theme="light"] body.vspos-touch-ui .vspos-touch-shell #pos_table
         background: #ffffff !important;
         color: #000000 !important;
         box-shadow: none !important;
+    }
+}
+
+/* ========== Page skins that hardcode dark colours ==========
+   These rules only run on screen. Print / PDF / receipt output is unchanged.
+   Specificity includes the theme attribute so it beats later page <style> blocks. */
+@media screen {
+    html[data-vspos-theme="light"] {
+        --qpos-text: #111827;
+        --qpos-text-secondary: #374151;
+        --qpos-muted: #4b5563;
+        --qpos-link: #1d4ed8;
+        --qpos-page: #f8fafc;
+        --qpos-surface: #ffffff;
+        --qpos-surface-2: #f8fafc;
+        --qpos-border: #e5e7eb;
+        --qpos-input: #ffffff;
+        --qpos-hover: #f3f4f6;
+        --qpos-accent-text: #92400e;
+    }
+
+    html[data-vspos-theme="light"] body:not(.lockscreen) legend,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content-header h1,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content-header h1 small,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .box-title,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .modal-title {
+        color: var(--qpos-text) !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content .tw-text-white:not(.btn):not(.tw-dw-btn):not(.label):not(.badge):not([class*="tw-bg-"]),
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content .tw-text-gray-100:not(.btn):not(.tw-dw-btn):not(.label):not(.badge),
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content .tw-text-gray-200:not(.btn):not(.tw-dw-btn):not(.label):not(.badge),
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content .tw-text-gray-300:not(.btn):not(.tw-dw-btn):not(.label):not(.badge),
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content .text-white:not(.btn):not(.tw-dw-btn):not(.label):not(.badge):not(.alert) {
+        color: var(--qpos-text) !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content .tw-text-gray-400,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .content .tw-text-slate-400,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .help-block:not(.text-danger):not(.text-red):not(.error),
+    html[data-vspos-theme="light"] body:not(.lockscreen) .text-muted:not(.text-danger):not(.text-red) {
+        color: var(--qpos-muted) !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .pos-tab-content h4,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .pos-tab-content h5,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .pos-tab-content label,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .pos-tab-content .control-label {
+        color: var(--qpos-text) !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .pos-tab-content .help-block,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .pos-tab-content p.help-block {
+        color: var(--qpos-muted) !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .pos-tab-content hr {
+        border-color: var(--qpos-border) !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .form-control:disabled,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .form-control[disabled],
+    html[data-vspos-theme="light"] body:not(.lockscreen) .form-control[readonly] {
+        background: #f3f4f6 !important;
+        color: #6b7280 !important;
+        -webkit-text-fill-color: #6b7280 !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) select.form-control option,
+    html[data-vspos-theme="light"] select option {
+        background: #ffffff;
+        color: #111827;
+    }
+    html[data-vspos-theme="light"] .select2-container--default .select2-selection--single .select2-selection__placeholder,
+    html[data-vspos-theme="light"] .select2-container--default .select2-selection--multiple .select2-selection__placeholder {
+        color: #6b7280 !important;
+    }
+    html[data-vspos-theme="light"] .select2-container--default .select2-selection__choice {
+        background: #f3f4f6 !important;
+        border-color: #d1d5db !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .btn-box-tool,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .box-tools .btn {
+        color: #374151 !important;
+    }
+    html[data-vspos-theme="light"] .highcharts-background { fill: transparent !important; }
+    html[data-vspos-theme="light"] .highcharts-title,
+    html[data-vspos-theme="light"] .highcharts-axis-labels text,
+    html[data-vspos-theme="light"] .highcharts-legend-item text,
+    html[data-vspos-theme="light"] .expense-report-chart text {
+        fill: #374151 !important;
+    }
+    html[data-vspos-theme="light"] .highcharts-axis-line,
+    html[data-vspos-theme="light"] .highcharts-grid-line,
+    html[data-vspos-theme="light"] .highcharts-tick,
+    html[data-vspos-theme="light"] .expense-report-chart .highcharts-axis-line,
+    html[data-vspos-theme="light"] .expense-report-chart .highcharts-grid-line,
+    html[data-vspos-theme="light"] .expense-report-chart .highcharts-tick {
+        stroke: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .expense-report-empty { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .expense-report-empty strong { color: #111827 !important; }
+    html[data-vspos-theme="light"] .qpos-report-hub { --qrh-accent: #b45309; }
+
+    /* Print Labels */
+    html[data-vspos-theme="light"] .labels-guide-popover {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12) !important;
+    }
+    html[data-vspos-theme="light"] .labels-guide-popover.bottom > .arrow:after { border-bottom-color: #ffffff !important; }
+    html[data-vspos-theme="light"] .labels-guide-popover.top > .arrow:after { border-top-color: #ffffff !important; }
+    html[data-vspos-theme="light"] .labels-guide-popover-inner,
+    html[data-vspos-theme="light"] .labels-guide-popover-steps,
+    html[data-vspos-theme="light"] .labels-search-label,
+    html[data-vspos-theme="light"] .labels-product-name,
+    html[data-vspos-theme="light"] .labels-suggest-name { color: #111827 !important; }
+    html[data-vspos-theme="light"] .labels-guide-popover-title { color: #111827 !important; }
+    html[data-vspos-theme="light"] .labels-guide-popover-note,
+    html[data-vspos-theme="light"] .labels-search-hint,
+    html[data-vspos-theme="light"] .labels-search-icon,
+    html[data-vspos-theme="light"] .labels-search-status,
+    html[data-vspos-theme="light"] .labels-product-variation,
+    html[data-vspos-theme="light"] .labels-empty-state,
+    html[data-vspos-theme="light"] .labels-export-disabled-hint,
+    html[data-vspos-theme="light"] .labels-suggest-meta,
+    html[data-vspos-theme="light"] .labels-suggest-status .labels-suggest-item { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .labels-product-attrs,
+    html[data-vspos-theme="light"] .labels-guide-popover-note a,
+    html[data-vspos-theme="light"] .labels-export-disabled-hint a { color: #1d4ed8 !important; }
+    html[data-vspos-theme="light"] .labels-product-table thead th {
+        background: #f8fafc !important;
+        color: #374151 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .labels-product-table tbody td {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .labels-search-status.is-error { color: #b91c1c !important; }
+    html[data-vspos-theme="light"] .labels-empty-state { border-color: #d1d5db !important; }
+    html[data-vspos-theme="light"] .labels-actions-row { border-top-color: #e5e7eb !important; }
+    html[data-vspos-theme="light"] .labels-remove-row {
+        color: #b91c1c !important;
+        border-color: #fecaca !important;
+        background: #ffffff !important;
+    }
+    html[data-vspos-theme="light"] .labels-remove-row:hover { background: #fef2f2 !important; color: #991b1b !important; }
+    html[data-vspos-theme="light"] .labels-suggest-menu.ui-autocomplete,
+    html[data-vspos-theme="light"] .ui-autocomplete.labels-suggest-menu {
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12) !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] .labels-suggest-menu .ui-menu-item-wrapper { color: #111827 !important; background: #ffffff !important; }
+    html[data-vspos-theme="light"] .labels-suggest-menu .ui-menu-item-wrapper.ui-state-active,
+    html[data-vspos-theme="light"] .labels-suggest-menu .ui-state-active {
+        background: #eff6ff !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] .ui-state-active .labels-suggest-name,
+    html[data-vspos-theme="light"] .ui-state-active .labels-suggest-meta { color: #111827 !important; }
+
+    /* Product view modal */
+    html[data-vspos-theme="light"] .product-view-sheet,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-meta-col p,
+    html[data-vspos-theme="light"] .product-view-sheet .table,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-table,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item { color: #111827 !important; }
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-meta-col b,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-section-title,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses h5,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item .val,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-price-wrap h4 { color: #111827 !important; }
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-table th small,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses h5 small,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses .text-muted,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item .lbl { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .product-view-sheet .table > thead > tr > th,
+    html[data-vspos-theme="light"] .product-view-sheet .table > tbody > tr > th,
+    html[data-vspos-theme="light"] .product-view-sheet .table > tbody > tr > td,
+    html[data-vspos-theme="light"] .product-view-sheet .table.bg-gray,
+    html[data-vspos-theme="light"] .product-view-sheet .table > thead > tr.bg-green > th,
+    html[data-vspos-theme="light"] .product-view-sheet tr.bg-green th,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-table th,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-table td {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-table th,
+    html[data-vspos-theme="light"] .product-view-sheet .table > thead > tr > th {
+        background: #f8fafc !important;
+    }
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-thumb,
+    html[data-vspos-theme="light"] .product-view-sheet .thumbnail {
+        background: #f8fafc !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-section-title { border-bottom-color: #e5e7eb !important; }
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-table-scroll,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-expenses,
+    html[data-vspos-theme="light"] .product-view-sheet .pvs-exp-item {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+    }
+
+    /* Cost code settings panel */
+    html[data-vspos-theme="light"] #settings-costcode .costcode-repeat-panel {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+        color: #111827 !important;
+        box-shadow: none !important;
+    }
+    html[data-vspos-theme="light"] #settings-costcode .costcode-repeat-panel h5,
+    html[data-vspos-theme="light"] #settings-costcode .costcode-repeat-panel label,
+    html[data-vspos-theme="light"] #settings-costcode .costcode-example-panel strong,
+    html[data-vspos-theme="light"] #settings-costcode .costcode-example-panel b { color: #111827 !important; }
+    html[data-vspos-theme="light"] #settings-costcode .costcode-repeat-panel .costcode-repeat-description,
+    html[data-vspos-theme="light"] #settings-costcode .costcode-repeat-panel .help-block { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] #settings-costcode .costcode-repeat-panel .form-control {
+        background: #ffffff !important;
+        border-color: #d1d5db !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] #settings-costcode .costcode-example-panel {
+        background: #eff6ff !important;
+        border-color: #bfdbfe !important;
+        color: #1e3a8a !important;
+    }
+
+    /* Stock value cards */
+    html[data-vspos-theme="light"] .vspos-svc {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .vspos-svc-label { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .vspos-svc-value { color: #111827 !important; }
+
+    /* User profile */
+    html[data-vspos-theme="light"] .vu-title,
+    html[data-vspos-theme="light"] .vu-name,
+    html[data-vspos-theme="light"] .vu-summary-value,
+    html[data-vspos-theme="light"] .vu-field-value,
+    html[data-vspos-theme="light"] .vu-meta-email { color: #111827 !important; }
+    html[data-vspos-theme="light"] .vu-role,
+    html[data-vspos-theme="light"] .vu-meta-row dt,
+    html[data-vspos-theme="light"] .vu-summary-label,
+    html[data-vspos-theme="light"] .vu-field-label { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .vu-meta-row dd { color: #92400e !important; }
+    html[data-vspos-theme="light"] .vu-details-heading { color: #92400e !important; }
+    html[data-vspos-theme="light"] .vu-profile-card,
+    html[data-vspos-theme="light"] .vu-meta,
+    html[data-vspos-theme="light"] .vu-summary-item,
+    html[data-vspos-theme="light"] .vu-field,
+    html[data-vspos-theme="light"] .vu-address-card {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05) !important;
+    }
+    html[data-vspos-theme="light"] .vu-meta { background: #f8fafc !important; }
+    html[data-vspos-theme="light"] .vu-meta-row { border-bottom-color: #e5e7eb !important; }
+    html[data-vspos-theme="light"] .vu-field-value.is-empty { color: #6b7280 !important; }
+    html[data-vspos-theme="light"] .vu-badge-ok { color: #166534 !important; background: #dcfce7 !important; }
+    html[data-vspos-theme="light"] .vu-badge-off { color: #991b1b !important; background: #fee2e2 !important; }
+
+    /* Contact + ledger */
+    html[data-vspos-theme="light"] .qpos-contact-page .qpos-contact-hero h3,
+    html[data-vspos-theme="light"] .qpos-contact-page .profile-username,
+    html[data-vspos-theme="light"] .qpos-contact-page strong,
+    html[data-vspos-theme="light"] .ql-brand-text strong,
+    html[data-vspos-theme="light"] .ql-party-name,
+    html[data-vspos-theme="light"] .qpos-ledger h2,
+    html[data-vspos-theme="light"] .qpos-ledger h3,
+    html[data-vspos-theme="light"] .qpos-ledger h4 { color: #111827 !important; }
+    html[data-vspos-theme="light"] .qpos-contact-page .text-muted,
+    html[data-vspos-theme="light"] .ql-toolbar label,
+    html[data-vspos-theme="light"] .ql-brand-text span,
+    html[data-vspos-theme="light"] .ql-brand-text p,
+    html[data-vspos-theme="light"] .ql-party-meta { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .qpos-contact-page .qpos-contact-card,
+    html[data-vspos-theme="light"] .qpos-contact-page .nav-tabs-custom,
+    html[data-vspos-theme="light"] .qpos-contact-page .nav-tabs-custom > .tab-content,
+    html[data-vspos-theme="light"] .ql-toolbar,
+    html[data-vspos-theme="light"] .qpos-ledger,
+    html[data-vspos-theme="light"] .ql-card,
+    html[data-vspos-theme="light"] .ql-logo {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+        color: #111827 !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05) !important;
+    }
+    html[data-vspos-theme="light"] .qpos-contact-page .nav-tabs-custom > .nav-tabs {
+        background: #f8fafc !important;
+        border-bottom-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .qpos-contact-page .nav-tabs-custom > .nav-tabs > li > a { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .qpos-contact-page .nav-tabs-custom > .nav-tabs > li.active > a,
+    html[data-vspos-theme="light"] .qpos-contact-page .nav-tabs-custom > .nav-tabs > li.active > a:hover {
+        background: #ffffff !important;
+        color: #92400e !important;
+        border-bottom-color: #d97706 !important;
+    }
+    html[data-vspos-theme="light"] .ql-format-group label.btn,
+    html[data-vspos-theme="light"] .ql-actions .btn {
+        background: #ffffff !important;
+        border-color: #d1d5db !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] .ql-format-group label.btn.active,
+    html[data-vspos-theme="light"] .ql-format-group label.btn:hover,
+    html[data-vspos-theme="light"] .ql-actions .btn:hover {
+        background: #fffbeb !important;
+        border-color: #f5d78a !important;
+        color: #92400e !important;
+    }
+    html[data-vspos-theme="light"] .ql-chip,
+    html[data-vspos-theme="light"] .ql-card-head { color: #92400e !important; }
+    html[data-vspos-theme="light"] .qpos-ledger #ledger_table > thead > tr > th,
+    html[data-vspos-theme="light"] .qpos-ledger table.table > thead > tr > th {
+        background: #f8fafc !important;
+        color: #374151 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .qpos-ledger #ledger_table > tbody > tr > td,
+    html[data-vspos-theme="light"] .qpos-ledger table.table > tbody > tr > td {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #eef2f7 !important;
+    }
+    html[data-vspos-theme="light"] .ql-summary-table td:last-child { color: #111827 !important; }
+
+    /* Cheque management */
+    html[data-vspos-theme="light"] .cheque-page,
+    html[data-vspos-theme="light"] .cheque-hero h1,
+    html[data-vspos-theme="light"] .cstat-value,
+    html[data-vspos-theme="light"] .cheque-card-title,
+    html[data-vspos-theme="light"] .cheque-meta-value,
+    html[data-vspos-theme="light"] .cheque-report-stat-value,
+    html[data-vspos-theme="light"] .cheque-report-page h1,
+    html[data-vspos-theme="light"] .cheque-report-page .cr-stat-value,
+    html[data-vspos-theme="light"] .cheque-report-page .amount-card-value { color: #111827 !important; }
+    html[data-vspos-theme="light"] .cheque-hero p,
+    html[data-vspos-theme="light"] .cstat-label,
+    html[data-vspos-theme="light"] .cheque-meta-label,
+    html[data-vspos-theme="light"] .cheque-report-stat-label,
+    html[data-vspos-theme="light"] .cheque-report-page .breadcrumb > li,
+    html[data-vspos-theme="light"] .cheque-report-page .breadcrumb > li > a,
+    html[data-vspos-theme="light"] .cheque-report-page .breadcrumb > .active,
+    html[data-vspos-theme="light"] .cheque-report-page .cr-stat-label,
+    html[data-vspos-theme="light"] .cheque-report-page .amount-card-label { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .cheque-hero {
+        background: #ffffff !important;
+        border-bottom-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .cheque-table-section { background: #f8fafc !important; }
+    html[data-vspos-theme="light"] .cstat,
+    html[data-vspos-theme="light"] .cheque-card,
+    html[data-vspos-theme="light"] .cheque-report-page .cr-stat,
+    html[data-vspos-theme="light"] .cheque-meta-card,
+    html[data-vspos-theme="light"] .cheque-report-stat,
+    html[data-vspos-theme="light"] .cheque-report-panel {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05) !important;
+    }
+    html[data-vspos-theme="light"] .cheque-card-header { border-bottom-color: #e5e7eb !important; }
+    html[data-vspos-theme="light"] .cheque-card-title i { color: #b45309 !important; }
+    html[data-vspos-theme="light"] .filter-tabs {
+        background: #f3f4f6 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .filter-tab { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .filter-tab:hover:not(.active) { color: #111827 !important; }
+    html[data-vspos-theme="light"] .filter-tab.active {
+        background: #fffbeb !important;
+        color: #92400e !important;
+        border-color: #f5d78a !important;
+    }
+    html[data-vspos-theme="light"] .cstat-icon.yellow,
+    html[data-vspos-theme="light"] .cheque-report-stat-icon.yellow,
+    html[data-vspos-theme="light"] .cheque-report-stat-icon.blue { background: #fef3c7 !important; color: #b45309 !important; }
+    html[data-vspos-theme="light"] .cstat-icon.red,
+    html[data-vspos-theme="light"] .cheque-report-stat-icon.red { background: #fee2e2 !important; color: #b91c1c !important; }
+    html[data-vspos-theme="light"] .cstat-icon.green,
+    html[data-vspos-theme="light"] .cheque-report-stat-icon.green { background: #dcfce7 !important; color: #15803d !important; }
+    html[data-vspos-theme="light"] .cheque-card .btn-group .dropdown-menu {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .cheque-card .btn-group .dropdown-menu > li > a { color: #111827 !important; }
+    html[data-vspos-theme="light"] .cheque-card .btn-group .dropdown-menu > li > a:hover {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] #chequeReportsModal .modal-content,
+    html[data-vspos-theme="light"] #editChequeModal .modal-content,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .modal-content,
+    html[data-vspos-theme="light"] #viewChequeModal .modal-content,
+    html[data-vspos-theme="light"] #chequeReportsModal .modal-body,
+    html[data-vspos-theme="light"] #editChequeModal .modal-body,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .modal-body,
+    html[data-vspos-theme="light"] #viewChequeModal .modal-body {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] #chequeReportsModal .modal-header,
+    html[data-vspos-theme="light"] #editChequeModal .modal-header,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .modal-header,
+    html[data-vspos-theme="light"] #viewChequeModal .modal-header,
+    html[data-vspos-theme="light"] #viewChequeModal .modal-footer,
+    html[data-vspos-theme="light"] #editChequeModal .modal-footer,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .modal-footer {
+        background: #f8fafc !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] #chequeReportsModal .modal-title,
+    html[data-vspos-theme="light"] #editChequeModal .modal-title,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .modal-title,
+    html[data-vspos-theme="light"] #viewChequeModal .modal-title,
+    html[data-vspos-theme="light"] #chequeReportsModal .modal-header .close,
+    html[data-vspos-theme="light"] #editChequeModal .modal-header .close,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .modal-header .close,
+    html[data-vspos-theme="light"] #viewChequeModal .modal-header .close,
+    html[data-vspos-theme="light"] #editChequeModal label,
+    html[data-vspos-theme="light"] #addSupplierChequeModal label { color: #111827 !important; }
+    html[data-vspos-theme="light"] #editChequeModal .form-control,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .form-control,
+    html[data-vspos-theme="light"] #editChequeModal .select2-container--default .select2-selection--single,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .select2-container--default .select2-selection--single,
+    html[data-vspos-theme="light"] #editChequeModal .input-group-addon,
+    html[data-vspos-theme="light"] #addSupplierChequeModal .input-group-addon {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] #chequeReportsModal .cheque-report-table td,
+    html[data-vspos-theme="light"] #chequeReportsModal .table tr.cheque-report-total-row td {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] #chequeReportsModal .cheque-report-table tr:hover td,
+    html[data-vspos-theme="light"] #chequeReportsModal .table tr.cheque-report-total-row {
+        background: #f8fafc !important;
+    }
+    html[data-vspos-theme="light"] #chequeReportsModal .alert-warning,
+    html[data-vspos-theme="light"] #chequeReportsModal .alert-warning h4,
+    html[data-vspos-theme="light"] #chequeReportsModal .alert-warning p,
+    html[data-vspos-theme="light"] #chequeReportsModal .alert-warning strong {
+        background: #fffbeb !important;
+        color: #92400e !important;
+        border-color: #f5d78a !important;
+    }
+    html[data-vspos-theme="light"] .cheque-report-panel-header { color: #111827 !important; background: #f8fafc !important; }
+
+    /* Purchase bulk search + qty (admin, not lockscreen) */
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-content,
+    html[data-vspos-theme="light"] #purchase_qty_modal .purchase-qty-content {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-sub,
+    html[data-vspos-theme="light"] #purchase_qty_modal .purchase-qty-meta,
+    html[data-vspos-theme="light"] #purchase_qty_modal .purchase-qty-fields .control-label,
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-code { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-header .close,
+    html[data-vspos-theme="light"] #purchase_qty_modal .purchase-qty-header .close,
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .modal-title { color: #111827 !important; }
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-search-bar .input-group-addon,
+    html[data-vspos-theme="light"] #purchase_bulk_search_input,
+    html[data-vspos-theme="light"] #purchase_qty_modal #purchase_qty_input,
+    html[data-vspos-theme="light"] #purchase_qty_modal #purchase_qty_cost,
+    html[data-vspos-theme="light"] #purchase_qty_modal #purchase_qty_sell {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-panel,
+    html[data-vspos-theme="light"] #purchase_qty_modal .purchase-qty-details { background: #ffffff !important; border-color: #e5e7eb !important; }
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-head {
+        background: #f8fafc !important;
+        color: #374151 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-row { color: #111827 !important; border-color: #eef2f7 !important; }
+    html[data-vspos-theme="light"] #purchase_bulk_search_modal .purchase-bulk-add { color: #1d4ed8 !important; }
+
+    /* AI assistant */
+    html[data-vspos-theme="light"] #vsai-panel {
+        background: #ffffff !important;
+        border-color: #e5e7eb !important;
+        color: #111827 !important;
+        box-shadow: 0 16px 48px rgba(15, 23, 42, 0.12) !important;
+    }
+    html[data-vspos-theme="light"] .vsai-header {
+        background: #f8fafc !important;
+        border-bottom-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .vsai-header-info h4 { color: #111827 !important; }
+    html[data-vspos-theme="light"] .vsai-header-info p,
+    html[data-vspos-theme="light"] .vsai-insights-link { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .vsai-header-btn,
+    html[data-vspos-theme="light"] .vsai-quick-btn,
+    html[data-vspos-theme="light"] #vsai-input {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+    }
+    html[data-vspos-theme="light"] .vsai-messages,
+    html[data-vspos-theme="light"] .vsai-input-area,
+    html[data-vspos-theme="light"] .vsai-quick-btns { background: #f8fafc !important; }
+    html[data-vspos-theme="light"] .vsai-msg--bot .vsai-bubble {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .vsai-kpi-card { color: #111827 !important; }
+
+    /* POS payment, search, and service popups follow the active theme.
+       Enter / confirm buttons keep their existing fill and dark label. */
+    html[data-vspos-theme="light"] .vspos-pay-modal,
+    html[data-vspos-theme="light"] .vspos-pay-body,
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-content,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-comm-content {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .vspos-pay-header,
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-header,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-comm-header {
+        background: #f8fafc !important;
+        border-bottom-color: #e5e7eb !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] .vspos-pay-header-title,
+    html[data-vspos-theme="light"] .vspos-pay-close,
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-header .modal-title,
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-name,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-qty-product,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-comm-static,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-key { color: #111827 !important; }
+    html[data-vspos-theme="light"] .vspos-pay-hero-kicker,
+    html[data-vspos-theme="light"] .vspos-pay-hero-label,
+    html[data-vspos-theme="light"] .vspos-pay-hero-items { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .vspos-pay-header-sub,
+    html[data-vspos-theme="light"] .vspos-note-label,
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-code,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-comm-header .modal-title,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-qty-meta,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-field-label { color: #4b5563 !important; }
+    html[data-vspos-theme="light"] .vspos-pay-header-icon,
+    html[data-vspos-theme="light"] .vspos-pay-close { background: #e5e7eb !important; color: #111827 !important; }
+    html[data-vspos-theme="light"] .vspos-textarea,
+    html[data-vspos-theme="light"] #vspos_bulk_search_input,
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-search-bar .input-group-addon,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-comm-select,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-qty-display-wrap,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-qty-display-wrap > input.vspos-touch-qty-display,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-key,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-comm-seg-btn {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-panel,
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-head,
+    html[data-vspos-theme="light"] .vspos-pay-footer,
+    html[data-vspos-theme="light"] .vspos-change-return-box {
+        background: #f8fafc !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] #vspos_bulk_search_modal .vspos-bulk-row { background: #ffffff !important; color: #111827 !important; }
+    html[data-vspos-theme="light"] .vspos-btn-close-modal,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-qty-cancel {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+    }
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-comm-seg-btn.is-active,
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-qty-display-wrap.is-active {
+        background: #fffbeb !important;
+        border-color: #d97706 !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-key--clear {
+        color: #b91c1c !important;
+        -webkit-text-fill-color: #b91c1c !important;
+        background: #fef2f2 !important;
+    }
+    html[data-vspos-theme="light"] #vspos_communication_modal .vspos-touch-key--exact {
+        color: #92400e !important;
+        -webkit-text-fill-color: #92400e !important;
+        background: #fffbeb !important;
+    }
+    html[data-vspos-theme="light"] #vspos_comm_avg_cost,
+    html[data-vspos-theme="light"] .vspos-pay-advance,
+    html[data-vspos-theme="light"] .vspos-change-return-label,
+    html[data-vspos-theme="light"] .vspos-pay-meter--due .vspos-psc-value { color: #b45309 !important; }
+    html[data-vspos-theme="light"] .vspos-pay-meter--change .vspos-psc-value { color: #15803d !important; }
+    html[data-vspos-theme="light"] .vspos-pay-hero-amount,
+    html[data-vspos-theme="light"] .vspos-psc-value { color: #111827 !important; }
+    html[data-vspos-theme="light"] #pos_vehicle_history_modal .list-group-item,
+    html[data-vspos-theme="light"] #pos_vehicle_history_modal .list-group-item:hover,
+    html[data-vspos-theme="light"] #pos_vehicle_history_modal .list-group-item:focus {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .vspos-loyalty-shell,
+    html[data-vspos-theme="light"] .vspos-loyalty-head,
+    html[data-vspos-theme="light"] .vspos-loyalty-body,
+    html[data-vspos-theme="light"] .vspos-loyalty-foot {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+    html[data-vspos-theme="light"] .vspos-loyalty-btn--ghost {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+    }
+    html[data-vspos-theme="light"] .vspos-loyalty-keys-hint kbd,
+    html[data-vspos-theme="light"] .vspos-loyalty-foot .keycap,
+    html[data-vspos-theme="light"] .vspos-loyalty-open-btn .keycap {
+        color: #92400e !important;
+        background: #fffbeb !important;
+        border-color: #f5d78a !important;
+    }
+    html[data-vspos-theme="light"] .vspos-loyalty-notfound { color: #b45309 !important; }
+    html[data-vspos-theme="light"] #qposPreviewStatus { color: #111827 !important; }
+    html[data-vspos-theme="light"] .nutmeg-drying-modal .form-control {
+        background: #ffffff !important;
+        color: #111827 !important;
+        border-color: #d1d5db !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* Cell colour does not reach a child that sets its own colour.
+       Keep status badges, links, and buttons on their own colours. */
+    html[data-vspos-theme="light"] body:not(.lockscreen) .table > tbody > tr > td,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .table > tbody > tr > th,
+    html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody td,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_empty {
+        color: #111827 !important;
+        background-color: #ffffff;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .table > thead > tr > th,
+    html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable thead th {
+        color: #374151 !important;
+        background-color: #f8fafc;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .table > tbody > tr:hover > td,
+    html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody tr:hover > td {
+        background-color: #f3f4f6 !important;
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .table > tbody > tr > td :not(.btn):not(.btn *):not(.tw-dw-btn):not(.tw-dw-btn *):not(.label):not(.label *):not(.badge):not(.badge *):not(.text-danger):not(.text-danger *):not(.text-success):not(.text-success *):not(.text-warning):not(.text-warning *):not(.text-info):not(.text-info *):not(.text-primary):not(.text-primary *):not(.text-red):not(.text-red *):not(.text-green):not(.text-green *):not(.text-yellow):not(.text-yellow *):not(a):not(a *):not(.fa):not(.fas):not(.far):not(.fab):not(.dropdown-menu):not(.dropdown-menu *),
+    html[data-vspos-theme="light"] body:not(.lockscreen) table.dataTable tbody td :not(.btn):not(.btn *):not(.tw-dw-btn):not(.tw-dw-btn *):not(.label):not(.label *):not(.badge):not(.badge *):not(.text-danger):not(.text-danger *):not(.text-success):not(.text-success *):not(.text-warning):not(.text-warning *):not(.text-info):not(.text-info *):not(.text-primary):not(.text-primary *):not(.text-red):not(.text-red *):not(.text-green):not(.text-green *):not(.text-yellow):not(.text-yellow *):not(a):not(a *):not(.fa):not(.fas):not(.far):not(.fab):not(.dropdown-menu):not(.dropdown-menu *) {
+        color: #111827 !important;
+    }
+    html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_info,
+    html[data-vspos-theme="light"] body:not(.lockscreen) .dataTables_wrapper .dataTables_paginate {
+        color: #374151 !important;
     }
 }

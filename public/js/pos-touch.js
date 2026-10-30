@@ -448,6 +448,94 @@
         });
     }
 
+    var PRODUCT_VIEW_KEY = 'qpos.pos.productView';
+
+    function syncProductListColumns() {
+        try {
+            var active = document.querySelector('#vspos_touch_cats .vspos-touch-cat.is-active');
+            var value = active ? String(active.getAttribute('data-value') || '') : 'all';
+            document.documentElement.classList.toggle('vspos-plist-filtered', value !== '' && value !== 'all');
+        } catch (err) {}
+    }
+
+    function reloadVisibleProducts() {
+        window.__vspos_suggest_ignore_scroll = true;
+        window.__vspos_suggest_end = false;
+        window.__vspos_suggest_recovered = false;
+        $('input#suggestion_page').val(1);
+        var loc = $('#location_id').val();
+        if (typeof get_product_suggestion_list === 'function') {
+            get_product_suggestion_list(window.global_p_category_id || null, window.global_brand_id || null, loc || null, null);
+        }
+    }
+    window.vsposSyncProductListColumns = syncProductListColumns;
+
+    function applyProductView(mode, persist) {
+        var list = mode === 'list';
+        document.documentElement.classList.toggle('vspos-product-view-list', list);
+        var shell = document.getElementById('vspos_touch_shell');
+        if (shell) {
+            shell.classList.toggle('vspos-product-view-list', list);
+        }
+        var buttons = document.querySelectorAll('.vspos-pos-view-btn');
+        for (var i = 0; i < buttons.length; i++) {
+            var on = buttons[i].getAttribute('data-pos-view') === (list ? 'list' : 'grid');
+            buttons[i].classList.toggle('is-active', on);
+            buttons[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+        var head = document.getElementById('vspos_plist_head');
+        if (head) {
+            head.setAttribute('aria-hidden', list ? 'false' : 'true');
+        }
+        if (persist) {
+            try {
+                localStorage.setItem(PRODUCT_VIEW_KEY, list ? 'list' : 'grid');
+            } catch (err) {}
+            reloadVisibleProducts();
+        }
+        syncProductListColumns();
+    }
+
+    function watchProductListColumns() {
+        var target = document.getElementById('product_list_items');
+        if (!target || target.getAttribute('data-plist-watch') === '1') {
+            syncProductListColumns();
+            return;
+        }
+        target.setAttribute('data-plist-watch', '1');
+        if (window.MutationObserver) {
+            var observer = new MutationObserver(function () {
+                syncProductListColumns();
+            });
+            observer.observe(target, { childList: true });
+        }
+        syncProductListColumns();
+    }
+
+    function initProductView() {
+        if (!window.__vsposProductViewBound) {
+            window.__vsposProductViewBound = true;
+            $(document).on('click', '.vspos-pos-view-btn', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var mode = this.getAttribute('data-pos-view');
+                if (typeof window.vsposSetProductView === 'function') {
+                    window.vsposSetProductView(mode, e);
+                    return;
+                }
+                applyProductView(mode, true);
+            });
+        }
+        var mode = 'grid';
+        try {
+            if (localStorage.getItem(PRODUCT_VIEW_KEY) === 'list') {
+                mode = 'list';
+            }
+        } catch (err) {}
+        applyProductView(mode, false);
+        watchProductListColumns();
+    }
+
     function boot() {
         // Qty modal bindings work for POP even without full touch shell
         if ($('#vspos_touch_qty_modal').length) {
@@ -460,6 +548,7 @@
         }
         document.body.classList.add('vspos-touch-ui');
         window.__vspos_touch_ui = true;
+        initProductView();
 
         function loadGrid(attempt) {
             attempt = attempt || 0;
@@ -544,6 +633,7 @@
         $btn.addClass('is-active');
         var name = $btn.data('name') || $btn.find('.vspos-touch-cat-label').text();
         $('#vspos_touch_cat_title').text(name);
+        syncProductListColumns();
     }
 
     function reloadProducts(categoryId) {

@@ -1,5 +1,10 @@
 {{-- Page 2+ with no rows means the list ended. Do not render the empty state into the grid. --}}
-@if($products->isEmpty() && $products->currentPage() > 1)
+@php
+    $vspos_product_view = (($product_view ?? null) === 'list' || request()->query('product_view') === 'list') ? 'list' : 'grid';
+@endphp
+@if($vspos_product_view === 'list')
+	@include('sale_pos.partials.product_list_rows')
+@elseif($products->isEmpty() && $products->currentPage() > 1)
 	<input type="hidden" class="vspos-suggestion-end" id="suggestion_end" value="1">
 @else
 @forelse($products as $product)
@@ -14,6 +19,9 @@
 			}
 		}
 		$display_price = $product->selling_price;
+		$list_size = trim((string) ($product->product_size ?? ''));
+		$list_color = trim((string) ($product->product_color ?? ''));
+		$list_category = trim((string) ($product->category_name ?? ''));
 	@endphp
 	<div class="col-md-3 col-xs-4 no-print !tw-px-[3px]">
 		<div class="product_box tw-w-full tw-mb-1 tw-text-center tw-cursor-pointer tw-font-semibold tw-bg-white tw-rounded-lg tw-p-1 tw-border tw-border-[#e5e7eb] tw-shadow-[0_1px_3px_rgba(0,0,0,0.06)] tw-transition-all tw-duration-150 hover:-tw-translate-y-px hover:tw-shadow-[0_4px_12px_rgba(0,0,0,0.1)] active:tw-scale-[0.97] @if(empty($for_pop) && $product->enable_stock && $product->qty_available <= 0) product_out_of_stock !tw-bg-[#f3f4f6] tw-opacity-60 @endif"
@@ -32,6 +40,9 @@
 			data-last_purchase_price="{{ $product->last_purchased_price ?? '' }}"
 			data-enable_stock="{{$product->enable_stock ? 1 : 0}}"
 			data-qty_available="{{$product->qty_available}}"
+			data-category="{{ $list_category }}"
+			data-size="{{ $list_size }}"
+			data-color="{{ $list_color }}"
 			title="{{ \App\Product::formatNameWithTyreSize($product->name, $product->tyre_size ?? null) }} @if($product->type == 'variable')- {{$product->variation}} @endif {{ '(' . $product->sub_sku . ')'}} @if(!empty($show_prices)) @lang('lang_v1.default') - @format_currency($retail_price) @foreach($group_price_map as $gid => $gprice) @if(array_key_exists($gid, $allowed_group_prices)) {{$allowed_group_prices[$gid]}} - @format_currency($gprice) @endif @endforeach @endif">
 
 		<div class="image-container tw-h-[58px] tw-mx-auto tw-w-full tw-mb-[3px]"

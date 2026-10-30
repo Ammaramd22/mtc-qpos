@@ -8,6 +8,18 @@
             @if($product->variation_name != 'DUMMY')
                 <span class="labels-product-variation">{{ $product->variation_name }}</span>
             @endif
+            @php
+                $labelAttrBits = [];
+                if (! empty($product->size)) {
+                    $labelAttrBits[] = __('product.size').': '.$product->size;
+                }
+                if (! empty($product->color)) {
+                    $labelAttrBits[] = __('product.color').': '.$product->color;
+                }
+            @endphp
+            @if($labelAttrBits !== [])
+                <span class="labels-product-attrs">{{ implode(' · ', $labelAttrBits) }}</span>
+            @endif
             <input type="hidden" name="products[{{ $row_index }}][product_id]" value="{{ $product->product_id }}">
             <input type="hidden" name="products[{{ $row_index }}][variation_id]" value="{{ $product->variation_id }}">
         </td>

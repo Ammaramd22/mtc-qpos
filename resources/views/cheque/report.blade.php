@@ -59,7 +59,8 @@
     .cheque-report-page .amount-card-label { color: #a3a3a3; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px; }
     .cheque-report-page .amount-card-value { color: #f5f5f5; font-size: 1.15rem; font-weight: 800; }
     .cheque-report-page .table tfoot tr { background: rgba(26, 26, 26, .85) !important; }
-    .cheque-report-page .table tfoot td { color: #f5f5f5 !important; font-weight: 700; }
+    .cheque-report-page .table tfoot td { color: #111827 !important; font-weight: 700; background: #f8fafc !important; }
+    html[data-vspos-theme="dark"] .cheque-report-page .table tfoot td { color: #f5f5f5 !important; background: #141414 !important; }
 </style>
 @endsection
 

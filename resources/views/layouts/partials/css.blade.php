@@ -291,9 +291,9 @@ html[data-vspos-theme="dark"] body:not(.lockscreen) .select2-results__option{col
     html[data-vspos-theme="dark"] .table-bordered{border: 1px solid #2a2a2a;}
     html[data-vspos-theme="dark"] .table-bordered th,
 html[data-vspos-theme="dark"] .table-bordered td{border: 1px solid #2a2a2a !important;}
-    .dataTables_wrapper .dataTables_info,
-    .dataTables_wrapper .dataTables_filter label,
-    .dataTables_wrapper .dataTables_length label {color: #cbd5e1 !important;}
+    html[data-vspos-theme="dark"] .dataTables_wrapper .dataTables_info,
+    html[data-vspos-theme="dark"] .dataTables_wrapper .dataTables_filter label,
+    html[data-vspos-theme="dark"] .dataTables_wrapper .dataTables_length label {color: #cbd5e1 !important;}
     .dataTables_wrapper .dataTables_paginate {float: right;text-align: right;padding-top: 4px;}
     .dataTables_wrapper .dataTables_paginate ul.pagination,
     body:not(.lockscreen) .pagination {display: inline-flex !important;flex-wrap: wrap;align-items: center;justify-content: flex-end;gap: 4px;margin: 4px 0;padding-left: 0;white-space: normal;}

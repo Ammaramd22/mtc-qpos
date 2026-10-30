@@ -264,6 +264,8 @@
                         'show_costcode' => __('lang_v1.costcode'),
                         'show_brand' => __('product.brand'),
                         'show_category' => __('product.category'),
+                        'show_size' => __('product.size'),
+                        'show_color' => __('product.color'),
                     ];
                 @endphp
                 @foreach($displayOptions as $option => $label)

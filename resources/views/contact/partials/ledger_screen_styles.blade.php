@@ -341,6 +341,43 @@
 .qpos-ledger h4 {
     color: #f5f5f5 !important;
 }
+html[data-vspos-theme="light"] .qpos-ledger h2,
+html[data-vspos-theme="light"] .qpos-ledger h3,
+html[data-vspos-theme="light"] .qpos-ledger h4,
+html[data-vspos-theme="light"] .ql-party-name,
+html[data-vspos-theme="light"] .ql-brand-text strong,
+html[data-vspos-theme="light"] .qpos-contact-page .profile-username,
+html[data-vspos-theme="light"] .qpos-contact-page .qpos-contact-hero h3 {
+    color: #111827 !important;
+}
+html[data-vspos-theme="light"] .qpos-ledger #ledger_table > thead > tr > th,
+html[data-vspos-theme="light"] .qpos-ledger table.table > thead > tr > th {
+    background: #f8fafc !important;
+    color: #374151 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .qpos-ledger #ledger_table > tbody > tr > td,
+html[data-vspos-theme="light"] .qpos-ledger table.table > tbody > tr > td,
+html[data-vspos-theme="light"] .qpos-ledger #ledger_table > tbody > tr:nth-child(even) > td,
+html[data-vspos-theme="light"] .qpos-ledger table.table > tbody > tr:nth-child(even) > td {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border-color: #e5e7eb !important;
+}
+html[data-vspos-theme="light"] .qpos-ledger #ledger_table > tbody > tr:hover > td {
+    background: #f8fafc !important;
+}
+html[data-vspos-theme="light"] .qpos-ledger #ledger_table,
+html[data-vspos-theme="light"] .ql-table-title,
+html[data-vspos-theme="light"] .qpos-ledger .row > [class*="col-"] > p,
+html[data-vspos-theme="light"] .qpos-ledger .row > [class*="col-"] strong,
+html[data-vspos-theme="light"] .qpos-ledger .blue-heading,
+html[data-vspos-theme="light"] .ql-party-meta,
+html[data-vspos-theme="light"] .ql-brand-text span,
+html[data-vspos-theme="light"] .ql-brand-text p,
+html[data-vspos-theme="light"] .qpos-contact-page .text-muted {
+    color: #4b5563 !important;
+}
 
 @media (max-width: 991px) {
     .ql-toolbar {
