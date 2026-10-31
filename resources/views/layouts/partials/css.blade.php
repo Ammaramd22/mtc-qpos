@@ -710,6 +710,72 @@ html[data-vspos-theme="dark"] body:not(.lockscreen) div.pos-tab-content .btn-pri
         }
     }
 </style>
+<style>
+.qpos-size-field .input-group { display: flex; width: 100%; }
+.qpos-size-field .input-group .select2-container { flex: 1 1 auto; width: 1% !important; }
+.qpos-size-field .input-group-btn { width: auto; }
+.qpos-color-tag-list { margin-bottom: 6px; }
+.qpos-color-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 6px 6px 0;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #1e293b;
+    border: 1px solid #c7d2fe;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.qpos-color-remove {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+}
+.qpos-color-entry { display: flex; gap: 6px; }
+.qpos-color-entry .form-control { flex: 1 1 auto; }
+html[data-vspos-theme="dark"] .qpos-color-tag {
+    background: #1f2937;
+    color: #f8fafc;
+    border-color: #475569;
+}
+.qpos-line-attrs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.qpos-line-attr-select {
+    height: 24px;
+    max-width: 140px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #111827;
+    font-size: 11px;
+    font-weight: 700;
+}
+.qpos-line-attr-chip {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #a16207;
+}
+html[data-vspos-theme="dark"] .qpos-line-attr-select {
+    background: #111111;
+    color: #f8fafc;
+    border-color: #3a3a3a;
+}
+html[data-vspos-theme="dark"] .qpos-line-attr-chip { color: #f5c518; }
+@media (max-width: 767px) {
+    .qpos-color-entry { flex-wrap: wrap; }
+    .qpos-size-field .input-group { flex-wrap: wrap; }
+}
+</style>
 @if(!empty($__system_settings['additional_css']))
     {!! $__system_settings['additional_css'] !!}
 @endif

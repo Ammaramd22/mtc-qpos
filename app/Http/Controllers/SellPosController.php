@@ -1390,7 +1390,11 @@ class SellPosController extends Controller
                 'transaction_sell_lines.sub_unit_id',
 
                 //qty_available not added when negative to avoid max quanity getting decreased in edit and showing error in max quantity validation
-                DB::raw('IF(vld.qty_available > 0, vld.qty_available + transaction_sell_lines.quantity, transaction_sell_lines.quantity) AS qty_available')
+                DB::raw('IF(vld.qty_available > 0, vld.qty_available + transaction_sell_lines.quantity, transaction_sell_lines.quantity) AS qty_available'),
+                \Illuminate\Support\Facades\Schema::hasColumn('products', 'size') ? 'p.size as catalog_size' : DB::raw('NULL as catalog_size'),
+                \Illuminate\Support\Facades\Schema::hasColumn('products', 'color') ? 'p.color as catalog_color' : DB::raw('NULL as catalog_color'),
+                \Illuminate\Support\Facades\Schema::hasColumn('transaction_sell_lines', 'line_size') ? 'transaction_sell_lines.line_size' : DB::raw('NULL as line_size'),
+                \Illuminate\Support\Facades\Schema::hasColumn('transaction_sell_lines', 'line_color') ? 'transaction_sell_lines.line_color' : DB::raw('NULL as line_color')
             )
             ->get();
         if (!empty($sell_details)) {
@@ -2358,42 +2362,172 @@ class SellPosController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    /**
+     * Selling-price-group amounts for one POS card.
+     * Percentage groups use the variation sell price already loaded on the row.
+     * This avoids a second variation lookup for every card.
+     *
+     * @param  \App\Variation  $product
+     * @param  array  $allowedGroupPrices
+     * @return array<string, float>
+     */
+    protected function posSuggestionGroupPriceMap($product, array $allowedGroupPrices)
+    {
+        $map = [];
+        if (empty($product->group_prices) || empty($allowedGroupPrices)) {
+            return $map;
+        }
+
+        $base = $product->sell_price_inc_tax;
+        if ($base === null || $base === '') {
+            $base = $product->selling_price ?? 0;
+        }
+        $base = (float) $base;
+
+        foreach ($product->group_prices as $groupPrice) {
+            $groupId = $groupPrice->price_group_id;
+            if (! array_key_exists($groupId, $allowedGroupPrices) && ! array_key_exists((string) $groupId, $allowedGroupPrices)) {
+                continue;
+            }
+            if (($groupPrice->price_type ?? '') === 'percentage') {
+                $map[(string) $groupId] = $base * ((float) $groupPrice->price_inc_tax / 100);
+            } else {
+                $map[(string) $groupId] = (float) $groupPrice->price_inc_tax;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * Card image URL. A broken media row must not stop the rest of the grid.
+     *
+     * @param  \App\Variation  $product
+     * @return string
+     */
+    protected function posSuggestionCardImage($product)
+    {
+        try {
+            if (! empty($product->media) && count($product->media) > 0) {
+                $media = $product->media->first();
+                if ($media && ! empty($media->file_name)) {
+                    return $media->display_url;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fall back to the product image or the default tile.
+        }
+
+        if (! empty($product->product_image)) {
+            return asset('/uploads/img/'.rawurlencode($product->product_image));
+        }
+
+        return asset('/img/default.png');
+    }
+
+    /**
+     * Latest purchase price for the variations on this page, in one indexed lookup.
+     *
+     * @param  array<int, int>  $variationIds
+     * @return array<int, mixed>
+     */
+    protected function posSuggestionLastPurchasePrices(array $variationIds)
+    {
+        $variationIds = array_values(array_unique(array_filter(array_map('intval', $variationIds))));
+        if (empty($variationIds)) {
+            return [];
+        }
+
+        $latest = DB::table('purchase_lines')
+            ->select('variation_id', DB::raw('MAX(id) as max_id'))
+            ->whereIn('variation_id', $variationIds)
+            ->groupBy('variation_id');
+
+        $rows = DB::table('purchase_lines as pl')
+            ->joinSub($latest, 'latest', function ($join) {
+                $join->on('pl.id', '=', 'latest.max_id');
+            })
+            ->pluck('pl.purchase_price_inc_tax', 'pl.variation_id');
+
+        $prices = [];
+        foreach ($rows as $variationId => $price) {
+            $prices[(int) $variationId] = $price;
+        }
+
+        return $prices;
+    }
+
     public function getProductSuggestion(Request $request)
     {
-        if ($request->ajax()) {
-            $category_id = $request->get('category_id');
-            $brand_id = $request->get('brand_id');
-            $location_id = $request->get('location_id');
-            $term = $request->get('term');
+        $category_id = $request->get('category_id');
+        $brand_id = $request->get('brand_id');
+        $location_id = $request->get('location_id');
+        $term = $request->get('term');
 
-            $check_qty = false;
-            $business_id = $request->session()->get('user.business_id');
-            $business = $request->session()->get('business');
-            $pos_settings = empty($business->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business->pos_settings, true);
+        $check_qty = false;
+        $business_id = $request->session()->get('user.business_id');
+        $business = $request->session()->get('business');
+        $pos_settings = $this->businessUtil->defaultPosSettings();
+        if (! empty($business) && ! empty($business->pos_settings)) {
+            $decoded = json_decode($business->pos_settings, true);
+            if (is_array($decoded)) {
+                $pos_settings = $decoded;
+            }
+        }
+
+        try {
+            $productColumns = \Illuminate\Support\Facades\Schema::getColumnListing('products');
+        } catch (\Throwable $e) {
+            $productColumns = [];
+        }
+        $hasProductColumn = function ($column) use ($productColumns) {
+            return in_array($column, $productColumns, true);
+        };
+        $hasTyreSize = $hasProductColumn('tyre_size');
+        $hasTyreNote = $hasProductColumn('tyre_note');
+        $hasSize = $hasProductColumn('size');
+        $hasColor = $hasProductColumn('color');
+        $hasSellPriceIncTax = false;
+        $brandHasDeleted = false;
+        $categoryHasDeleted = false;
+        try {
+            if (! $hasSize) {
+                $hasSize = \Illuminate\Support\Facades\Schema::hasColumn('products', 'size');
+            }
+            if (! $hasColor) {
+                $hasColor = \Illuminate\Support\Facades\Schema::hasColumn('products', 'color');
+            }
+            $hasSellPriceIncTax = \Illuminate\Support\Facades\Schema::hasColumn('variations', 'sell_price_inc_tax');
+            $brandHasDeleted = \Illuminate\Support\Facades\Schema::hasColumn('brands', 'deleted_at');
+            $categoryHasDeleted = \Illuminate\Support\Facades\Schema::hasColumn('categories', 'deleted_at');
+        } catch (\Throwable $e) {
+            // A schema lookup can fail on shared hosting. Keep any answer already found
+            // and continue. Missing optional columns must not hide the product grid.
+        }
+
+        try {
+            // One stock row per variation. A direct join to variation_location_details
+            // (especially with "location is null OR this location") duplicated cards and
+            // forced a filesort over every stock row. Products with no stock row still
+            // appear because this is a left join.
+            $stock = DB::table('variation_location_details')
+                ->select('variation_id', DB::raw('SUM(qty_available) as qty_available'))
+                ->groupBy('variation_id');
+            if ($location_id !== null && $location_id !== '') {
+                $stock->where('location_id', $location_id);
+            }
 
             $products = Variation::join('products as p', 'variations.product_id', '=', 'p.id')
-                ->join('product_locations as pl', 'pl.product_id', '=', 'p.id')
                 ->join('units as u', 'p.unit_id', '=', 'u.id')
-                ->leftJoin('brands', function ($join) {
-                    $join->on('p.brand_id', '=', 'brands.id')
-                        ->whereNull('brands.deleted_at');
-                })
-                ->leftjoin(
-                    'variation_location_details AS VLD',
-                    function ($join) use ($location_id) {
-                        $join->on('variations.id', '=', 'VLD.variation_id');
-
-                        //Include Location
-                        if (!empty($location_id)) {
-                            $join->where(function ($query) use ($location_id) {
-                                $query->where('VLD.location_id', '=', $location_id);
-                                //Check null to show products even if no quantity is available in a location.
-                                //TODO: Maybe add a settings to show product not available at a location or not.
-                                $query->orWhereNull('VLD.location_id');
-                            });
-                        }
+                ->leftJoin('brands', function ($join) use ($brandHasDeleted) {
+                    $join->on('p.brand_id', '=', 'brands.id');
+                    if ($brandHasDeleted) {
+                        $join->whereNull('brands.deleted_at');
                     }
-                )
+                })
+                ->leftJoinSub($stock, 'VLD', function ($join) {
+                    $join->on('variations.id', '=', 'VLD.variation_id');
+                })
                 ->where('p.business_id', $business_id)
                 ->where('p.type', '!=', 'modifier')
                 ->where('p.is_inactive', 0)
@@ -2403,20 +2537,22 @@ class SellPosController extends Controller
                     $q->whereNull('p.sku')
                         ->orWhere('p.sku', 'not like', 'QPOS-SVC-%');
                 })
-            //Hide products not available in the selected location
-                ->where(function ($q) use ($location_id) {
-                    $q->where('pl.location_id', $location_id);
+                ->whereExists(function ($q) use ($location_id) {
+                    $q->select(DB::raw(1))
+                        ->from('product_locations as pl')
+                        ->whereColumn('pl.product_id', 'p.id')
+                        ->where('pl.location_id', $location_id);
                 });
 
             //Include search
-            if (!empty($term)) {
+            if (! empty($term)) {
                 $this->productUtil->applyPosProductTextSearch($products, $term, [
                     'product_alias' => 'p',
                     'variation_alias' => 'variations',
                     'search_fields' => ['name', 'sku', 'sub_sku'],
                     'search_type' => 'like',
-                    'has_tyre_size' => \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_size'),
-                    'has_tyre_note' => \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_note'),
+                    'has_tyre_size' => $hasTyreSize,
+                    'has_tyre_note' => $hasTyreNote,
                     'include_brand' => true,
                 ]);
             }
@@ -2426,17 +2562,17 @@ class SellPosController extends Controller
                 $products->where('VLD.qty_available', '>', 0);
             }
 
-            if (!empty($category_id) && ($category_id != 'all')) {
+            if (! empty($category_id) && ($category_id != 'all')) {
                 $products->where(function ($query) use ($category_id) {
                     $query->where('p.category_id', $category_id);
                     $query->orWhere('p.sub_category_id', $category_id);
                 });
             }
-            if (!empty($brand_id) && ($brand_id != 'all')) {
+            if (! empty($brand_id) && ($brand_id != 'all')) {
                 $products->where('p.brand_id', $brand_id);
             }
 
-            if (!empty($request->get('is_enabled_stock'))) {
+            if (! empty($request->get('is_enabled_stock'))) {
                 $is_enabled_stock = 0;
                 if ($request->get('is_enabled_stock') == 'product') {
                     $is_enabled_stock = 1;
@@ -2445,7 +2581,7 @@ class SellPosController extends Controller
                 $products->where('p.enable_stock', $is_enabled_stock);
             }
 
-            if (!empty($request->get('repair_model_id'))) {
+            if (! empty($request->get('repair_model_id')) && $hasProductColumn('repair_model_id')) {
                 $products->where('p.repair_model_id', $request->get('repair_model_id'));
             }
 
@@ -2455,16 +2591,19 @@ class SellPosController extends Controller
                 ? 'variations.dpp_inc_tax as selling_price'
                 : 'variations.default_sell_price as selling_price';
 
-            // Category, size, and color are display-only for the POS list view.
-            $products->leftJoin('categories as pos_cat', function ($join) {
-                $join->on('p.category_id', '=', 'pos_cat.id')
-                    ->whereNull('pos_cat.deleted_at');
+            // Category name is display-only. Size and color text is shortened below so a
+            // TEXT column is not pulled into the sort (that failed the whole grid on shared hosting).
+            $products->leftJoin('categories as pos_cat', function ($join) use ($categoryHasDeleted) {
+                $join->on('p.category_id', '=', 'pos_cat.id');
+                if ($categoryHasDeleted) {
+                    $join->whereNull('pos_cat.deleted_at');
+                }
             });
 
             $suggestion_columns = [
                 'p.id as product_id',
                 'p.name',
-                'p.tyre_size',
+                $hasTyreSize ? 'p.tyre_size' : DB::raw('NULL as tyre_size'),
                 'p.type',
                 'p.enable_stock',
                 'p.image as product_image',
@@ -2475,45 +2614,60 @@ class SellPosController extends Controller
                 'variations.sub_sku',
                 'u.short_name as unit',
                 'pos_cat.name as category_name',
-                DB::raw('(SELECT purchase_price_inc_tax FROM purchase_lines WHERE variation_id = variations.id ORDER BY id DESC LIMIT 1) as last_purchased_price'),
             ];
-            if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'size')) {
-                $suggestion_columns[] = 'p.size as product_size';
+            if ($hasSellPriceIncTax) {
+                $suggestion_columns[] = 'variations.sell_price_inc_tax';
             }
-            if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'color')) {
-                $suggestion_columns[] = 'p.color as product_color';
+            if ($hasSize) {
+                $suggestion_columns[] = DB::raw('SUBSTRING(p.size, 1, 191) as product_size');
+            }
+            if ($hasColor) {
+                $suggestion_columns[] = DB::raw('SUBSTRING(p.color, 1, 191) as product_color');
             }
 
+            // No full-table count. The grid treats a short page as the last page.
             $products = $products->select($suggestion_columns)
                 ->with(['media', 'group_prices'])
                 ->orderBy('p.name', 'asc')
-                ->paginate(50);
+                ->orderBy('variations.id', 'asc')
+                ->simplePaginate(50);
 
             $price_groups = SellingPriceGroup::where('business_id', $business_id)->active()->pluck('name', 'id');
 
             $allowed_group_prices = [];
             foreach ($price_groups as $key => $value) {
-                if (auth()->user()->can('selling_price_group.' . $key)) {
+                if (auth()->user()->can('selling_price_group.'.$key)) {
                     $allowed_group_prices[$key] = $value;
                 }
             }
 
-            $show_prices = !empty($pos_settings['show_pricing_on_product_sugesstion']) || $for_pop;
+            $show_prices = ! empty($pos_settings['show_pricing_on_product_sugesstion']) || $for_pop;
             $active_price_group_id = $for_pop ? null : $request->get('price_group');
 
-            // Keep retail baseline on each tile, then optionally swap display to group price.
-            if (! $for_pop) {
-                foreach ($products as $product) {
+            $variationIds = [];
+            foreach ($products as $product) {
+                $variationIds[] = (int) $product->id;
+            }
+            $lastPrices = [];
+            try {
+                $lastPrices = $this->posSuggestionLastPurchasePrices($variationIds);
+            } catch (\Throwable $e) {
+                \Log::warning('POS suggestion last purchase lookup skipped: '.$e->getMessage());
+            }
+
+            foreach ($products as $product) {
+                $product->last_purchased_price = $lastPrices[(int) $product->id] ?? null;
+                $map = $this->posSuggestionGroupPriceMap($product, $allowed_group_prices);
+                $product->pos_group_price_map = $map;
+                $product->pos_card_image = $this->posSuggestionCardImage($product);
+
+                // Keep retail baseline on each tile, then optionally swap display to group price.
+                if (! $for_pop) {
                     $product->retail_price_baseline = $product->selling_price;
                     if (! empty($active_price_group_id) && (int) $active_price_group_id > 0) {
-                        foreach ($product->group_prices as $group_price) {
-                            if ((int) $group_price->price_group_id === (int) $active_price_group_id) {
-                                $calc = $group_price->calculated_price;
-                                if ($calc !== null && $calc !== '') {
-                                    $product->selling_price = $calc;
-                                }
-                                break;
-                            }
+                        $key = (string) (int) $active_price_group_id;
+                        if (array_key_exists($key, $map) && $map[$key] !== null && $map[$key] !== '') {
+                            $product->selling_price = $map[$key];
                         }
                     }
                 }
@@ -2521,8 +2675,31 @@ class SellPosController extends Controller
 
             $product_view = $request->get('product_view') === 'list' ? 'list' : 'grid';
 
-            return view('sale_pos.partials.product_list')
-                ->with(compact('products', 'allowed_group_prices', 'show_prices', 'for_pop', 'active_price_group_id', 'term', 'product_view'));
+            $html = view('sale_pos.partials.product_list')
+                ->with(compact('products', 'allowed_group_prices', 'show_prices', 'for_pop', 'active_price_group_id', 'term', 'product_view'))
+                ->render();
+
+            return response($html, 200, [
+                'Content-Type' => 'text/html; charset=UTF-8',
+                'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache',
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('POS getProductSuggestion failed: '.$e->getMessage(), [
+                'exception' => $e,
+            ]);
+
+            $html = '<div class="col-md-12 vspos-no-products vspos-products-error">'
+                .'<h4 class="text-center vspos-no-products-title">Could not load products.</h4>'
+                .'<p class="text-center" style="margin-bottom:24px;">'
+                .'<button type="button" class="btn btn-sm btn-default" id="vspos_retry_products">Retry</button>'
+                .'</p></div>';
+
+            return response($html, 500, [
+                'Content-Type' => 'text/html; charset=UTF-8',
+                'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache',
+            ]);
         }
     }
 

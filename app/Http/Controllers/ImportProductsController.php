@@ -375,15 +375,29 @@ class ImportProductsController extends Controller
                     }
 
                     $size_raw = isset($value[40]) ? trim((string) $value[40]) : '';
-                    if (mb_strlen($size_raw) > 191) {
+                    foreach (preg_split('/\s*,\s*/u', $size_raw) ?: [] as $size_part) {
+                        if (mb_strlen(trim((string) $size_part)) > 150) {
+                            $is_valid = false;
+                            $error_msg = "Size exceeds 150 characters in row no. $row_no";
+                            break 2;
+                        }
+                    }
+                    if (mb_strlen($size_raw) > 2000) {
                         $is_valid = false;
-                        $error_msg = "Size exceeds 191 characters in row no. $row_no";
+                        $error_msg = "Size exceeds 2000 characters in row no. $row_no";
                         break;
                     }
                     $color_raw = isset($value[41]) ? trim((string) $value[41]) : '';
-                    if (mb_strlen($color_raw) > 191) {
+                    foreach (preg_split('/\s*,\s*/u', $color_raw) ?: [] as $color_part) {
+                        if (mb_strlen(trim((string) $color_part)) > 150) {
+                            $is_valid = false;
+                            $error_msg = "Color exceeds 150 characters in row no. $row_no";
+                            break 2;
+                        }
+                    }
+                    if (mb_strlen($color_raw) > 2000) {
                         $is_valid = false;
-                        $error_msg = "Color exceeds 191 characters in row no. $row_no";
+                        $error_msg = "Color exceeds 2000 characters in row no. $row_no";
                         break;
                     }
                     if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'size')) {
@@ -747,6 +761,8 @@ class ImportProductsController extends Controller
                             $product->sku = $sku;
                             $product->save();
                         }
+
+                        \App\Utils\ProductSizeColor::syncFromLegacyColumns($product, (int) $user_id);
 
                         //Rack, Row & Position.
                         $this->rackDetails(

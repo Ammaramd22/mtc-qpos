@@ -201,6 +201,25 @@ class Product extends Model
     }
 
     /**
+     * Catalog sizes from Size Management. Does not create stock variations.
+     */
+    public function sizes()
+    {
+        return $this->belongsToMany(\App\Size::class, 'product_size', 'product_id', 'size_id')
+            ->withPivot('position')
+            ->withTimestamps()
+            ->orderBy('product_size.position');
+    }
+
+    /**
+     * Free-text colours typed on the product.
+     */
+    public function productColors()
+    {
+        return $this->hasMany(\App\ProductColor::class)->orderBy('id');
+    }
+
+    /**
      * If product type is modifier get products associated with it.
      */
     public function modifier_products()

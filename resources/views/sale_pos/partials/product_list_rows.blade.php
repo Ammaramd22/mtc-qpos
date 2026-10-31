@@ -69,10 +69,12 @@
 			@php
 				$retail_price = isset($product->retail_price_baseline) ? $product->retail_price_baseline : $product->selling_price;
 				$group_price_map = [];
-				if (!empty($product->group_prices)) {
+				if (isset($product->pos_group_price_map) && is_array($product->pos_group_price_map)) {
+					$group_price_map = $product->pos_group_price_map;
+				} elseif (!empty($product->group_prices)) {
 					foreach ($product->group_prices as $group_price) {
 						if (array_key_exists($group_price->price_group_id, $allowed_group_prices)) {
-							$group_price_map[(string) $group_price->price_group_id] = (float) $group_price->calculated_price;
+							$group_price_map[(string) $group_price->price_group_id] = (float) $group_price->price_inc_tax;
 						}
 					}
 				}
@@ -80,8 +82,8 @@
 				$list_size = trim((string) ($product->product_size ?? ''));
 				$list_color = trim((string) ($product->product_color ?? ''));
 				$list_category = trim((string) ($product->category_name ?? ''));
-				if (count($product->media) > 0) {
-					$list_thumb = $product->media->first()->display_url;
+				if (!empty($product->pos_card_image)) {
+					$list_thumb = $product->pos_card_image;
 				} elseif (!empty($product->product_image)) {
 					$list_thumb = asset('/uploads/img/' . rawurlencode($product->product_image));
 				} else {

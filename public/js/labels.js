@@ -223,6 +223,19 @@ $(document).ready(function() {
         updateLabelsEmptyState();
     });
 
+    $(document).on('click', '.labels-add-combo', function() {
+        var $row = $(this).closest('tr.labels-product-row');
+        if (!$row.length) return;
+        var $clone = $row.clone();
+        var idx = reserveLabelRowIndex();
+        $clone.find('[name]').each(function() {
+            this.name = String(this.name).replace(/products\[\d+\]/, 'products[' + idx + ']');
+        });
+        $clone.removeClass('labels-row-flash');
+        $row.after($clone);
+        updateLabelsEmptyState();
+    });
+
     $('button#labels_export_csv').click(function() {
         if ($('form#labels_export_form table#product_table tbody tr.labels-product-row').length > 0) {
             var url = base_path + '/labels/export-bartender-csv?' + $('form#labels_export_form').serialize();

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-vspos-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Label editor preview</title>
+<style>
+:root {
+  --label-w: 50mm; --label-h: 25mm;
+  --biz-size: 13px; --name-size: 12px; --sku-size: 11px; --price-size: 16px; --costcode-size: 11px;
+  --barcode-w: 70%; --barcode-h: 28px; --name-weight: 800; --price-weight: 900;
+  --pad-t: 0.6mm; --pad-r: 1mm; --pad-b: 0.5mm; --pad-l: 1mm; --shift-x: 0mm; --shift-y: 0mm; --quiet: 0.4mm;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #1e293b; color: #e2e8f0; }
+html[data-vspos-theme="light"] body { background: #f1f5f9; color: #111827; }
+.toolbar { padding: 12px; }
+.panel-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.panel { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 10px; flex: 1 1 280px; }
+html[data-vspos-theme="light"] .panel { background: #fff; color: #111827; border-color: #e5e7eb; }
+.live-preview-frame { width: 280px; overflow: hidden; }
+.live-preview-zoom { width: var(--label-w); height: var(--label-h); transform-origin: top left; }
+.label { width: var(--label-w); height: var(--label-h); background: #fff; color: #000; position: relative; overflow: hidden; outline: 1px dashed #64748b; }
+.label-inner { position: relative; width: 100%; height: 100%; padding: var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l); display: flex; flex-direction: column; overflow: hidden; }
+.label .biz { font-size: var(--biz-size); font-weight: 900; }
+.label .pname { font-size: var(--name-size); font-weight: var(--name-weight); }
+.label .sku, .label .label-size, .label .label-color { font-size: var(--sku-size); font-weight: 700; }
+.label .price { font-size: var(--price-size); font-weight: var(--price-weight); text-align: right; }
+.label .cc { font-size: var(--costcode-size); font-weight: 900; }
+.label .footer { display: flex; justify-content: space-between; margin-top: auto; }
+.barcode-wrap { height: var(--barcode-h); background: repeating-linear-gradient(90deg, #000, #000 1px, #fff 1px, #fff 3px); }
+.live-preview-zoom .label [data-el].is-selected { outline: 1px solid #2563eb; }
+.sheet { display: flex; gap: 12px; padding: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+input, select { padding: 6px; }
+@media (max-width: 720px) { .panel { flex: 1 1 100%; } .live-preview-frame { width: 100%; } }
+</style>
+</head>
+<body>
+<form id="browser_label_opts" class="toolbar">
+  <div class="panel-row">
+    <div class="panel">
+      <div class="live-preview-frame"><div class="live-preview-zoom"></div></div>
+      <div class="label-editor" id="label_editor">
+        <div class="editor-grid">
+          <label class="field">Label<select id="editor_row"></select></label>
+          <label class="field">Selected<select id="editor_pick"></select></label>
+          <label class="field" id="editor_text_wrap"><span id="editor_text_label">Text</span><input id="editor_text" type="text"></label>
+          <label class="field" id="editor_choice_wrap" hidden><span id="editor_choice_label">Size</span><select id="editor_choice"></select></label>
+          <label class="field">Size<input id="editor_font_size" type="number" min="5" max="36"></label>
+          <label class="field">Weight<select id="editor_weight"><option value="">Default</option><option value="400">Regular</option><option value="700">Bold</option><option value="900">Black</option></select></label>
+          <label class="field">Align<select id="editor_align"><option value="">Default</option><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label>
+          <label><input id="editor_show" type="checkbox"> Show</label>
+        </div>
+        <button type="button" id="editor_reset">Reset position</button>
+        <p id="editor_note"></p>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" name="element_layout" id="element_layout" value="{}">
+  <input type="hidden" name="label_overrides" id="label_overrides" value="">
+  <input name="business_name_size" class="live-font" data-var="--biz-size" value="13">
+  <input name="name_size" class="live-font" data-var="--name-size" value="12">
+  <input name="sku_size" class="live-font" data-var="--sku-size" value="11">
+  <input name="price_size" class="live-font" data-var="--price-size" value="16">
+  <input name="costcode_size" class="live-font" data-var="--costcode-size" value="11">
+  <select name="name_weight" class="live-weight" data-var="--name-weight"><option value="800" selected>800</option></select>
+  <select name="price_weight" class="live-weight" data-var="--price-weight"><option value="900" selected>900</option></select>
+  <input id="opt_business_name" name="label_business_name" value="Marjan Thobe Center">
+  <label><input class="live-toggle" data-target=".biz" type="checkbox" checked> Business</label>
+  <label><input class="live-toggle" data-target=".pname" type="checkbox" checked> Name</label>
+  <label><input class="live-toggle" data-target=".barcode-wrap" type="checkbox" checked> Barcode</label>
+  <label><input class="live-toggle" data-target=".sku" type="checkbox" checked> SKU</label>
+  <label><input class="live-toggle" data-target=".price" type="checkbox" checked> Price</label>
+  <label><input class="live-toggle" data-target=".cc" type="checkbox" checked> Cost</label>
+  <label><input class="live-toggle" data-target=".brand" type="checkbox" checked> Brand</label>
+  <label><input class="live-toggle" data-target=".category" type="checkbox" checked> Category</label>
+  <label><input class="live-toggle" data-target=".label-size" type="checkbox" checked> Size</label>
+  <label><input class="live-toggle" data-target=".label-color" type="checkbox" checked> Color</label>
+</form>
+<div class="sheet" id="sheet"></div>
+<script src="/public/js/browser-label-editor.js?v=3"></script>
+<script>
+function sticker(row, name, price, size, color) {
+  var sizes = JSON.stringify(['Small','Medium','Large']);
+  var colors = JSON.stringify(['Red','White','Black']);
+  return '<div class="label" data-row="'+row+'" data-sku="SKU'+row+'" data-barcode="SKU'+row+'" data-size="'+size+'" data-color="'+color+'" data-sizes=\''+sizes+'\' data-colors=\''+colors+'\'>'
+    + '<div class="label-inner"><div class="head">'
+    + '<div class="biz" data-el="biz">Marjan Thobe Center</div>'
+    + '<div class="meta brand" data-el="brand">Brand</div>'
+    + '<div class="meta category" data-el="category">Category</div>'
+    + '<div class="pname" data-el="name">'+name+'</div>'
+    + '<div class="attr-line"><span class="label-size" data-el="size">Size: '+size+'</span> <span class="label-color" data-el="color">Color: '+color+'</span></div>'
+    + '</div><div class="body"><div class="barcode-wrap" data-el="barcode"></div><div class="sku" data-el="sku">SKU'+row+'</div></div>'
+    + '<div class="footer"><div class="cc" data-el="costcode">CC</div><div class="price" data-el="price">'+price+'</div></div>'
+    + '</div></div>';
+}
+document.getElementById('sheet').innerHTML = sticker(0, 'Soap', 'Rs 1,200.00', 'Small', 'Red') + sticker(1, 'Towel', 'Rs 800.00', 'Medium', 'White');
+document.querySelectorAll('.live-toggle').forEach(function (box) {
+  box.addEventListener('change', function () {
+    var sel = box.getAttribute('data-target');
+    document.querySelectorAll('.label ' + sel).forEach(function (node) {
+      if (sel === '.price' || sel === '.cc') node.style.visibility = box.checked ? 'visible' : 'hidden';
+      else node.style.display = box.checked ? '' : 'none';
+    });
+  });
+});
+document.querySelectorAll('.live-font').forEach(function (el) {
+  el.addEventListener('input', function () {
+    document.documentElement.style.setProperty(el.getAttribute('data-var'), el.value + 'px');
+    if (window.QposLabelEditor) window.QposLabelEditor.noteFont(el.getAttribute('data-var'), parseInt(el.value, 10));
+  });
+});
+function fitPreview() {
+  var frame = document.querySelector('.live-preview-frame');
+  var zoom = document.querySelector('.live-preview-zoom');
+  var pxW = 50 * 96 / 25.4;
+  var scale = Math.min(3, frame.clientWidth / pxW);
+  zoom.style.transform = 'scale(' + scale + ')';
+  frame.style.height = Math.ceil((25 * 96 / 25.4) * scale) + 'px';
+}
+QposLabelEditor.init({
+  captions: { biz:'Business name', name:'Item name', size:'Size', color:'Color', barcode:'Barcode', sku:'SKU', price:'Price', costcode:'Cost code', brand:'Brand', category:'Category' },
+  notes: { price:'This price is printed on the label only.', move:'Drag to move.', choice:'Choose one.', none:'None.' },
+  getRotation: function () { return document.body.getAttribute('data-rot') || '0'; },
+  fitPreview: fitPreview
+});
+window.addEventListener('resize', fitPreview);
+</script>
+</body>
+</html>

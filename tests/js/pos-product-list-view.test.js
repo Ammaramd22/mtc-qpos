@@ -49,8 +49,10 @@ check('grid cards are hidden while list mode is active', css.indexOf('html.vspos
 
 var suggestion = controller.slice(controller.indexOf('function getProductSuggestion'), controller.indexOf('function getTradeInOptions'));
 check('suggestion query includes category', suggestion.indexOf("pos_cat.name as category_name") !== -1);
-check('size column is selected only when it exists', suggestion.indexOf("hasColumn('products', 'size')") !== -1 && suggestion.indexOf('p.size as product_size') !== -1);
-check('color column is selected only when it exists', suggestion.indexOf("hasColumn('products', 'color')") !== -1 && suggestion.indexOf('p.color as product_color') !== -1);
+check('size column is selected only when it exists', suggestion.indexOf("hasColumn('products', 'size')") !== -1 && suggestion.indexOf('as product_size') !== -1 && suggestion.indexOf('SUBSTRING(p.size, 1, 191)') !== -1);
+check('color column is selected only when it exists', suggestion.indexOf("hasColumn('products', 'color')") !== -1 && suggestion.indexOf('as product_color') !== -1 && suggestion.indexOf('SUBSTRING(p.color, 1, 191)') !== -1);
+check('suggestion page does not count every joined row', suggestion.indexOf('simplePaginate(50)') !== -1);
+check('suggestion response is not cached', suggestion.indexOf('no-store') !== -1);
 check('controller chooses list or grid', suggestion.indexOf("product_view") !== -1);
 
 console.log('All list-view checks passed');

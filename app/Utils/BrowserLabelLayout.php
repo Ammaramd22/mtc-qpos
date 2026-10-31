@@ -61,7 +61,19 @@ class BrowserLabelLayout
             'show_category' => '0',
             'show_size' => '0',
             'show_color' => '0',
+            // Per-element placement and type. Empty keeps the original flow layout.
+            'element_layout' => '{}',
         ];
+    }
+
+    /**
+     * Elements the live label editor can select. Order is the reading order.
+     *
+     * @return array<int, string>
+     */
+    public static function elementKeys(): array
+    {
+        return ['biz', 'brand', 'category', 'name', 'size', 'color', 'barcode', 'sku', 'costcode', 'price'];
     }
 
     /**
@@ -199,6 +211,8 @@ class BrowserLabelLayout
             $layout[$flagKey] = $flag($flagKey);
         }
 
+        $layout['element_layout'] = self::normalizeElementLayout($src['element_layout'] ?? '{}');
+
         // Rotation turns the artwork inside each sticker. It does not change the page size.
         if ($layout['media'] !== 'sheet') {
             $layout['columns'] = '1';
@@ -315,5 +329,54 @@ class BrowserLabelLayout
         }
 
         return $out;
+    }
+
+    /**
+     * Keep saved element positions inside the sticker and drop unknown keys.
+     * Old profiles without this value stay on the original flow layout.
+     *
+     * @param  mixed  $raw
+     */
+    public static function normalizeElementLayout($raw): string
+    {
+        if (is_string($raw)) {
+            $raw = json_decode($raw, true);
+        }
+        if (! is_array($raw)) {
+            return '{}';
+        }
+
+        $out = [];
+        foreach (self::elementKeys() as $key) {
+            if (! isset($raw[$key]) || ! is_array($raw[$key])) {
+                continue;
+            }
+            $item = $raw[$key];
+            $clean = [];
+            $hasX = isset($item['x']) && $item['x'] !== '' && is_numeric($item['x']);
+            $hasY = isset($item['y']) && $item['y'] !== '' && is_numeric($item['y']);
+            if ($hasX || $hasY) {
+                $clean['x'] = round(max(0, min(100, (float) ($hasX ? $item['x'] : 0))), 2);
+                $clean['y'] = round(max(0, min(100, (float) ($hasY ? $item['y'] : 0))), 2);
+            }
+            if (isset($item['size']) && $item['size'] !== '' && is_numeric($item['size'])) {
+                $clean['size'] = max(5, min(36, (int) $item['size']));
+            }
+            if (isset($item['weight']) && in_array((string) $item['weight'], ['400', '700', '800', '900'], true)) {
+                $clean['weight'] = (string) $item['weight'];
+            }
+            if (isset($item['align']) && in_array((string) $item['align'], ['left', 'center', 'right'], true)) {
+                $clean['align'] = (string) $item['align'];
+            }
+            if ($clean !== []) {
+                $out[$key] = $clean;
+            }
+        }
+
+        if ($out === []) {
+            return '{}';
+        }
+
+        return json_encode($out, JSON_UNESCAPED_UNICODE);
     }
 }

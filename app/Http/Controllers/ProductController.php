@@ -688,6 +688,8 @@ class ProductController extends Controller
 
             Media::uploadMedia($product->business_id, $product, $request, 'product_brochure', true);
 
+            $this->persistProductSizeColor($product, $request, (int) $business_id);
+
             DB::commit();
             $output = ['success' => 1,
                 'msg' => __('product.product_added_success'),
@@ -1062,6 +1064,8 @@ class ProductController extends Controller
             }
 
             Media::uploadMedia($product->business_id, $product, $request, 'product_brochure', true);
+
+            $this->persistProductSizeColor($product, $request, (int) $business_id);
 
             DB::commit();
             $output = ['success' => 1,
@@ -1818,6 +1822,8 @@ class ProductController extends Controller
             if (! empty($product_locations)) {
                 $product->product_locations()->sync($product_locations);
             }
+
+            $this->persistProductSizeColor($product, $request, (int) $business_id);
 
             DB::commit();
 
@@ -2900,12 +2906,42 @@ class ProductController extends Controller
      */
     private function sizeColorErrorResponse(Request $request, bool $json = false)
     {
-        $validator = \Illuminate\Support\Facades\Validator::make($request->only(['size', 'color']), [
-            'size' => 'nullable|string|max:191',
-            'color' => 'nullable|string|max:191',
-        ]);
+        if ($request->input('size_color_managed')) {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'size_ids' => 'nullable|array|max:40',
+                'size_ids.*' => 'integer',
+                'colors' => 'nullable|array|max:40',
+                'colors.*' => 'nullable|string|max:150',
+            ]);
+            $duplicate = \App\Utils\ProductSizeColor::duplicateColor((array) $request->input('colors', []));
+            if ($duplicate !== null) {
+                $payload = [
+                    'success' => 0,
+                    'msg' => __('product.color_duplicate').': '.$duplicate,
+                ];
 
-        if (! $validator->fails()) {
+                return $json ? $payload : redirect()->back()->withInput()->with('status', $payload);
+            }
+        } else {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->only(['size', 'color']), [
+                'size' => 'nullable|string|max:2000',
+                'color' => 'nullable|string|max:2000',
+            ]);
+            foreach (['size', 'color'] as $field) {
+                foreach (\App\Utils\ProductSizeColor::splitList($request->input($field)) as $part) {
+                    if (mb_strlen($part) > 150) {
+                        $payload = [
+                            'success' => 0,
+                            'msg' => __('validation.max.string', ['attribute' => $field, 'max' => 150]),
+                        ];
+
+                        return $json ? $payload : redirect()->back()->withInput()->with('status', $payload);
+                    }
+                }
+            }
+        }
+
+        if (! isset($validator) || ! $validator->fails()) {
             return null;
         }
 
@@ -2931,17 +2967,21 @@ class ProductController extends Controller
      */
     private function assignSizeAndColor(array &$product_details, Request $request)
     {
-        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'size') && $request->exists('size')) {
-            $product_details['size'] = $this->blankToNull($request->input('size'));
-        } else {
-            unset($product_details['size']);
-        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        \App\Utils\ProductSizeColor::assignColumns($product_details, $request, $business_id);
+    }
 
-        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'color') && $request->exists('color')) {
-            $product_details['color'] = $this->blankToNull($request->input('color'));
-        } else {
-            unset($product_details['color']);
-        }
+    /**
+     * Store size links and colour tags after the product row exists.
+     */
+    private function persistProductSizeColor(Product $product, Request $request, int $business_id): void
+    {
+        \App\Utils\ProductSizeColor::persist(
+            $product,
+            $request,
+            $business_id,
+            (int) $request->session()->get('user.id')
+        );
     }
 
     /**

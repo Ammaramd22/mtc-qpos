@@ -7,6 +7,7 @@ use App\Business;
 use App\Product;
 use App\SellingPriceGroup;
 use App\Utils\BrowserLabelLayout;
+use App\Utils\ProductSizeColor;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
@@ -598,6 +599,14 @@ class LabelsController extends Controller
                 'variation_id' => $p['variation_id'] ?? null,
                 'quantity' => $p['quantity'] ?? 1,
             ];
+            $labelSize = ProductSizeColor::cleanName($p['label_size'] ?? '');
+            $labelColor = ProductSizeColor::cleanName($p['label_color'] ?? '');
+            if ($labelSize !== null) {
+                $row['label_size'] = $labelSize;
+            }
+            if ($labelColor !== null) {
+                $row['label_color'] = $labelColor;
+            }
             if (! empty($p['lot_number'])) {
                 $row['lot_number'] = $p['lot_number'];
             }
@@ -701,6 +710,15 @@ class LabelsController extends Controller
 
         $stickers = [];
         $sizeColorCache = [];
+        $productIds = [];
+        foreach ($products as $value) {
+            if (is_array($value) && ! empty($value['product_id'])) {
+                $productIds[] = (int) $value['product_id'];
+            }
+        }
+        $catalogLists = ProductSizeColor::listsForProducts((int) $business_id, $productIds);
+        $labelOverrides = $this->labelDisplayOverrides($request->input('label_overrides'));
+        $rowIndex = 0;
         foreach ($products as $value) {
             if (empty($value['variation_id'])) {
                 continue;
@@ -710,46 +728,86 @@ class LabelsController extends Controller
             if (empty($details)) {
                 continue;
             }
+            $currentRow = $rowIndex;
+            $rowIndex++;
 
-            $sku = $details->sub_sku ?? '';
+            $productId = (int) ($value['product_id'] ?? $details->product_id ?? 0);
+            $options = $this->labelAttributeOptions(
+                $productId,
+                (int) ($value['variation_id'] ?? $details->variation_id ?? 0),
+                (int) $business_id,
+                $sizeColorCache,
+                $catalogLists[$productId] ?? ['sizes' => [], 'colors' => []]
+            );
+            $override = $labelOverrides[(string) $currentRow] ?? $labelOverrides[$currentRow] ?? [];
+            if (! is_array($override)) {
+                $override = [];
+            }
+            $size = ProductSizeColor::chooseOne(
+                $options['sizes'],
+                $override['size'] ?? ($value['label_size'] ?? '')
+            );
+            $color = ProductSizeColor::chooseOne(
+                $options['colors'],
+                $override['color'] ?? ($value['label_color'] ?? '')
+            );
 
-            $price = $opts['price_type'] === 'exclusive'
-                ? ($details->default_sell_price ?? 0)
-                : ($details->sell_price_inc_tax ?? $details->default_sell_price ?? 0);
-
+            $sku = trim((string) ($details->sub_sku ?? ''));
             $name = $details->product_actual_name ?? $details->product_name ?? '';
             if (! empty($details->variation_name) && ($details->variation_name ?? '') !== 'DUMMY' && (int) ($details->is_dummy ?? 1) !== 1) {
                 $name .= ' '.$details->variation_name;
             }
-
             $brand = trim((string) ($details->brand ?? ''));
             $category = '';
-            if (! empty($opts['show_category']) && ! empty($details->category_id)) {
+            if (! empty($details->category_id)) {
                 $category = trim((string) optional(\App\Category::find($details->category_id))->name);
             }
-            $sizeColor = $this->sizeColorForLabel(
-                (int) ($value['product_id'] ?? $details->product_id ?? 0),
-                (int) ($value['variation_id'] ?? $details->variation_id ?? 0),
-                (int) $business_id,
-                $sizeColorCache
-            );
+            $costcode = trim((string) ($details->product_custom_field1 ?? ''));
+            $price = $opts['price_type'] === 'exclusive'
+                ? ($details->default_sell_price ?? 0)
+                : ($details->sell_price_inc_tax ?? $details->default_sell_price ?? 0);
+            $priceText = '';
+
+            // Display text for this print job only. Product prices are not written.
+            if (array_key_exists('name', $override)) {
+                $name = $this->clipLabelText($override['name'], 120);
+            }
+            if (array_key_exists('sku', $override) && $this->clipLabelText($override['sku'], 80) !== '') {
+                $sku = $this->clipLabelText($override['sku'], 80);
+            }
+            if (array_key_exists('brand', $override)) {
+                $brand = $this->clipLabelText($override['brand'], 80);
+            }
+            if (array_key_exists('category', $override)) {
+                $category = $this->clipLabelText($override['category'], 80);
+            }
+            if (array_key_exists('costcode', $override)) {
+                $costcode = $this->clipLabelText($override['costcode'], 40);
+            }
+            if (array_key_exists('price_text', $override)) {
+                $priceText = $this->clipLabelText($override['price_text'], 40);
+            }
+            $barcodeValue = $sku;
+            if (array_key_exists('barcode_value', $override) && $this->clipLabelText($override['barcode_value'], 80) !== '') {
+                $barcodeValue = $this->clipLabelText($override['barcode_value'], 80);
+            }
 
             $requestedType = ($layout['barcode_format'] ?? 'auto') === 'auto'
                 ? (string) ($details->barcode_type ?? 'C128')
                 : (string) $layout['barcode_format'];
-            $barcodeType = BrowserLabelLayout::resolveBarcodeType($requestedType, (string) $sku);
+            $barcodeType = BrowserLabelLayout::resolveBarcodeType($requestedType, (string) $barcodeValue);
 
             $barcodePng = '';
             try {
-                if ($sku !== '') {
+                if ($barcodeValue !== '') {
                     $barW = max(1, min(4, (int) $opts['barcode_bar_width']));
                     $barH = max(16, min(80, (int) $opts['barcode_height']));
-                    $barcodePng = \DNS1D::getBarcodePNG($sku, $barcodeType, $barW, $barH, [0, 0, 0], false);
+                    $barcodePng = \DNS1D::getBarcodePNG($barcodeValue, $barcodeType, $barW, $barH, [0, 0, 0], false);
                 }
             } catch (\Throwable $e) {
                 try {
-                    if ($sku !== '' && $barcodeType !== 'C128') {
-                        $barcodePng = \DNS1D::getBarcodePNG($sku, 'C128', 2, 40, [0, 0, 0], false);
+                    if ($barcodeValue !== '' && $barcodeType !== 'C128') {
+                        $barcodePng = \DNS1D::getBarcodePNG($barcodeValue, 'C128', 2, 40, [0, 0, 0], false);
                         $barcodeType = 'C128';
                     }
                 } catch (\Throwable $e2) {
@@ -759,18 +817,23 @@ class LabelsController extends Controller
 
             for ($i = 0; $i < $qty; $i++) {
                 $stickers[] = [
+                    'row' => $currentRow,
                     'name' => $name,
                     'sku' => $sku,
+                    'barcode_value' => $barcodeValue,
                     'price' => $price,
+                    'price_text' => $priceText,
                     'barcode_png' => $barcodePng,
                     'barcode_type' => $barcodeType,
-                    'costcode' => trim((string) ($details->product_custom_field1 ?? '')),
+                    'costcode' => $costcode,
                     'supplier_code' => trim((string) ($details->product_custom_field2 ?? '')),
                     'supplier_name' => trim((string) ($details->supplier_name ?? '')),
                     'brand' => $brand,
                     'category' => $category,
-                    'size' => $sizeColor['size'],
-                    'color' => $sizeColor['color'],
+                    'size' => $size,
+                    'color' => $color,
+                    'size_options' => $options['sizes'],
+                    'color_options' => $options['colors'],
                 ];
             }
         }
@@ -1030,19 +1093,103 @@ class LabelsController extends Controller
      */
     protected function attachSizeColor($products, $business_id)
     {
+        $ids = [];
+        foreach ($products as $product) {
+            $ids[] = (int) ($product->product_id ?? 0);
+        }
+        $lists = ProductSizeColor::listsForProducts((int) $business_id, $ids);
         $cache = [];
         foreach ($products as $product) {
-            $pair = $this->sizeColorForLabel(
-                (int) ($product->product_id ?? 0),
+            $productId = (int) ($product->product_id ?? 0);
+            $options = $this->labelAttributeOptions(
+                $productId,
                 (int) ($product->variation_id ?? 0),
                 (int) $business_id,
-                $cache
+                $cache,
+                $lists[$productId] ?? ['sizes' => [], 'colors' => []]
             );
-            $product->size = $pair['size'];
-            $product->color = $pair['color'];
+            $product->size_options = $options['sizes'];
+            $product->color_options = $options['colors'];
+            $product->size = ProductSizeColor::chooseOne($options['sizes'], '');
+            $product->color = ProductSizeColor::chooseOne($options['colors'], '');
         }
 
         return $products;
+    }
+
+    /**
+     * Assigned sizes and colours for one product. The printed label uses one of each.
+     *
+     * @param  array<string, array{size: string, color: string}|array{sizes: array<int, string>, colors: array<int, string>}>  $cache
+     * @param  array{sizes?: array<int, string>, colors?: array<int, string>}  $catalog
+     * @return array{sizes: array<int, string>, colors: array<int, string>}
+     */
+    protected function labelAttributeOptions(int $productId, int $variationId, int $businessId, array &$cache, array $catalog = []): array
+    {
+        $key = ($variationId > 0 ? 'v'.$variationId : 'p'.$productId).'@'.$businessId;
+        if (isset($cache[$key]) && isset($cache[$key]['sizes'])) {
+            return $cache[$key];
+        }
+
+        $empty = ['sizes' => [], 'colors' => []];
+        if ($businessId < 1 || ($productId < 1 && $variationId < 1)) {
+            return $cache[$key] = $empty;
+        }
+
+        $resolvedCache = [];
+        $resolved = $this->sizeColorForLabel($productId, $variationId, $businessId, $resolvedCache);
+        if ($productId < 1) {
+            $catalog = ['sizes' => [], 'colors' => []];
+        }
+
+        return $cache[$key] = [
+            'sizes' => ProductSizeColor::optionList($catalog['sizes'] ?? [], $resolved['size'] ?? ''),
+            'colors' => ProductSizeColor::optionList($catalog['colors'] ?? [], $resolved['color'] ?? ''),
+        ];
+    }
+
+    /**
+     * Label-only text sent back when the print page is rebuilt.
+     * This is never written to the product, its price, or past sales.
+     *
+     * @param  mixed  $raw
+     * @return array<int|string, array<string, mixed>>
+     */
+    protected function labelDisplayOverrides($raw): array
+    {
+        if (is_string($raw) && $raw !== '') {
+            $raw = json_decode($raw, true);
+        }
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $out = [];
+        $count = 0;
+        foreach ($raw as $row => $fields) {
+            if ($count >= 200 || ! is_array($fields)) {
+                continue;
+            }
+            $key = is_int($row) ? $row : (string) $row;
+            if (is_string($key) && ! preg_match('/^\d{1,4}$/', $key)) {
+                continue;
+            }
+            $out[$key] = $fields;
+            $count++;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  mixed  $value
+     */
+    protected function clipLabelText($value, int $max): string
+    {
+        $text = trim(strip_tags((string) $value));
+        $text = preg_replace('/[\x00-\x1F\x7F]/u', '', $text) ?? '';
+
+        return mb_substr($text, 0, $max);
     }
 
     /**

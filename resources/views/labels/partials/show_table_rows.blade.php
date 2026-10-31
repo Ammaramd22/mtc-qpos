@@ -9,16 +9,31 @@
                 <span class="labels-product-variation">{{ $product->variation_name }}</span>
             @endif
             @php
-                $labelAttrBits = [];
-                if (! empty($product->size)) {
-                    $labelAttrBits[] = __('product.size').': '.$product->size;
-                }
-                if (! empty($product->color)) {
-                    $labelAttrBits[] = __('product.color').': '.$product->color;
-                }
+                $sizeOptions = array_values($product->size_options ?? []);
+                $colorOptions = array_values($product->color_options ?? []);
             @endphp
-            @if($labelAttrBits !== [])
-                <span class="labels-product-attrs">{{ implode(' · ', $labelAttrBits) }}</span>
+            @if($sizeOptions !== [])
+                <label class="labels-choice">
+                    <span>@lang('product.size')</span>
+                    <select name="products[{{ $row_index }}][label_size]">
+                        @foreach($sizeOptions as $sizeOption)
+                            <option value="{{ $sizeOption }}" @if((string) $sizeOption === (string) ($product->size ?? '')) selected @endif>{{ $sizeOption }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
+            @if($colorOptions !== [])
+                <label class="labels-choice">
+                    <span>@lang('product.color')</span>
+                    <select name="products[{{ $row_index }}][label_color]">
+                        @foreach($colorOptions as $colorOption)
+                            <option value="{{ $colorOption }}" @if((string) $colorOption === (string) ($product->color ?? '')) selected @endif>{{ $colorOption }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
+            @if(count($sizeOptions) > 1 || count($colorOptions) > 1)
+                <button type="button" class="labels-add-combo">@lang('lang_v1.label_add_combination')</button>
             @endif
             <input type="hidden" name="products[{{ $row_index }}][product_id]" value="{{ $product->product_id }}">
             <input type="hidden" name="products[{{ $row_index }}][variation_id]" value="{{ $product->variation_id }}">

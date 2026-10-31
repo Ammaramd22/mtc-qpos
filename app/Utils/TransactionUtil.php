@@ -406,6 +406,8 @@ class TransactionUtil extends Util
                     $line['lot_no_line_id'] = $product['lot_no_line_id'];
                 }
 
+                \App\Utils\ProductSizeColor::mergeSellLineSelection($line, $product);
+
                 //Check if restaurant module is enabled then add more data related to that.
                 if ($this->isModuleEnabled('modifiers')) {
                     $sell_line_modifiers = [];
@@ -624,6 +626,7 @@ class TransactionUtil extends Util
             'res_service_staff_id' => ! empty($product['res_service_staff_id']) ? $product['res_service_staff_id'] : null,
             'secondary_unit_quantity' => ! empty($product['secondary_unit_quantity']) ? $this->num_uf($product['secondary_unit_quantity']) : 0,
         ]);
+        \App\Utils\ProductSizeColor::applySelectionToSellLine($sell_line, $product);
         $sell_line->save();
 
         //Set warranty
@@ -2479,6 +2482,19 @@ class TransactionUtil extends Util
             }
             if (! empty($temp)) {
                 $line_array['product_custom_fields'] = implode(',', $temp);
+            }
+
+            $picked_attrs = [];
+            if (! empty($line->line_size)) {
+                $picked_attrs[] = $line->line_size;
+            }
+            if (! empty($line->line_color)) {
+                $picked_attrs[] = $line->line_color;
+            }
+            if (! empty($picked_attrs)) {
+                $line_array['name'] .= ' ('.implode(', ', $picked_attrs).')';
+                $line_array['line_size'] = $line->line_size ?? '';
+                $line_array['line_color'] = $line->line_color ?? '';
             }
 
             //Group product taxes by name.

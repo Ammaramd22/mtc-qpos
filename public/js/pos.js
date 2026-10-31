@@ -2949,12 +2949,18 @@ function vsposSuggestLoadingHtml() {
         '</h4></div>';
 }
 
-function vsposSuggestErrorHtml() {
+function vsposSuggestErrorHtml(message) {
+    var title = message || 'Could not load products.';
     return '<div class="col-md-12 vspos-no-products vspos-products-error">' +
-        '<h4 class="text-center vspos-no-products-title">Could not load products.</h4>' +
+        '<h4 class="text-center vspos-no-products-title">' + title + '</h4>' +
         '<p class="text-center" style="margin-bottom:24px;">' +
         '<button type="button" class="btn btn-sm btn-default" id="vspos_retry_products">Retry</button>' +
         '</p></div>';
+}
+
+function vsposSuggestIsLoginHtml(html) {
+    html = String(html || '').toLowerCase();
+    return html.indexOf('name="password"') !== -1 || html.indexOf("name='password'") !== -1;
 }
 
 function vsposSuggestionItems() {
@@ -3036,7 +3042,24 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
         return false;
     }
 
+    var searchTerm = (typeof window.global_p_search_term === 'string' && window.global_p_search_term !== '')
+        ? window.global_p_search_term
+        : (String($('#search_product').val() || '').trim());
+    var productView = document.documentElement.classList.contains('vspos-product-view-list') ? 'list' : 'grid';
+    var requestKey = [category_id || '', brand_id || '', location_id || '', page, searchTerm, productView].join('|');
+    var isAutoRetry = window.__vspos_suggest_retrying === true;
+    window.__vspos_suggest_retrying = false;
+
     if (page === 1) {
+        // A second identical load (double boot or a click while the first is in flight)
+        // must not abort the request that is already bringing the cards back.
+        if (!isAutoRetry && window.__vspos_suggest_loading && window.__vspos_suggest_key === requestKey) {
+            return false;
+        }
+        if (!isAutoRetry) {
+            window.__vspos_suggest_auto = 0;
+        }
+        window.__vspos_suggest_key = requestKey;
         window.__vspos_suggest_ignore_scroll = true;
         window.__vspos_suggest_end = false;
         if (!window.__vspos_suggest_recovering) {
@@ -3045,6 +3068,7 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
         $items_container.html(vsposSuggestLoadingHtml());
         $('#suggestion_page_loader').stop(true, true).hide();
     } else {
+        window.__vspos_suggest_key = requestKey;
         $('#suggestion_page_loader').stop(true, true).fadeIn(150);
     }
 
@@ -3059,6 +3083,8 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
     window.__vspos_suggest_xhr = $.ajax({
         method: 'GET',
         url: url,
+        cache: false,
+        timeout: 45000,
         data: {
             category_id: category_id,
             brand_id: brand_id,
@@ -3068,10 +3094,8 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
             repair_model_id: repair_model_id,
             for_pop: $('#is_pop_mode').length ? 1 : 0,
             price_group: $('#price_group').length ? ($('#price_group').val() || 0) : 0,
-            product_view: document.documentElement.classList.contains('vspos-product-view-list') ? 'list' : 'grid',
-            term: (typeof window.global_p_search_term === 'string' && window.global_p_search_term !== '')
-                ? window.global_p_search_term
-                : (String($('#search_product').val() || '').trim() || undefined)
+            product_view: productView,
+            term: searchTerm || undefined
         },
         dataType: 'html',
         success: function (result) {
@@ -3095,9 +3119,27 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
             window.__vspos_suggest_loading = false;
             $('#suggestion_page_loader').stop(true, true).hide();
 
+            if (vsposSuggestIsLoginHtml(result)) {
+                window.__vspos_suggest_auto = 0;
+                window.__vspos_suggest_ignore_scroll = false;
+                if (reqPage === 1) {
+                    $items_container.html(vsposSuggestErrorHtml('Session expired. Refresh the page and sign in again.'));
+                }
+                return;
+            }
+
             if (plan.action === 'error') {
                 window.__vspos_suggest_ignore_scroll = false;
                 window.__vspos_suggest_end = false;
+                if (reqPage === 1 && (window.__vspos_suggest_auto || 0) < 1) {
+                    window.__vspos_suggest_auto = 1;
+                    window.__vspos_suggest_retrying = true;
+                    window.__vspos_suggest_xhr = null;
+                    $('input#suggestion_page').val(1);
+                    get_product_suggestion_list(category_id, brand_id, location_id, url, is_enabled_stock, repair_model_id);
+                    return;
+                }
+                window.__vspos_suggest_auto = 0;
                 if (reqPage === 1) {
                     $items_container.html(vsposSuggestErrorHtml());
                 } else {
@@ -3130,6 +3172,7 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
                 return;
             }
 
+            window.__vspos_suggest_auto = 0;
             window.__vspos_suggest_end = !!plan.end;
             window.__vspos_suggest_ignore_scroll = true;
             if (plan.action === 'replace') {
@@ -3154,6 +3197,27 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
             window.__vspos_suggest_loading = false;
             window.__vspos_suggest_ignore_scroll = false;
             $('#suggestion_page_loader').stop(true, true).hide();
+            var http = xhr ? xhr.status : 0;
+            var body = xhr && xhr.responseText ? String(xhr.responseText) : '';
+            if (http === 401 || http === 419 || vsposSuggestIsLoginHtml(body)) {
+                window.__vspos_suggest_auto = 0;
+                if (reqPage === 1) {
+                    $items_container.html(vsposSuggestErrorHtml('Session expired. Refresh the page and sign in again.'));
+                } else {
+                    $('input#suggestion_page').val(Math.max(1, reqPage - 1));
+                }
+                return;
+            }
+            var retryable = status === 'timeout' || http === 0 || http === 500 || http === 502 || http === 503 || http === 504;
+            if (reqPage === 1 && retryable && (window.__vspos_suggest_auto || 0) < 1) {
+                window.__vspos_suggest_auto = 1;
+                window.__vspos_suggest_retrying = true;
+                window.__vspos_suggest_xhr = null;
+                $('input#suggestion_page').val(1);
+                get_product_suggestion_list(category_id, brand_id, location_id, url, is_enabled_stock, repair_model_id);
+                return;
+            }
+            window.__vspos_suggest_auto = 0;
             if (reqPage === 1) {
                 $items_container.html(vsposSuggestErrorHtml());
             } else {
@@ -3165,9 +3229,12 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
 
 $(document).on('click', '#vspos_retry_products', function (e) {
     e.preventDefault();
+    window.__vspos_suggest_auto = 0;
+    window.__vspos_suggest_retrying = false;
     window.__vspos_suggest_ignore_scroll = true;
     window.__vspos_suggest_end = false;
     window.__vspos_suggest_recovered = false;
+    window.__vspos_suggest_loading = false;
     $('input#suggestion_page').val(1);
     var ctx = vsposSuggestionContext();
     get_product_suggestion_list(

@@ -872,6 +872,16 @@ class ProductUtil extends Util
             DB::raw('(SELECT purchase_price_inc_tax FROM purchase_lines WHERE 
                         variation_id=variations.id ORDER BY id DESC LIMIT 1) as last_purchased_price'),
         ];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'size')) {
+            $select[] = 'p.size as catalog_size';
+        } else {
+            $select[] = DB::raw('NULL as catalog_size');
+        }
+        if (\Illuminate\Support\Facades\Schema::hasColumn('products', 'color')) {
+            $select[] = 'p.color as catalog_color';
+        } else {
+            $select[] = DB::raw('NULL as catalog_color');
+        }
         if ($has_supplier_col) {
             $select[] = 'p.supplier_id';
             $select[] = DB::raw("IF(product_supplier.supplier_business_name IS NULL OR product_supplier.supplier_business_name = '', product_supplier.name, product_supplier.supplier_business_name) as supplier_name");
@@ -2306,6 +2316,8 @@ class ProductUtil extends Util
             ? (bool) $opts['has_tyre_note']
             : \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_note');
         $include_brand = array_key_exists('include_brand', $opts) ? (bool) $opts['include_brand'] : true;
+        $has_catalog_size = \Illuminate\Support\Facades\Schema::hasColumn('products', 'size');
+        $has_catalog_color = \Illuminate\Support\Facades\Schema::hasColumn('products', 'color');
 
         $industry_search = $opts['industry_search_fields'] ?? null;
         if ($industry_search === null) {
@@ -2327,7 +2339,7 @@ class ProductUtil extends Util
             $tokens = [$search_term];
         }
 
-        $applyOne = function ($q, $term) use ($p, $v, $search_fields, $search_type, $has_tyre_size, $has_tyre_note, $include_brand, $industry_search, $tyre_search) {
+        $applyOne = function ($q, $term) use ($p, $v, $search_fields, $search_type, $has_tyre_size, $has_tyre_note, $include_brand, $industry_search, $tyre_search, $has_catalog_size, $has_catalog_color) {
             $first = true;
             $add = function ($column, $exact = false) use (&$first, $q, $term, $search_type) {
                 if ($search_type === 'exact' || $exact) {
@@ -2380,6 +2392,12 @@ class ProductUtil extends Util
             }
             if ($include_brand) {
                 $add('brands.name');
+            }
+            if ($has_catalog_size) {
+                $add($p.'.size');
+            }
+            if ($has_catalog_color) {
+                $add($p.'.color');
             }
             // Variation name (variable products)
             $add($v.'.name');

@@ -232,6 +232,13 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'brands']
                             );
                         }
+                        if (auth()->user()->can('product.view') || auth()->user()->can('product.create')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\SizeController::class, 'index']),
+                                __('size.sizes'),
+                                ['icon' => '', 'active' => request()->segment(1) == 'sizes']
+                            );
+                        }
 
                         if (! empty($common_settings['enable_product_warranty'])) {
                             $sub->url(

@@ -252,6 +252,7 @@
             break-inside: avoid;
         }
         .label-inner {
+            position: relative;
             width: 100%;
             height: 100%;
             padding: var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l);
@@ -347,8 +348,11 @@
             margin-top: 0.2mm;
             max-width: 100%;
             overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
+            white-space: normal;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             line-height: 1.05;
             font-size: var(--sku-size, 8px);
             font-weight: 700;
@@ -495,6 +499,35 @@
             text-overflow: ellipsis;
             letter-spacing: 0;
         }
+        .live-preview-zoom .label [data-el] { cursor: pointer; touch-action: none; }
+        .live-preview-zoom .label [data-el].is-selected {
+            outline: 1px solid #2563eb;
+            outline-offset: 1px;
+            border-radius: 1px;
+        }
+        .label-editor { margin-top: 10px; }
+        .label-editor [hidden] { display: none !important; }
+        .label-editor p { margin: 0 0 8px; font-size: 12px; color: #94a3b8; }
+        .label-editor .editor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .label-editor .editor-field { min-width: 0; }
+        .label-editor .editor-field input,
+        .label-editor .editor-field select { max-width: none; }
+        .label-editor .editor-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+        .label-editor .editor-note { font-size: 11px; color: #fde68a; margin-top: 6px; }
+        html[data-vspos-theme="light"] .label-editor p { color: #4b5563; }
+        html[data-vspos-theme="light"] .label-editor .editor-note { color: #92400e; }
+        @media (max-width: 720px) {
+            .toolbar { padding: 10px; }
+            .panel { flex: 1 1 100%; }
+            .actions button { padding: 10px 12px; }
+        }
+        @media print {
+            .label [data-el].is-selected { outline: none !important; }
+        }
     </style>
     @php
         $printRotate = (string) ($pageBox['rotate'] ?? '0');
@@ -608,6 +641,57 @@
                 </div>
                 <p class="live-preview-meta" id="live_preview_meta"></p>
                 <p class="print-orient-note" id="print_orient_note"></p>
+                <div class="label-editor no-print" id="label_editor">
+                    <p>@lang('lang_v1.label_editor_hint')</p>
+                    <div class="editor-grid">
+                        <label class="field editor-field">
+                            <span>@lang('lang_v1.label_editor_which')</span>
+                            <select id="editor_row" form="qpos_label_editor_off"></select>
+                        </label>
+                        <label class="field editor-field">
+                            <span>@lang('lang_v1.label_editor_selected')</span>
+                            <select id="editor_pick" form="qpos_label_editor_off"></select>
+                        </label>
+                        <label class="field editor-field" id="editor_text_wrap">
+                            <span id="editor_text_label">@lang('lang_v1.label_editor_text')</span>
+                            <input type="text" id="editor_text" form="qpos_label_editor_off" maxlength="120" autocomplete="off">
+                        </label>
+                        <label class="field editor-field" id="editor_choice_wrap" hidden>
+                            <span id="editor_choice_label">@lang('product.size')</span>
+                            <select id="editor_choice" form="qpos_label_editor_off"></select>
+                        </label>
+                        <label class="field editor-field">
+                            <span>@lang('lang_v1.font_sizes_px')</span>
+                            <input type="number" id="editor_font_size" form="qpos_label_editor_off" min="5" max="36" step="1">
+                        </label>
+                        <label class="field editor-field">
+                            <span>@lang('lang_v1.label_editor_weight')</span>
+                            <select id="editor_weight" form="qpos_label_editor_off">
+                                <option value="">@lang('lang_v1.label_editor_inherit')</option>
+                                <option value="400">Regular</option>
+                                <option value="700">Bold</option>
+                                <option value="800">Extra bold</option>
+                                <option value="900">Black</option>
+                            </select>
+                        </label>
+                        <label class="field editor-field">
+                            <span>@lang('lang_v1.label_align')</span>
+                            <select id="editor_align" form="qpos_label_editor_off">
+                                <option value="">@lang('lang_v1.label_editor_inherit')</option>
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </label>
+                        <label class="checks" style="align-self:end;">
+                            <input type="checkbox" id="editor_show" form="qpos_label_editor_off"> @lang('lang_v1.label_editor_show')
+                        </label>
+                    </div>
+                    <div class="editor-actions">
+                        <button type="button" class="btn-close" id="editor_reset" form="qpos_label_editor_off">@lang('lang_v1.label_reset_position')</button>
+                    </div>
+                    <p class="editor-note" id="editor_note"></p>
+                </div>
             </div>
             <div class="panel">
                 <h2>@lang('lang_v1.label_size')</h2>
@@ -837,6 +921,8 @@
             </label>
             <input type="hidden" name="profile_id" id="opt_profile_id" value="">
             <input type="hidden" name="delete_profile_id" id="opt_delete_profile" value="">
+            <input type="hidden" name="element_layout" id="element_layout" value="{{ $opts['element_layout'] ?? '{}' }}">
+            <input type="hidden" name="label_overrides" id="label_overrides" value="">
             <button type="button" class="btn-save" id="btn_save_profile">@lang('lang_v1.label_save_profile')</button>
             <button type="button" class="btn-close" id="btn_delete_profile">@lang('lang_v1.label_delete_profile')</button>
             <button type="button" class="btn-close" id="btn_restore">@lang('lang_v1.label_restore_defaults')</button>
@@ -857,6 +943,7 @@
         @endforeach
     </div>
 
+    <script src="{{ asset('js/browser-label-editor.js') }}?v=3"></script>
     <script>
     (function () {
         var STORAGE_KEY = 'qpos_browser_label_layout_v2';
@@ -868,6 +955,7 @@
             var n = parseInt(el.value, 10);
             if (!v || isNaN(n)) return;
             root.style.setProperty(v, n + 'px');
+            if (window.QposLabelEditor) window.QposLabelEditor.noteFont(v, n);
         }
         document.querySelectorAll('.live-font').forEach(function (el) {
             el.addEventListener('input', function () { onFont(el); });
@@ -877,6 +965,7 @@
             function onWeight() {
                 var v = el.getAttribute('data-var');
                 if (v) root.style.setProperty(v, String(parseInt(el.value, 10) || 400));
+                if (window.QposLabelEditor) window.QposLabelEditor.noteWeight(v, String(parseInt(el.value, 10) || 400));
             }
             el.addEventListener('change', onWeight);
             onWeight();
@@ -994,6 +1083,7 @@
                 + '.label{width:' + w + 'mm !important;height:' + h + 'mm !important;max-height:' + h + 'mm !important;margin:0 !important;padding:0 !important;border:0 !important;outline:none !important;box-shadow:none !important;background:#fff !important;overflow:hidden !important;position:relative !important;page-break-after:auto !important;break-after:auto !important;}'
                 + '.label-shift{position:relative;width:100%;height:100%;transform:translate(var(--shift-x),var(--shift-y));}'
                 + '.label-inner{box-sizing:border-box !important;background:#fff !important;overflow:hidden !important;padding:var(--pad-t) var(--pad-r) var(--pad-b) var(--pad-l) !important;}'
+                + '.label [data-el].is-selected{outline:none !important;}'
                 + '.label .barcode-wrap img{filter:contrast(1.35) brightness(0.9);-webkit-filter:contrast(1.35) brightness(0.9);}'
                 + '}';
             var tag = document.getElementById('label-print-css');
@@ -1173,10 +1263,14 @@
             writePrintCss();
         }
 
-        window.addEventListener('beforeprint', applyShotsForPrint);
+        window.addEventListener('beforeprint', function () {
+            if (window.QposLabelEditor) window.QposLabelEditor.preparePrint();
+            applyShotsForPrint();
+        });
         window.addEventListener('afterprint', restoreAfterPrint);
 
         if (printBtn) printBtn.addEventListener('click', function () {
+            if (window.QposLabelEditor) window.QposLabelEditor.preparePrint();
             writePrintCss();
             refreshShots().then(function () {
                 applyShotsForPrint();
@@ -1191,8 +1285,8 @@
             var barEl = document.getElementById('opt_bc_bar');
             var heightEl = document.getElementById('opt_bc_h');
             var seen = {};
-            document.querySelectorAll('.label[data-sku]').forEach(function (lab) {
-                var sku = lab.getAttribute('data-sku') || '';
+            document.querySelectorAll('.label[data-barcode], .label[data-sku]').forEach(function (lab) {
+                var sku = lab.getAttribute('data-barcode') || lab.getAttribute('data-sku') || '';
                 if (!sku || seen[sku]) return;
                 seen[sku] = true;
                 var body = new URLSearchParams();
@@ -1214,10 +1308,21 @@
                     return response.ok ? response.json() : null;
                 }).then(function (result) {
                     if (!result || !result.success || !result.png) return;
-                    document.querySelectorAll('.label[data-sku]').forEach(function (el) {
-                        if (el.getAttribute('data-sku') !== sku) return;
-                        var img = el.querySelector('.js-barcode');
-                        if (img) img.src = 'data:image/png;base64,' + result.png;
+                    document.querySelectorAll('.label').forEach(function (el) {
+                        var code = el.getAttribute('data-barcode') || el.getAttribute('data-sku') || '';
+                        if (code !== sku) return;
+                        var wrap = el.querySelector('[data-el="barcode"]');
+                        if (!wrap) return;
+                        var img = wrap.querySelector('.js-barcode');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.className = 'js-barcode';
+                            img.alt = sku;
+                            wrap.appendChild(img);
+                        }
+                        img.src = 'data:image/png;base64,' + result.png;
+                        var show = document.querySelector('.live-toggle[data-target=".barcode-wrap"]');
+                        if (show && show.checked) wrap.style.display = '';
                     });
                 }).catch(function () {});
             });
@@ -1226,6 +1331,7 @@
             clearTimeout(barcodeTimer);
             barcodeTimer = setTimeout(refreshBarcodeImages, 250);
         }
+        window.qposRefreshLabelBarcodes = scheduleBarcodeRefresh;
         ['opt_barcode_format', 'opt_bc_bar', 'opt_bc_h'].forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) return;
@@ -1292,6 +1398,7 @@
         syncAttrLines();
 
         function collectLayout() {
+            if (window.QposLabelEditor) window.QposLabelEditor.syncFields();
             var data = {};
             if (!form) return data;
             var fd = new FormData(form);
@@ -1320,6 +1427,7 @@
             delete data.profile_name;
             delete data.profile_id;
             delete data.delete_profile_id;
+            delete data.label_overrides;
             return data;
         }
 
@@ -1392,6 +1500,7 @@
             var preset = PRESETS[presetEl.value];
             if (!preset) return;
             Object.keys(preset).forEach(function (key) { setNamed(key, preset[key]); });
+            if (window.QposLabelEditor) window.QposLabelEditor.clearPositions();
             syncLabelSize();
         });
 
@@ -1544,6 +1653,31 @@
                         HTMLFormElement.prototype.submit.call(form);
                     }, 600);
                 });
+            });
+        }
+
+        if (window.QposLabelEditor) {
+            window.QposLabelEditor.init({
+                captions: {
+                    biz: @json(__('business.business_name')),
+                    name: @json(__('product.product_name')),
+                    size: @json(__('product.size')),
+                    color: @json(__('product.color')),
+                    barcode: 'Barcode',
+                    sku: 'SKU',
+                    price: @json(__('lang_v1.price')),
+                    costcode: @json($costcodeLabel),
+                    brand: @json(__('product.brand')),
+                    category: @json(__('product.category'))
+                },
+                notes: {
+                    price: @json(__('lang_v1.label_price_only_note')),
+                    move: @json(__('lang_v1.label_editor_move_hint')),
+                    choice: @json(__('lang_v1.label_editor_choice_hint')),
+                    none: @json(__('lang_v1.label_editor_none'))
+                },
+                getRotation: currentRot,
+                fitPreview: fitPreview
             });
         }
     })();

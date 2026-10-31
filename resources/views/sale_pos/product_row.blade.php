@@ -55,6 +55,7 @@
 					<span class="vspos-line-name">{!! $product_name !!}</span>
 				@endif
 				<div class="vspos-line-sku">{{ $product_sku_brand }}@if($product->enable_stock) · {{ @num_format($product->qty_available) }} {{$product->unit}}@endif</div>
+				@include('sale_pos.partials.line_size_color')
 			</div>
 		</div>
 

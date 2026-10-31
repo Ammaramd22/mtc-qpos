@@ -54,6 +54,7 @@ use App\Http\Controllers\SellController;
 use App\Http\Controllers\SellingPriceGroupController;
 use App\Http\Controllers\SellPosController;
 use App\Http\Controllers\SellReturnController;
+use App\Http\Controllers\SizeController;
 use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\TaxonomyController;
@@ -166,6 +167,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/user/update-login-pin', [UserController::class, 'updateLoginPin'])->name('user.updateLoginPin');
 
     Route::resource('brands', BrandController::class);
+
+    Route::resource('sizes', SizeController::class);
 
     Route::resource('payment-account', 'PaymentAccountController');
 

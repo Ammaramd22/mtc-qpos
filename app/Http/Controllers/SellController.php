@@ -982,7 +982,11 @@ class SellController extends Controller
                             'units.id as unit_id',
                             'transaction_sell_lines.sub_unit_id',
                             'transaction_sell_lines.so_line_id',
-                            DB::raw('vld.qty_available + transaction_sell_lines.quantity AS qty_available')
+                            DB::raw('vld.qty_available + transaction_sell_lines.quantity AS qty_available'),
+                            \Illuminate\Support\Facades\Schema::hasColumn('products', 'size') ? 'p.size as catalog_size' : DB::raw('NULL as catalog_size'),
+                            \Illuminate\Support\Facades\Schema::hasColumn('products', 'color') ? 'p.color as catalog_color' : DB::raw('NULL as catalog_color'),
+                            \Illuminate\Support\Facades\Schema::hasColumn('transaction_sell_lines', 'line_size') ? 'transaction_sell_lines.line_size' : DB::raw('NULL as line_size'),
+                            \Illuminate\Support\Facades\Schema::hasColumn('transaction_sell_lines', 'line_color') ? 'transaction_sell_lines.line_color' : DB::raw('NULL as line_color')
                         )
                         ->get();
 

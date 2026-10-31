@@ -1022,7 +1022,7 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <script src="{{ asset('js/pos-receipt-return.js?v=' . $asset_v) }}"></script>
-    <script src="{{ asset('js/pos.js?v=' . $asset_v) }}"></script>
+    <script src="{{ asset('js/pos.js?v=' . $asset_v . '-posload1') }}"></script>
     <script src="{{ asset('js/pos-stock-alert.js?v=' . $asset_v) }}"></script>
     <script src="{{ asset('js/pos-loyalty.js?v=' . $asset_v) }}"></script>
     <script src="{{ asset('js/pos-quick-entry.js?v=' . $asset_v) }}"></script>

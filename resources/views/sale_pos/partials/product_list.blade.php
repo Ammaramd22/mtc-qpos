@@ -11,17 +11,27 @@
 	@php
 		$retail_price = isset($product->retail_price_baseline) ? $product->retail_price_baseline : $product->selling_price;
 		$group_price_map = [];
-		if (!empty($product->group_prices)) {
+		if (isset($product->pos_group_price_map) && is_array($product->pos_group_price_map)) {
+			$group_price_map = $product->pos_group_price_map;
+		} elseif (!empty($product->group_prices)) {
 			foreach ($product->group_prices as $group_price) {
 				if (array_key_exists($group_price->price_group_id, $allowed_group_prices)) {
-					$group_price_map[(string) $group_price->price_group_id] = (float) $group_price->calculated_price;
+					$price_inc = $group_price->price_inc_tax;
+					$group_price_map[(string) $group_price->price_group_id] = (float) $price_inc;
 				}
 			}
 		}
 		$display_price = $product->selling_price;
+		$card_image = !empty($product->pos_card_image) ? $product->pos_card_image : asset('/img/default.png');
 		$list_size = trim((string) ($product->product_size ?? ''));
 		$list_color = trim((string) ($product->product_color ?? ''));
 		$list_category = trim((string) ($product->category_name ?? ''));
+		$list_variant = trim($list_size.($list_size !== '' && $list_color !== '' ? ' · ' : '').$list_color);
+		$card_title = \App\Product::formatNameWithTyreSize($product->name, $product->tyre_size ?? null);
+		if ($product->type == 'variable') {
+			$card_title .= ' - '.$product->variation;
+		}
+		$card_title .= ' ('.$product->sub_sku.')';
 	@endphp
 	<div class="col-md-3 col-xs-4 no-print !tw-px-[3px]">
 		<div class="product_box tw-w-full tw-mb-1 tw-text-center tw-cursor-pointer tw-font-semibold tw-bg-white tw-rounded-lg tw-p-1 tw-border tw-border-[#e5e7eb] tw-shadow-[0_1px_3px_rgba(0,0,0,0.06)] tw-transition-all tw-duration-150 hover:-tw-translate-y-px hover:tw-shadow-[0_4px_12px_rgba(0,0,0,0.1)] active:tw-scale-[0.97] @if(empty($for_pop) && $product->enable_stock && $product->qty_available <= 0) product_out_of_stock !tw-bg-[#f3f4f6] tw-opacity-60 @endif"
@@ -43,18 +53,10 @@
 			data-category="{{ $list_category }}"
 			data-size="{{ $list_size }}"
 			data-color="{{ $list_color }}"
-			title="{{ \App\Product::formatNameWithTyreSize($product->name, $product->tyre_size ?? null) }} @if($product->type == 'variable')- {{$product->variation}} @endif {{ '(' . $product->sub_sku . ')'}} @if(!empty($show_prices)) @lang('lang_v1.default') - @format_currency($retail_price) @foreach($group_price_map as $gid => $gprice) @if(array_key_exists($gid, $allowed_group_prices)) {{$allowed_group_prices[$gid]}} - @format_currency($gprice) @endif @endforeach @endif">
+			title="{{ $card_title }}">
 
 		<div class="image-container tw-h-[58px] tw-mx-auto tw-w-full tw-mb-[3px]"
-			style="background-image: url(
-					@if(count($product->media) > 0)
-						{{$product->media->first()->display_url}}
-					@elseif(!empty($product->product_image))
-						{{asset('/uploads/img/' . rawurlencode($product->product_image))}}
-					@else
-						{{asset('/img/default.png')}}
-					@endif
-				);
+			style="background-image: url({{ $card_image }});
 			background-repeat: no-repeat; background-position: center;
 			background-size: contain;">
 
@@ -70,6 +72,11 @@
 			<small class="text-muted">
 				({{$product->sub_sku}})
 			</small><br>
+			@if($list_variant !== '')
+			<small class="text-muted" style="font-size:10px;display:block;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ $list_variant }}">
+				{{ $list_variant }}
+			</small>
+			@endif
 			<small class="text-muted" style="font-size: 10px;">
 				@if($product->enable_stock)
 				{{ @num_format($product->qty_available) }} {{$product->unit}} @lang('lang_v1.in_stock')

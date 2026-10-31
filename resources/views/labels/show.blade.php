@@ -40,6 +40,7 @@
 					</div>
 					<p class="labels-search-status" id="labels_search_status" role="status"></p>
 					<p class="labels-search-hint">@lang('lang_v1.label_search_hint')</p>
+					<p class="labels-search-hint">@lang('lang_v1.label_choose_size_color_hint')</p>
 				</div>
 			</div>
 
@@ -236,6 +237,48 @@ html[data-vspos-theme="dark"] .labels-product-table tbody td {
 .labels-product-name { font-weight: 600; color: #111827; }
 .labels-product-variation { color: #4b5563; font-size: 12px; display: block; margin-top: 2px; }
 .labels-product-attrs { color: #1d4ed8; font-size: 12px; display: block; margin-top: 2px; }
+.labels-choice {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #374151;
+}
+.labels-choice select {
+	min-width: 120px;
+	max-width: 200px;
+	height: 32px;
+	border-radius: 6px;
+	border: 1px solid #d1d5db;
+	background: #fff;
+	color: #111827;
+	font-weight: 600;
+	padding: 0 8px;
+}
+html[data-vspos-theme="dark"] .labels-choice { color: #e2e8f0; }
+html[data-vspos-theme="dark"] .labels-choice select {
+	background: #0f172a;
+	color: #f8fafc;
+	border-color: rgba(148, 163, 184, .35);
+}
+.labels-add-combo {
+	display: inline-block;
+	margin-top: 6px;
+	border: 0;
+	background: transparent;
+	color: #1d4ed8;
+	font-size: 12px;
+	font-weight: 700;
+	padding: 0;
+	cursor: pointer;
+}
+html[data-vspos-theme="dark"] .labels-add-combo { color: #7dd3fc; }
+@media (max-width: 640px) {
+	.labels-choice { flex-wrap: wrap; }
+	.labels-choice select { max-width: 100%; width: 100%; }
+}
 html[data-vspos-theme="dark"] .labels-product-name { color: #f8fafc; }
 html[data-vspos-theme="dark"] .labels-product-variation { color: #94a3b8; }
 html[data-vspos-theme="dark"] .labels-product-attrs { color: #7dd3fc; }
@@ -338,7 +381,7 @@ html[data-vspos-theme="dark"] .labels-remove-row:hover { background: rgba(248, 1
 		window.qposBrowserLabelLayout = @json($browser_label_layout ?? []);
 	</script>
 	{{-- Cache-bust: Cloudflare/LiteSpeed cache JS for 7 days; unique query forces fresh file --}}
-	<script src="{{ asset('js/labels.js?v=' . $asset_v . '-labelsearch1-lt1') }}"></script>
+	<script src="{{ asset('js/labels.js?v=' . $asset_v . '-labelsearch1-lt2') }}"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
 			var $tip = $('.labels-info-tip');

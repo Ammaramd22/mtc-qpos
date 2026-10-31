@@ -161,8 +161,8 @@ var badNextPage = planOf({
 });
 assert.strictEqual(badNextPage.action, 'rewind');
 
-var loader = sliceBetween(posJs, 'function vsposSuggestLoadingHtml()', 'function vsposSuggestErrorHtml()');
-var errorHtml = sliceBetween(posJs, 'function vsposSuggestErrorHtml()', 'function vsposSuggestionItems()');
+var loader = sliceBetween(posJs, 'function vsposSuggestLoadingHtml()', 'function vsposSuggestErrorHtml');
+var errorHtml = sliceBetween(posJs, 'function vsposSuggestErrorHtml', 'function vsposSuggestIsLoginHtml');
 assert.ok(loader.indexOf('Loading products...') !== -1);
 assert.ok(loader.indexOf('no_products_found') === -1, 'loading markup is not the empty state');
 assert.ok(errorHtml.indexOf('Could not load products.') !== -1);
@@ -177,6 +177,9 @@ assert.ok(fetchFn.indexOf("plan.action === 'replace'") !== -1);
 assert.ok(fetchFn.indexOf("plan.action === 'append'") !== -1);
 assert.ok(fetchFn.indexOf('vsposSuggestErrorHtml()') !== -1);
 assert.ok(fetchFn.indexOf('pageSize: 50') !== -1);
+assert.ok(fetchFn.indexOf('cache: false') !== -1, 'product requests are not served from the browser cache');
+assert.ok(fetchFn.indexOf('timeout: 45000') !== -1);
+assert.ok(fetchFn.indexOf('__vspos_suggest_retrying') !== -1, 'a failed load is retried once');
 
 var scrollFn = sliceBetween(posJs, 'function vsposBindSuggestionScroll()', 'vsposBindSuggestionScroll();');
 assert.ok(scrollFn.indexOf('vsposSuggestShouldLoadNext') !== -1);
