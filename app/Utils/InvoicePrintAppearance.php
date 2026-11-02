@@ -55,9 +55,9 @@ class InvoicePrintAppearance
         $skin = self::skinFromLayout($layout);
         $output['design_skin'] = $skin;
         if ($mode === self::BLACK_WHITE) {
-            // Ink only. Filled bars that use this value are lightened afterwards
-            // so thermal output is not a solid black block.
-            $output['color'] = '#111111';
+            // Pure black for thermal / monochrome printers. Template CSS keeps
+            // filled bars white with black borders so text stays readable.
+            $output['color'] = '#000000';
         } elseif (! empty($skin['use_colours']) && $skin['primary'] !== '') {
             $output['color'] = $skin['primary'];
         }
@@ -88,7 +88,40 @@ class InvoicePrintAppearance
             $html = self::decorate($html);
         }
 
-        return self::applySkin($html, $skin, $mode);
+        $html = self::applySkin($html, $skin, $mode);
+
+        // 80mm thermal templates must print pure black regardless of theme /
+        // designer accent colours (physical printers are monochrome).
+        return self::thermalInk($html);
+    }
+
+    /**
+     * Force high-contrast black ink on Classic 80mm thermal markup.
+     * Safe to call for every receipt — only affects .t80 nodes.
+     */
+    public static function thermalInk(string $html): string
+    {
+        if (! preg_match('/class=(["\'])[^"\']*\bt80\b/i', $html)) {
+            return $html;
+        }
+
+        $css = '<style id="qpos-thermal-ink">'
+            .'.t80,.t80 *,.qpos-design-skin .t80,.qpos-design-skin .t80 *,'
+            .'.qpos-print-bw .t80,.qpos-print-bw .t80 *{'
+            .'color:#000 !important;}'
+            .'.t80,.qpos-design-skin .t80,.qpos-print-bw .t80{'
+            .'background:#fff !important;}'
+            .'.t80 .t80-bar,.t80 .t80-pay,.t80 .t80-pay-head,.t80 .t80-party,'
+            .'.t80 .t80-save,.t80 .t80-pay-row.is-change,'
+            .'.qpos-design-skin .t80 .t80-bar,.qpos-design-skin .t80 .t80-pay,'
+            .'.qpos-design-skin .t80 .t80-pay-head,.qpos-design-skin .t80 .t80-party,'
+            .'.qpos-design-skin .t80 .t80-save{'
+            .'background:#fff !important;background-color:#fff !important;'
+            .'color:#000 !important;border-color:#000 !important;}'
+            .'.t80 .rcpt-cur{font-style:normal !important;font-family:Arial,Helvetica,sans-serif !important;}'
+            .'</style>';
+
+        return $html.$css;
     }
 
     /**
@@ -100,18 +133,29 @@ class InvoicePrintAppearance
     {
         $html = self::rewriteColours($html);
         $css = '<style id="qpos-print-bw">'
-            .'.qpos-print-bw{background:#fff !important;color:#111 !important;}'
-            .'.qpos-print-bw img{filter:grayscale(1) contrast(1.25);-webkit-filter:grayscale(1) contrast(1.25);}'
+            .'.qpos-print-bw,.qpos-print-bw *{background-color:transparent;}'
+            .'.qpos-print-bw{background:#fff !important;color:#000 !important;}'
+            .'.qpos-print-bw,.qpos-print-bw p,.qpos-print-bw span,.qpos-print-bw td,'
+            .'.qpos-print-bw th,.qpos-print-bw div,.qpos-print-bw strong,.qpos-print-bw b,'
+            .'.qpos-print-bw label,.qpos-print-bw small{color:#000 !important;}'
+            .'.qpos-print-bw img{filter:grayscale(1) contrast(1.35);-webkit-filter:grayscale(1) contrast(1.35);}'
+            /* A4 / A5 table headers stay lightly shaded for screen+laser; thermal .t80 stays white */
             .'.qpos-print-bw .a4-badge,'
             .'.qpos-print-bw .a4-pay-head,'
             .'.qpos-print-bw .a4-inv table.a4-lines thead th,'
             .'.qpos-print-bw .a5-sheet table.a4-lines thead th,'
             .'.qpos-print-bw .a5-sheet .a4-pay-head,'
             .'.qpos-print-bw .a5-sheet .a4-badge,'
-            .'.qpos-print-bw .t80-bar,'
-            .'.qpos-print-bw .t80-pay-head,'
             .'.qpos-print-bw thead th{'
-            .'background:#e6e6e6 !important;background-color:#e6e6e6 !important;color:#111 !important;border-color:#222 !important;}'
+            .'background:#e8e8e8 !important;background-color:#e8e8e8 !important;color:#000 !important;border-color:#000 !important;}'
+            .'.qpos-print-bw .t80,'
+            .'.qpos-print-bw .t80 .t80-bar,'
+            .'.qpos-print-bw .t80 .t80-pay,'
+            .'.qpos-print-bw .t80 .t80-pay-head,'
+            .'.qpos-print-bw .t80 .t80-party,'
+            .'.qpos-print-bw .t80 .t80-save,'
+            .'.qpos-print-bw .t80 .t80-pay-row.is-change{'
+            .'background:#fff !important;background-color:#fff !important;color:#000 !important;border-color:#000 !important;}'
             .'.qpos-print-bw .a4-inv .a4-pay-row.is-change .a4-pay-method,'
             .'.qpos-print-bw .a4-inv .a4-pay-row.is-change .a4-pay-amt,'
             .'.qpos-print-bw .a5-sheet .a4-pay-row.is-change .a4-pay-method,'
@@ -120,12 +164,16 @@ class InvoicePrintAppearance
             .'.qpos-print-bw .t80 .t80-pay-row.is-change .t80-pay-amt,'
             .'.qpos-print-bw .t80 .t80-tag,'
             .'.qpos-print-bw .t80 .t80-pay-meta,'
+            .'.qpos-print-bw .t80 .t80-meta,'
+            .'.qpos-print-bw .t80 .t80-row .l,'
+            .'.qpos-print-bw .t80 .t80-item-sub,'
+            .'.qpos-print-bw .t80 .t80-totals .lab,'
             .'.qpos-print-bw .a4-inv .a4-item-sub,'
             .'.qpos-print-bw .a4-inv .a4-item-repair-meta,'
             .'.qpos-print-bw .a5-sheet .a4-item-sub,'
             .'.qpos-print-bw .a5-sheet .a4-item-repair-meta,'
             .'.qpos-print-bw .a4-foot,'
-            .'.qpos-print-bw .t80-foot{color:#222 !important;}'
+            .'.qpos-print-bw .t80-foot{color:#000 !important;}'
             .'</style>';
 
         return '<div class="qpos-print-bw">'.$html.$css.'</div>';
@@ -134,30 +182,45 @@ class InvoicePrintAppearance
     private static function rewriteColours(string $html): string
     {
         $replacements = [
-            '#357ca5' => '#dcdcdc',
-            '#2d2360' => '#dcdcdc',
-            '#eae7f2' => '#f3f3f3',
-            '#1e3a5f' => '#222222',
-            '#1a3a4a' => '#111111',
-            '#b45309' => '#222222',
-            '#b91c1c' => '#222222',
-            '#64748b' => '#333333',
-            '#6b7280' => '#333333',
-            '#e5e7eb' => '#bdbdbd',
-            '#d1d5db' => '#9a9a9a',
+            '#357ca5' => '#000000',
+            '#2d2360' => '#000000',
+            '#eae7f2' => '#ffffff',
+            '#f7f8fa' => '#ffffff',
+            '#f8fafc' => '#ffffff',
+            '#1e3a5f' => '#000000',
+            '#1a3a4a' => '#000000',
+            '#b45309' => '#000000',
+            '#b91c1c' => '#000000',
+            '#64748b' => '#000000',
+            '#6b7280' => '#000000',
+            '#555555' => '#000000',
+            '#555' => '#000000',
+            '#333333' => '#000000',
+            '#333' => '#000000',
+            '#222222' => '#000000',
+            '#222' => '#000000',
+            '#111111' => '#000000',
+            '#111' => '#000000',
+            '#e5e7eb' => '#000000',
+            '#d1d5db' => '#000000',
+            '#bbbbbb' => '#000000',
+            '#bbb' => '#000000',
         ];
         foreach ($replacements as $from => $to) {
             $html = preg_replace('/'.preg_quote($from, '/').'\b/i', $to, $html);
         }
 
-        // Solid near-black fills (accent used as a bar) become light gray.
-        // Borders that use the same hex are left dark so lines stay visible.
-        $html = preg_replace('/background(-color)?\s*:\s*#111111\b/i', 'background$1:#e6e6e6', $html);
+        // Soft fills used as section backgrounds stay white on thermal/B&W.
+        $html = preg_replace(
+            '/background(-color)?\s*:\s*(?:#e6e6e6|#e8e8e8|#dcdcdc|#f3f3f3)\b/i',
+            'background$1:#ffffff',
+            $html
+        );
 
-        // White ink that sat on those bars.
+        // White ink on former coloured bars → solid black text.
         $html = preg_replace(
             '/color\s*:\s*(?:white|#fff|#ffffff)\b\s*(?:!important)?/i',
-            'color:#111111 !important',
+            'color:#000000 !important',
             $html
         );
 

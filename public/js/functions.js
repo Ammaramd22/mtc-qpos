@@ -606,13 +606,19 @@ function __vspos_print_html_immediate(html, paperWidth, onComplete, beforePrint)
     }
     window.__vspos_pp_paper = profile;
     window.__vspos_pp_paper_width = profile.width;
-    var pad = profile.thermal ? (profile.width === 58 ? '1.5mm 1.2mm 2.5mm' : '2mm 2mm 3mm') : '0';
+    // Templates (.t80 / .ticket) already include their own padding — avoid double inset.
+    var pad = '0';
     var pageSize = profile.key === 'a5'
         ? 'A5 landscape'
         : (profile.height ? (profile.page || (profile.width + 'mm ' + profile.height + 'mm')) : (profile.width + 'mm auto'));
     var bodySize = profile.key === 'a5'
         ? 'width:210mm;max-width:210mm;height:148mm;overflow:hidden;'
-        : ('width:' + profile.width + 'mm;max-width:' + profile.width + 'mm;');
+        : ('width:' + profile.width + 'mm;max-width:' + profile.width + 'mm;overflow:visible;');
+    var thermalCss = profile.thermal
+        ? ('.t80,.ticket{width:' + profile.width + 'mm!important;max-width:' + profile.width + 'mm!important;margin:0 auto!important;}' +
+           '.t80,.t80 *,.ticket,.ticket *{color:#000!important;}' +
+           '.t80 .t80-bar,.t80 .t80-pay,.t80 .t80-pay-head,.t80 .t80-party,.t80 .t80-save{background:#fff!important;border-color:#000!important;}')
+        : '';
     var doc = frame.contentDocument || frame.contentWindow.document;
     doc.open();
     doc.write(
@@ -620,10 +626,11 @@ function __vspos_print_html_immediate(html, paperWidth, onComplete, beforePrint)
         '<title>Print</title>' +
         '<style>' +
         '@page{size:' + pageSize + ';margin:0}' +
-        'html,body{margin:0;padding:0;background:#fff}' +
-        'body{' + bodySize + 'padding:' + pad + ';box-sizing:border-box}' +
+        'html,body{margin:0;padding:0;background:#fff;color:#000}' +
+        'body{' + bodySize + 'padding:' + pad + ';box-sizing:border-box;background:#fff;color:#000}' +
         '.row{margin-left:0!important;margin-right:0!important;}' +
         '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        thermalCss +
         '</style></head><body>' + html + '</body></html>'
     );
     doc.close();
@@ -651,15 +658,17 @@ function __vspos_print_preview_to_printer(onComplete, beforePrint) {
     }
     var profile = window.__vspos_pp_paper || __vspos_paper_profile(content, window.__vspos_pp_paper_width, null, null);
     var mm = profile.width;
-    var pad = profile.thermal ? (mm === 58 ? '1.5mm 1.2mm 2.5mm' : '2mm 2mm 3mm') : '0';
     var fs = profile.thermal ? (mm === 58 ? '10px' : '11px') : '12px';
     var pageSize = profile.key === 'a5'
         ? 'A5 landscape'
         : (profile.height ? (profile.page || (mm + 'mm ' + profile.height + 'mm')) : (mm + 'mm auto'));
     var bodyW = mm + 'mm';
     var bodyH = profile.height ? (profile.height + 'mm') : 'auto';
+    var bodyOverflow = profile.thermal ? 'visible' : 'hidden';
     var ticketRule = profile.thermal
-        ? ('.ticket{width:' + mm + 'mm;max-width:' + mm + 'mm;margin:0;padding:' + pad + ';box-sizing:border-box;overflow:hidden;}')
+        ? ('.ticket,.t80{width:' + mm + 'mm!important;max-width:' + mm + 'mm!important;margin:0 auto!important;box-sizing:border-box!important;overflow:visible!important;}' +
+           '.t80,.t80 *,.ticket,.ticket *{color:#000!important;}' +
+           '.t80 .t80-bar,.t80 .t80-pay,.t80 .t80-pay-head,.t80 .t80-party,.t80 .t80-save{background:#fff!important;border-color:#000!important;}')
         : ('.ticket{width:100%;max-width:100%;margin:0;padding:0;box-sizing:border-box;}');
     var sheetRule = profile.key === 'a5'
         ? 'html,body{width:210mm!important;height:148mm!important;overflow:hidden!important;}'
@@ -668,8 +677,8 @@ function __vspos_print_preview_to_printer(onComplete, beforePrint) {
         '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title>' +
         '<style>' +
         '@page{size:' + pageSize + ';margin:0;}' +
-        'html,body{margin:0;padding:0;background:#fff;color:#111;}' +
-        'body{font-family:Arial,Helvetica,sans-serif;font-size:' + fs + ';width:' + bodyW + ';height:' + bodyH + ';overflow:hidden;box-sizing:border-box;}' +
+        'html,body{margin:0;padding:0;background:#fff;color:#000;}' +
+        'body{font-family:Arial,Helvetica,sans-serif;font-size:' + fs + ';width:' + bodyW + ';height:' + bodyH + ';overflow:' + bodyOverflow + ';box-sizing:border-box;background:#fff;color:#000;}' +
         sheetRule +
         ticketRule +
         'img{max-width:100%!important;height:auto!important;}' +
@@ -677,7 +686,7 @@ function __vspos_print_preview_to_printer(onComplete, beforePrint) {
         '.a5-sheet .a5-brand-row{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;}' +
         '.a5-sheet .a5-brand-logo{flex:0 0 40px!important;width:40px!important;max-width:40px!important;overflow:hidden!important;}' +
         '.a5-sheet .a5-brand-text{flex:1 1 auto!important;min-width:0!important;}' +
-        'table{width:100%!important;border-collapse:collapse;' + (profile.thermal ? 'table-layout:fixed!important;' : 'table-layout:fixed!important;') + '}' +
+        'table{width:100%!important;border-collapse:collapse;table-layout:fixed!important;}' +
         '.textbox-info,.flex-box,.table-info{display:flex!important;justify-content:space-between!important;gap:4px!important;width:100%!important;}' +
         '.textbox-info>p:first-child,.flex-box>p:first-child{flex:1 1 auto!important;text-align:left!important;min-width:0!important;}' +
         '.textbox-info>p:last-child,.flex-box>p:last-child{flex:0 0 auto!important;text-align:right!important;white-space:nowrap!important;}' +
@@ -686,7 +695,7 @@ function __vspos_print_preview_to_printer(onComplete, beforePrint) {
         '.row{margin-left:0!important;margin-right:0!important;}' +
         '[class*="col-"]{padding-left:4px!important;padding-right:4px!important;}' +
         '@media print{' +
-        '  html,body{width:' + bodyW + ';height:' + bodyH + ';margin:0;overflow:hidden;}' +
+        '  html,body{width:' + bodyW + ';height:' + bodyH + ';margin:0;overflow:' + bodyOverflow + ';color:#000;background:#fff;}' +
         '}' +
         '</style></head><body>' +
         content +

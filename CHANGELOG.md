@@ -1,3 +1,11 @@
+# QPOS 80mm thermal receipt fix
+
+## Fixed
+
+- Classic 80mm thermal receipts print solid black text on white paper. Grey labels, light fills, overlapping SKU ghost text, and duplicate Paid lines are corrected.
+- Browser 80mm print margins/padding no longer squeeze or clip the roll. Theme and designer accent colours do not affect thermal ink.
+- Still uses the Invoice Layout Management design (Classic 80mm / Classic 80mm Mobile). No new layout and no calculation changes.
+
 # QPOS POS product loading fix
 
 ## Fixed

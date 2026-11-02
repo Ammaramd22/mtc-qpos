@@ -1,28 +1,45 @@
-{{-- Classic 80mm — Mobile Shop (IMEI + warranty on thermal receipt) --}}
+{{-- Classic 80mm — Mobile Shop (IMEI + warranty), tuned for monochrome thermal --}}
 @include('sale_pos.receipts.partial.money_font')
+@php
+    $t80_has_payments = !empty($receipt_details->payments);
+@endphp
 <style>
 @page { size: 80mm auto; margin: 0; }
 * { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+html, body { margin: 0; padding: 0; background: #fff !important; color: #000 !important; }
 .t80 {
     width: 80mm;
     max-width: 80mm;
     margin: 0 auto;
-    padding: 3mm 2.8mm 4mm;
-    color: #111 !important;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    padding: 2.5mm 2.5mm 3.5mm;
+    color: #000 !important;
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 11px;
-    line-height: 1.35;
-    background: #fff;
+    line-height: 1.4;
+    background: #fff !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
+.t80 *,
+.t80 p,
+.t80 span,
+.t80 td,
+.t80 div {
+    color: #000 !important;
+    background-color: transparent;
+}
 .t80 p { margin: 0; }
+.t80 .rcpt-cur {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-style: normal !important;
+    font-weight: 700 !important;
+    font-size: 1em !important;
+}
 .t80 .t80-head {
     text-align: center;
     padding-bottom: 6px;
     margin-bottom: 6px;
-    border-bottom: 2.5px solid {{ $receipt_details->color ?? '#1a3a4a' }};
+    border-bottom: 2px solid #000;
 }
 .t80 .t80-logo {
     display: block;
@@ -43,22 +60,23 @@ html, body { margin: 0; padding: 0; }
     margin: 0 0 2px;
     font-size: 13px;
     font-weight: 800;
-    letter-spacing: .04em;
+    letter-spacing: .03em;
     text-transform: uppercase;
-    color: {{ $receipt_details->color ?? '#1a3a4a' }} !important;
+    color: #000 !important;
     line-height: 1.2;
 }
 .t80 .t80-tag {
     margin: 0 0 3px;
-    font-size: 8.5px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: .14em;
+    letter-spacing: .1em;
     text-transform: uppercase;
-    color: #6b7280 !important;
+    color: #000 !important;
 }
 .t80 .t80-meta {
-    font-size: 9.5px;
-    color: #333 !important;
+    font-size: 10px;
+    font-weight: 600;
+    color: #000 !important;
     line-height: 1.4;
 }
 .t80 .t80-doc {
@@ -66,96 +84,148 @@ html, body { margin: 0; padding: 0; }
     margin: 6px 0 4px;
 }
 .t80 .t80-doc-title {
-    margin: 0 0 3px;
+    margin: 0 0 4px;
     font-size: 14px;
-    font-weight: 800;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: {{ $receipt_details->color ?? '#1a3a4a' }} !important;
-}
-.t80 .t80-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 4px;
-    font-size: 10px;
-    padding: 2px 0;
-}
-.t80 .t80-row .l { font-weight: 700; color: #333 !important; }
-.t80 .t80-row .r { text-align: right; word-break: break-word; }
-.t80 .t80-party {
-    margin: 6px 0;
-    padding: 5px 6px;
-    background: #f7f8fa;
-    border: 1px solid #e5e7eb;
-    border-radius: 3px;
-}
-.t80 .t80-party-label {
-    display: block;
-    font-size: 8.5px;
     font-weight: 800;
     letter-spacing: .08em;
     text-transform: uppercase;
-    color: {{ $receipt_details->color ?? '#1a3a4a' }} !important;
+    color: #000 !important;
+}
+.t80 .t80-row {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 0;
+}
+.t80 .t80-row .l,
+.t80 .t80-row .r {
+    display: table-cell;
+    vertical-align: top;
+    color: #000 !important;
+}
+.t80 .t80-row .l {
+    width: 42%;
+    text-align: left;
+    font-weight: 700;
+}
+.t80 .t80-row .r {
+    width: 58%;
+    text-align: right;
+    word-break: break-word;
+    font-weight: 700;
+}
+.t80 .t80-party {
+    margin: 6px 0;
+    padding: 5px 0;
+    background: #fff !important;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
+.t80 .t80-party-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #000 !important;
     margin-bottom: 2px;
 }
 .t80 .t80-party-body {
-    font-size: 10px;
-    color: #222 !important;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #000 !important;
 }
 .t80 .t80-bar {
     margin: 6px 0 0;
-    padding: 4px 6px;
-    background: {{ $receipt_details->color ?? '#1a3a4a' }};
-    color: #fff !important;
-    font-size: 8.5px;
-    font-weight: 700;
+    padding: 5px 0;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 9.5px;
+    font-weight: 800;
     letter-spacing: .06em;
     text-transform: uppercase;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
 }
-.t80 .t80-bar span { float: right; }
+.t80 .t80-bar span {
+    float: right;
+    color: #000 !important;
+    font-weight: 800;
+}
 .t80 .t80-item {
-    padding: 6px 0;
-    border-bottom: 1px dotted #bbb;
+    padding: 7px 0 6px;
+    border-bottom: 1px dashed #000;
+    clear: both;
 }
 .t80 .t80-item-name {
+    display: block;
     font-size: 11px;
-    font-weight: 700;
-    color: #111 !important;
-    margin-bottom: 1px;
+    font-weight: 800;
+    color: #000 !important;
+    margin: 0 0 3px;
+    line-height: 1.3;
+    word-break: break-word;
 }
 .t80 .t80-item-sub {
-    font-size: 9px;
-    color: #555 !important;
-    margin-bottom: 3px;
+    display: block;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #000 !important;
+    margin: 0 0 4px;
+    line-height: 1.3;
+    word-break: break-word;
 }
+.t80 .t80-item-sub:empty { display: none; margin: 0; }
 .t80 .t80-item-repair-issue {
     display: block;
     font-size: 10px;
-    font-weight: 700;
-    color: #1e3a5f !important;
+    font-weight: 800;
+    color: #000 !important;
 }
 .t80 .t80-item-repair-meta {
     display: block;
-    font-size: 9px;
-    color: #555 !important;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #000 !important;
 }
 .t80 .t80-item-line {
-    display: flex;
-    justify-content: space-between;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
     font-size: 10.5px;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
+    clear: both;
+}
+.t80 .t80-item-line > span {
+    display: table-cell;
+    vertical-align: top;
+    color: #000 !important;
+}
+.t80 .t80-item-line > span:first-child {
+    text-align: left;
+    padding-right: 4px;
+}
+.t80 .t80-item-line .amt {
+    text-align: right;
+    font-weight: 800;
+    white-space: nowrap;
+    width: 28%;
 }
 .t80 .t80-item-imei {
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 700;
-    color: #1a3a4a !important;
-    margin-top: 2px;
+    color: #000 !important;
+    margin: 0 0 3px;
     word-break: break-all;
 }
 .t80 .t80-item-wty {
-    font-size: 8.5px;
-    color: #555 !important;
-    margin-top: 1px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #000 !important;
+    margin: 0 0 3px;
 }
 .t80 .t80-totals {
     width: 100%;
@@ -164,115 +234,125 @@ html, body { margin: 0; padding: 0; }
     font-size: 11px;
 }
 .t80 .t80-totals td {
-    padding: 2px 0;
-    color: #222 !important;
+    padding: 3px 0;
+    color: #000 !important;
+    font-weight: 700;
 }
-.t80 .t80-totals .lab { text-align: left; color: #555 !important; }
-.t80 .t80-totals .val { text-align: right; font-weight: 600; white-space: nowrap; }
+.t80 .t80-totals .lab { text-align: left; color: #000 !important; }
+.t80 .t80-totals .val { text-align: right; font-weight: 800; white-space: nowrap; color: #000 !important; }
 .t80 .t80-totals tr.grand td {
-    padding-top: 5px;
-    border-top: 2px solid {{ $receipt_details->color ?? '#1a3a4a' }};
+    padding-top: 6px;
+    border-top: 2px solid #000;
     font-size: 13px;
     font-weight: 800;
-    color: {{ $receipt_details->color ?? '#1a3a4a' }} !important;
+    color: #000 !important;
 }
 .t80 .t80-pay {
     margin-top: 8px;
-    border: 1.5px solid {{ $receipt_details->color ?? '#1a3a4a' }};
-    border-radius: 4px;
-    overflow: hidden;
-    font-size: 10px;
-    color: #222 !important;
+    border: 2px solid #000;
+    border-radius: 0;
+    overflow: visible;
+    font-size: 10.5px;
+    color: #000 !important;
+    background: #fff !important;
 }
 .t80 .t80-pay-head {
     display: block;
-    padding: 5px 8px;
-    background: {{ $receipt_details->color ?? '#1a3a4a' }};
-    color: #fff !important;
-    font-size: 9px;
+    padding: 5px 6px;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 9.5px;
     font-weight: 800;
-    letter-spacing: .1em;
+    letter-spacing: .08em;
     text-transform: uppercase;
+    border-bottom: 1.5px solid #000;
 }
 .t80 .t80-pay-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 6px 8px;
-    border-top: 1px dotted #d1d5db;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    padding: 6px;
+    border-top: 1px dashed #000;
 }
 .t80 .t80-pay-row:first-of-type {
     border-top: 0;
 }
 .t80 .t80-pay-row.is-change {
-    background: #f8fafc;
+    background: #fff !important;
+}
+.t80 .t80-pay-row > div {
+    display: table-cell;
+    vertical-align: top;
 }
 .t80 .t80-pay-method {
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .04em;
-    font-size: 9.5px;
-    color: #111 !important;
+    letter-spacing: .03em;
+    font-size: 10px;
+    color: #000 !important;
 }
 .t80 .t80-pay-row.is-change .t80-pay-method {
-    color: #64748b !important;
+    color: #000 !important;
 }
 .t80 .t80-pay-meta {
     display: block;
-    margin-top: 1px;
-    font-size: 8.5px;
-    font-weight: 400;
-    color: #6b7280 !important;
+    margin-top: 2px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #000 !important;
     letter-spacing: 0;
     text-transform: none;
 }
 .t80 .t80-pay-amt {
     text-align: right;
-    font-weight: 700;
+    font-weight: 800;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    color: #000 !important;
+    width: 34%;
 }
 .t80 .t80-pay-row.is-change .t80-pay-amt {
-    color: #64748b !important;
+    color: #000 !important;
 }
 .t80 .t80-save {
     margin: 8px 0 4px;
     padding: 8px 6px;
-    border: 2px solid {{ $receipt_details->color ?? '#1a3a4a' }};
-    border-radius: 4px;
+    border: 2px solid #000;
+    border-radius: 0;
     text-align: center;
+    background: #fff !important;
 }
 .t80 .t80-save .lab {
     display: block;
     font-size: 9px;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: .08em;
     text-transform: uppercase;
-    color: #555 !important;
+    color: #000 !important;
 }
 .t80 .t80-save .amt {
     display: block;
     margin-top: 1px;
     font-size: 15px;
     font-weight: 800;
-    color: {{ $receipt_details->color ?? '#1a3a4a' }} !important;
+    color: #000 !important;
 }
 .t80 .t80-foot {
     margin-top: 8px;
     padding-top: 6px;
-    border-top: 1px solid #e5e7eb;
-    font-size: 9px;
-    color: #555 !important;
+    border-top: 1px solid #000;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #000 !important;
     text-align: center;
     line-height: 1.35;
 }
 .t80 .t80-thanks {
     margin-top: 6px;
     text-align: center;
-    font-size: 10px;
-    font-weight: 700;
-    color: {{ $receipt_details->color ?? '#1a3a4a' }} !important;
+    font-size: 11px;
+    font-weight: 800;
+    color: #000 !important;
 }
 .t80 .t80-bc {
     text-align: center;
@@ -283,9 +363,23 @@ html, body { margin: 0; padding: 0; }
     height: auto;
 }
 .clear { clear: both; }
+@media print {
+    .t80, .t80 * {
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .t80 .t80-bar,
+    .t80 .t80-pay,
+    .t80 .t80-pay-head,
+    .t80 .t80-party,
+    .t80 .t80-save {
+        background: #fff !important;
+    }
+}
 </style>
 
-<div class="t80">
+<div class="t80" data-paper-width="80">
     <div class="t80-head">
         @if(!empty($receipt_details->letter_head))
             <img src="{{ $receipt_details->letter_head }}" class="t80-letterhead" alt="">
@@ -370,25 +464,35 @@ html, body { margin: 0; padding: 0; }
                     {{ $line['variation'] }}
                 @endif
             </div>
-            <div class="t80-item-sub">
-                @if(!empty($line['is_repair_line']) && !empty($line['sell_line_note']))
-                    @php
-                        $repair_note_lines = preg_split("/\r\n|\n|\r/", strip_tags($line['sell_line_note']));
-                    @endphp
+            @php
+                $t80_sub_parts = [];
+                if (!empty($line['is_repair_line']) && !empty($line['sell_line_note'])) {
+                    $repair_note_lines = preg_split("/\r\n|\n|\r/", strip_tags($line['sell_line_note']));
+                } else {
+                    $repair_note_lines = [];
+                    if (!empty($line['sub_sku'])) {
+                        $t80_sub_parts[] = $line['sub_sku'];
+                    }
+                    if (!empty($line['product_description'])) {
+                        $desc = trim(strip_tags($line['product_description']));
+                        if ($desc !== '') {
+                            $t80_sub_parts[] = $desc;
+                        }
+                    }
+                }
+            @endphp
+            @if(!empty($line['is_repair_line']) && !empty($repair_note_lines))
+                <div class="t80-item-sub">
                     @if(!empty($repair_note_lines[0]))
                         <span class="t80-item-repair-issue">{{ $repair_note_lines[0] }}</span>
                     @endif
                     @if(!empty($repair_note_lines[1]))
                         <span class="t80-item-repair-meta">{{ $repair_note_lines[1] }}</span>
                     @endif
-                @else
-                    @if(!empty($line['sub_sku'])){{ $line['sub_sku'] }}@endif
-                    @if(!empty($line['product_description']))
-                        @if(!empty($line['sub_sku'])) · @endif
-                        {!! strip_tags($line['product_description']) !!}
-                    @endif
-                @endif
-            </div>
+                </div>
+            @elseif(!empty($t80_sub_parts))
+                <div class="t80-item-sub">{{ implode(' · ', $t80_sub_parts) }}</div>
+            @endif
             @if(!empty($line['sell_line_note']) && empty($line['is_repair_line']))
             <div class="t80-item-imei">IMEI: {!! strip_tags(str_replace(["\r\n", "\n", "\r"], ', ', $line['sell_line_note'])) !!}</div>
             @endif
@@ -435,9 +539,9 @@ html, body { margin: 0; padding: 0; }
             <td class="lab">{{ strip_tags($receipt_details->total_label ?? 'Total') }}</td>
             <td class="val">{!! vspos_rcpt_money($receipt_details->total) !!}</td>
         </tr>
-        @if(!empty($receipt_details->total_paid))
+        @if(!empty($receipt_details->total_paid) && !$t80_has_payments)
         <tr>
-            <td class="lab">{{ $receipt_details->paid_label ?? 'Paid' }}</td>
+            <td class="lab">{{ $receipt_details->total_paid_label ?? $receipt_details->paid_label ?? 'Paid' }}</td>
             <td class="val">{!! vspos_rcpt_money($receipt_details->total_paid) !!}</td>
         </tr>
         @endif
@@ -445,6 +549,18 @@ html, body { margin: 0; padding: 0; }
         <tr>
             <td class="lab">{{ $receipt_details->total_due_label ?? 'Due' }}</td>
             <td class="val">{!! vspos_rcpt_money($receipt_details->total_due) !!}</td>
+        </tr>
+        @endif
+        @if(!empty($receipt_details->total_previous_due))
+        <tr>
+            <td class="lab">{{ $receipt_details->total_previous_due_label ?? 'Previous Due' }}</td>
+            <td class="val">{!! vspos_rcpt_money($receipt_details->total_previous_due) !!}</td>
+        </tr>
+        @endif
+        @if(!empty($receipt_details->all_due))
+        <tr>
+            <td class="lab">{{ $receipt_details->all_bal_label ?? 'Balance' }}</td>
+            <td class="val">{!! vspos_rcpt_money($receipt_details->all_due) !!}</td>
         </tr>
         @endif
     </table>
@@ -456,9 +572,9 @@ html, body { margin: 0; padding: 0; }
         </div>
     @endif
 
-    @if(!empty($receipt_details->payments))
+    @if($t80_has_payments)
         <div class="t80-pay">
-            <span class="t80-pay-head">{{ $receipt_details->paid_label ?? 'Payments' }}</span>
+            <span class="t80-pay-head">@lang('sale.payments')</span>
             @foreach($receipt_details->payments as $payment)
                 <div class="t80-pay-row {{ !empty($payment['is_return']) ? 'is-change' : '' }}">
                     <div>

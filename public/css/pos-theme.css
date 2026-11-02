@@ -4647,7 +4647,33 @@ body.lockscreen .vspos-mobile-imei-chip input {
 
     @page {
         size: 80mm auto;
-        margin: 4mm;
+        margin: 0;
+    }
+
+    /* Thermal receipt contrast — theme colours must not leak into print */
+    body.lockscreen .print_section .t80,
+    body.lockscreen .print_section .t80 *,
+    body.lockscreen #receipt_section .t80,
+    body.lockscreen #receipt_section .t80 *,
+    body.lockscreen .print_section .ticket,
+    body.lockscreen .print_section .ticket *,
+    body.lockscreen #receipt_section .ticket,
+    body.lockscreen #receipt_section .ticket * {
+        color: #000 !important;
+    }
+
+    body.lockscreen .print_section .t80 .t80-bar,
+    body.lockscreen .print_section .t80 .t80-pay,
+    body.lockscreen .print_section .t80 .t80-pay-head,
+    body.lockscreen .print_section .t80 .t80-party,
+    body.lockscreen .print_section .t80 .t80-save,
+    body.lockscreen #receipt_section .t80 .t80-bar,
+    body.lockscreen #receipt_section .t80 .t80-pay,
+    body.lockscreen #receipt_section .t80 .t80-pay-head,
+    body.lockscreen #receipt_section .t80 .t80-party,
+    body.lockscreen #receipt_section .t80 .t80-save {
+        background: #fff !important;
+        border-color: #000 !important;
     }
 }
 

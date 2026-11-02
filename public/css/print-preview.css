@@ -199,13 +199,32 @@
     max-width: 80mm;
     box-sizing: border-box;
     background: #fff;
-    color: #111 !important;
+    color: #000 !important;
     border-radius: 0;
     padding: 0;
     min-height: 140px;
     font-size: 11px;
     line-height: 1.35;
     overflow: visible;
+}
+.vspos-pp-paper .t80,
+.vspos-pp-paper .t80 *,
+.vspos-pp-paper .ticket,
+.vspos-pp-paper .ticket * {
+    color: #000 !important;
+}
+.vspos-pp-paper .t80 .t80-bar,
+.vspos-pp-paper .t80 .t80-pay,
+.vspos-pp-paper .t80 .t80-pay-head,
+.vspos-pp-paper .t80 .t80-party,
+.vspos-pp-paper .t80 .t80-save {
+    background: #fff !important;
+    border-color: #000 !important;
+}
+.vspos-pp-paper .t80 {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
 }
 .vspos-pp-paper-wrap.is-58mm .vspos-pp-paper,
 .vspos-pp-modal.vspos-pp-58 .vspos-pp-paper {
