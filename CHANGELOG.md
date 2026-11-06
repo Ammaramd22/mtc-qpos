@@ -1,3 +1,17 @@
+﻿# QPOS Color Management
+
+## Added
+
+- Products sidebar **Colors** section with the same add / edit / delete / usage-count workflow as Sizes.
+- Add Product and Edit Product colour field is a searchable multi-select with quick-add (+), matching Size.
+- Only colours from Color Management are offered as new suggestions. Existing product colours are preserved through migration into `colors` / `product_color`.
+- Label printing, POS display, product list, import, and export keep using the denormalized `products.color` text while links are stored in the catalog pivot.
+
+## Package
+
+- `QPOS-COLOR-MANAGEMENT-UPDATE-cPanel.zip`
+- SQL: `database/cpanel_color_catalog.sql`
+
 # QPOS 80mm thermal receipt fix
 
 ## Fixed
@@ -102,3 +116,4 @@
 - New tables: `sizes`, `product_size`, `product_colors`.
 - New optional columns on `transaction_sell_lines`: `line_size`, `line_color`.
 - `products.size` and `products.color` are widened to text and kept as the display copy (`S, M, L` and `Black, White`).
+

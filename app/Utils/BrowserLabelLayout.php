@@ -59,8 +59,8 @@ class BrowserLabelLayout
             'show_costcode' => '1',
             'show_brand' => '0',
             'show_category' => '0',
-            'show_size' => '0',
-            'show_color' => '0',
+            'show_size' => '1',
+            'show_color' => '1',
             // Per-element placement and type. Empty keeps the original flow layout.
             'element_layout' => '{}',
         ];

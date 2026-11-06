@@ -7,6 +7,7 @@ use App\Business;
 use App\Product;
 use App\SellingPriceGroup;
 use App\Utils\BrowserLabelLayout;
+use App\Utils\LabelProductSearch;
 use App\Utils\ProductSizeColor;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
@@ -30,6 +31,11 @@ class LabelsController extends Controller
      * @var array<string, bool>|null
      */
     protected $productColumnCache = null;
+
+    /**
+     * @var array<string, bool>
+     */
+    protected $tableExistsCache = [];
 
     /**
      * Constructor
@@ -102,7 +108,12 @@ class LabelsController extends Controller
             if (! empty($product_id)) {
                 $index = $request->input('row_count');
                 $products = $this->productUtil->getDetailsFromProduct($business_id, $product_id, $variation_id);
-                $products = $this->attachSizeColor($products, $business_id);
+                $products = $this->attachSizeColor(
+                    $products,
+                    $business_id,
+                    (string) $request->input('label_size', ''),
+                    (string) $request->input('label_color', '')
+                );
 
                 $price_groups = SellingPriceGroup::where('business_id', $business_id)
                                             ->active()
@@ -115,129 +126,512 @@ class LabelsController extends Controller
     }
 
     /**
-     * Suggestions for Print Labels. Does not add a product; the screen adds a row only after an explicit selection.
+     * Suggestions for Print Labels. A product is added only after an explicit selection.
+     *
+     * The product list and this search use the same catalog: every non-modifier product
+     * that has a variation, including inactive products and products with no stock.
+     * Results are one row per product. The dropdown cap is not a page of the product list.
      */
     public function searchProducts(Request $request)
     {
         if (! auth()->check()) {
-            return response()->json([]);
+            return response()->json(['results' => [], 'truncated' => false]);
         }
 
         $term = mb_substr(trim((string) $request->input('term', '')), 0, 80);
         if (mb_strlen($term) < 2) {
-            return response()->json([]);
+            return response()->json(['results' => [], 'truncated' => false]);
         }
 
         $business_id = (int) $request->session()->get('user.business_id');
         if ($business_id < 1) {
-            return response()->json([]);
+            return response()->json(['results' => [], 'truncated' => false]);
         }
 
-        $hasSize = $this->productsHaveColumn('size');
-        $hasColor = $this->productsHaveColumn('color');
-        $hasHwSize = $this->productsHaveColumn('hw_size');
-        $hasHwColour = $this->productsHaveColumn('hw_colour');
-        $hasTyre = \Illuminate\Support\Facades\Schema::hasColumn('products', 'tyre_size');
-        $like = '%'.addcslashes($term, '%_\\').'%';
-        $prefix = addcslashes($term, '%_\\').'%';
+        try {
+            return response()->json($this->labelProductSuggestions($business_id, $term));
+        } catch (\Throwable $e) {
+            report($e);
 
+            return response()->json([
+                'results' => [],
+                'truncated' => false,
+                'error' => true,
+            ], 500);
+        }
+    }
+
+    /**
+     * @return array{results: array<int, array<string, mixed>>, truncated: bool}
+     */
+    protected function labelProductSuggestions(int $businessId, string $term): array
+    {
+        $tokens = LabelProductSearch::tokens($term);
+        if ($tokens === []) {
+            return ['results' => [], 'truncated' => false];
+        }
+
+        $hasTyre = $this->productsHaveColumn('tyre_size');
         $query = Product::query()
-            ->join('variations', 'products.id', '=', 'variations.product_id')
-            ->leftJoin('product_variations as pv', 'variations.product_variation_id', '=', 'pv.id')
-            ->where('products.business_id', $business_id)
-            ->where('products.is_inactive', 0)
+            ->where('products.business_id', $businessId)
             ->where('products.type', '!=', 'modifier')
-            ->whereNull('variations.deleted_at')
-            ->where(function ($q) use ($like, $term, $hasTyre) {
-                $q->where('products.name', 'like', $like)
-                    ->orWhere('products.sku', 'like', $like)
-                    ->orWhere('variations.sub_sku', 'like', $like);
-                if ($hasTyre) {
-                    $q->orWhere('products.tyre_size', 'like', $like);
-                }
-                if (ctype_digit($term)) {
-                    $stripped = ltrim($term, '0');
-                    if ($stripped === '') {
-                        $stripped = '0';
-                    }
-                    $q->orWhereRaw("TRIM(LEADING '0' FROM variations.sub_sku) = ?", [$stripped])
-                        ->orWhereRaw("TRIM(LEADING '0' FROM products.sku) = ?", [$stripped]);
-                }
+            ->whereExists(function ($sub) {
+                $sub->select(DB::raw('1'))
+                    ->from('variations')
+                    ->whereColumn('variations.product_id', 'products.id')
+                    ->whereNull('variations.deleted_at');
             });
 
+        $this->limitLabelSearchToPermittedLocations($query);
+
+        foreach ($tokens as $token) {
+            $query->where(function ($q) use ($token, $businessId) {
+                $this->applyLabelSearchToken($q, $token, $businessId);
+            });
+        }
+
         $select = [
-            'products.id as product_id',
+            'products.id',
             'products.name',
-            'products.sku as product_sku',
-            'products.type',
-            'variations.id as variation_id',
-            'variations.name as variation_name',
-            'variations.sub_sku',
-            'pv.name as product_variation_name',
-            'pv.is_dummy',
+            'products.sku',
+            'products.is_inactive',
         ];
-        if ($hasSize) {
-            $select[] = 'products.size';
-        }
-        if ($hasColor) {
-            $select[] = 'products.color';
-        }
-        if ($hasHwSize) {
-            $select[] = 'products.hw_size';
-        }
-        if ($hasHwColour) {
-            $select[] = 'products.hw_colour';
-        }
         if ($hasTyre) {
             $select[] = 'products.tyre_size';
         }
 
+        $cap = LabelProductSearch::SUGGESTION_CAP;
+        $rank = $this->labelSearchRankSql($term, $businessId);
         $rows = $query->select($select)
-            ->orderByRaw(
-                'CASE WHEN variations.sub_sku = ? OR products.sku = ? THEN 0 WHEN products.name LIKE ? THEN 1 ELSE 2 END',
-                [$term, $term, $prefix]
-            )
+            ->orderByRaw($rank['sql'], $rank['bindings'])
             ->orderBy('products.name')
-            ->orderBy('variations.sub_sku')
-            ->limit(25)
+            ->orderBy('products.id')
+            ->limit($cap + 1)
             ->get();
 
-        $result = [];
+        $truncated = $rows->count() > $cap;
+        if ($truncated) {
+            $rows = $rows->slice(0, $cap)->values();
+        }
+
+        $ids = [];
         foreach ($rows as $row) {
+            $ids[] = (int) $row->id;
+        }
+        $assigned = $this->loadAssignedAttributes($businessId, $ids);
+        $variations = $this->labelSearchVariations($ids);
+
+        $result = [];
+        $seen = [];
+        foreach ($rows as $row) {
+            $productId = (int) $row->id;
+            if (isset($seen[$productId])) {
+                continue;
+            }
+            $seen[$productId] = true;
+
+            $productVariations = $variations[$productId] ?? [];
+            $chosen = $this->chooseLabelSearchVariation($productVariations, $term, $tokens);
+            if ($chosen === null) {
+                continue;
+            }
+
+            $attrs = $assigned[$productId] ?? ['sizes' => [], 'colors' => []];
+            $sizes = array_values($attrs['sizes'] ?? []);
+            $colors = array_values($attrs['colors'] ?? []);
+            $matchSize = LabelProductSearch::matchedValue($sizes, $tokens, false);
+            $matchColor = LabelProductSearch::matchedValue($colors, $tokens, true);
             $name = Product::formatNameWithTyreSize($row->name, $hasTyre ? ($row->tyre_size ?? null) : null);
+            $sku = trim((string) ($row->sku ?? ''));
+            $barcode = trim((string) ($chosen->sub_sku ?? ''));
+            if ($barcode === '') {
+                $barcode = $sku;
+            }
+
             $variationLabel = '';
-            $variationName = trim((string) ($row->variation_name ?? ''));
-            $isDummy = (int) ($row->is_dummy ?? 1) === 1 || strtoupper($variationName) === 'DUMMY';
+            $variationName = trim((string) ($chosen->name ?? ''));
+            $isDummy = (int) ($chosen->is_dummy ?? 1) === 1 || strtoupper($variationName) === 'DUMMY';
             if (! $isDummy && $variationName !== '') {
-                $template = trim((string) ($row->product_variation_name ?? ''));
+                $template = trim((string) ($chosen->template_name ?? ''));
                 $variationLabel = $template !== '' ? ($template.': '.$variationName) : $variationName;
             }
-            $resolved = self::resolveLabelSizeColor(
-                $hasSize ? ($row->size ?? '') : '',
-                $hasColor ? ($row->color ?? '') : '',
-                $row->product_variation_name ?? '',
-                $row->variation_name ?? '',
-                $row->is_dummy ?? 1,
-                $hasHwSize ? ($row->hw_size ?? '') : '',
-                $hasHwColour ? ($row->hw_colour ?? '') : ''
-            );
-            $size = $resolved['size'];
-            $color = $resolved['color'];
-            $sku = trim((string) ($row->sub_sku ?: $row->product_sku));
+
             $result[] = [
                 'label' => $name,
                 'value' => $name,
-                'product_id' => (int) $row->product_id,
-                'variation_id' => (int) $row->variation_id,
+                'product_id' => $productId,
+                'variation_id' => (int) $chosen->id,
                 'name' => $name,
                 'sku' => $sku,
-                'size' => $size,
-                'color' => $color,
+                'barcode' => $barcode,
+                'sizes' => $sizes,
+                'colors' => $colors,
+                'size' => $matchSize ?? '',
+                'color' => $matchColor ?? '',
+                'match_size' => $matchSize ?? '',
+                'match_color' => $matchColor ?? '',
+                'inactive' => (int) ($row->is_inactive ?? 0) === 1,
                 'variation' => $variationLabel,
             ];
         }
 
-        return response()->json($result);
+        return ['results' => $result, 'truncated' => $truncated];
+    }
+
+    /**
+     * Same location rule as Products > List Products.
+     * Stock rows are not required, so zero-stock products stay searchable.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     */
+    protected function limitLabelSearchToPermittedLocations($query): void
+    {
+        $user = auth()->user();
+        if (! $user || ! method_exists($user, 'permitted_locations')) {
+            return;
+        }
+
+        $permitted = $user->permitted_locations();
+        if ($permitted == 'all') {
+            return;
+        }
+
+        $locationIds = [];
+        foreach ((array) $permitted as $locationId) {
+            $locationId = (int) $locationId;
+            if ($locationId > 0) {
+                $locationIds[] = $locationId;
+            }
+        }
+        if ($locationIds === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->whereExists(function ($sub) use ($locationIds) {
+            $sub->select(DB::raw('1'))
+                ->from('product_locations')
+                ->whereColumn('product_locations.product_id', 'products.id')
+                ->whereIn('product_locations.location_id', $locationIds);
+        });
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     */
+    protected function applyLabelSearchToken($query, string $token, int $businessId): void
+    {
+        $like = '%'.LabelProductSearch::escapeLike($token).'%';
+        $numeric = LabelProductSearch::isNumericToken($token);
+
+        if (LabelProductSearch::tokenMayMatchName($token)) {
+            $query->where('products.name', 'like', $like);
+        } else {
+            $query->where('products.sku', 'like', $like);
+        }
+
+        if (LabelProductSearch::tokenMayMatchName($token)) {
+            $query->orWhere('products.sku', 'like', $like);
+        }
+
+        if ($numeric) {
+            $stripped = ltrim($token, '0');
+            if ($stripped === '') {
+                $stripped = '0';
+            }
+            $query->orWhereRaw("TRIM(LEADING '0' FROM products.sku) = ?", [$stripped]);
+        }
+
+        $query->orWhereExists(function ($sub) use ($like, $numeric, $token) {
+            $sub->select(DB::raw('1'))
+                ->from('variations as v')
+                ->whereColumn('v.product_id', 'products.id')
+                ->whereNull('v.deleted_at')
+                ->where(function ($w) use ($like, $numeric, $token) {
+                    $w->where('v.sub_sku', 'like', $like);
+                    if ($numeric) {
+                        $stripped = ltrim($token, '0');
+                        if ($stripped === '') {
+                            $stripped = '0';
+                        }
+                        $w->orWhereRaw("TRIM(LEADING '0' FROM v.sub_sku) = ?", [$stripped]);
+                    }
+                });
+        });
+
+        $sizeSql = $this->labelSizeMatchSql($token, $businessId);
+        if ($sizeSql !== null) {
+            $query->orWhereRaw($sizeSql['sql'], $sizeSql['bindings']);
+        }
+
+        $colorSql = $this->labelColorMatchSql($token, $businessId);
+        if ($colorSql !== null) {
+            $query->orWhereRaw($colorSql['sql'], $colorSql['bindings']);
+        }
+
+        if (! $numeric && $this->productsHaveColumn('tyre_size')) {
+            $query->orWhere('products.tyre_size', 'like', $like);
+        }
+    }
+
+    /**
+     * @return array{sql: string, bindings: array<int, mixed>}
+     */
+    protected function labelSearchRankSql(string $term, int $businessId): array
+    {
+        $bindings = [$term, $term];
+        $sizeRank = '0';
+        $sizeSql = $this->labelSizeMatchSql($term, $businessId);
+        if ($sizeSql !== null && LabelProductSearch::isNumericToken($term)) {
+            $sizeRank = $sizeSql['sql'];
+            $bindings = array_merge($bindings, $sizeSql['bindings']);
+        }
+        $prefix = LabelProductSearch::escapeLike($term).'%';
+        $bindings[] = $prefix;
+
+        return [
+            'sql' => 'CASE
+                WHEN products.sku = ? OR EXISTS (
+                    SELECT 1 FROM variations AS vrank
+                    WHERE vrank.product_id = products.id
+                      AND vrank.deleted_at IS NULL
+                      AND vrank.sub_sku = ?
+                ) THEN 0
+                WHEN '.$sizeRank.' THEN 1
+                WHEN products.name LIKE ? THEN 2
+                ELSE 3
+            END',
+            'bindings' => $bindings,
+        ];
+    }
+
+    /**
+     * Exact assigned size. A stored "154" or "540" does not match "54".
+     *
+     * @return array{sql: string, bindings: array<int, mixed>}|null
+     */
+    protected function labelSizeMatchSql(string $token, int $businessId): ?array
+    {
+        $parts = [];
+        $bindings = [];
+        $needle = mb_strtolower(trim($token));
+        if ($needle === '') {
+            return null;
+        }
+
+        if ($this->productsHaveColumn('size')) {
+            $parts[] = $this->commaListSql('products.size').' LIKE ?';
+            $bindings[] = '%,'.LabelProductSearch::escapeLike($needle).',%';
+        }
+        if ($this->productsHaveColumn('hw_size')) {
+            $parts[] = $this->commaListSql('products.hw_size').' LIKE ?';
+            $bindings[] = '%,'.LabelProductSearch::escapeLike($needle).',%';
+        }
+        if ($this->databaseTableExists('product_size') && $this->databaseTableExists('sizes')) {
+            $parts[] = 'EXISTS (
+                SELECT 1 FROM product_size AS ps
+                INNER JOIN sizes AS sz ON sz.id = ps.size_id
+                WHERE ps.product_id = products.id
+                  AND sz.business_id = ?
+                  AND LOWER(sz.name) = ?
+            )';
+            $bindings[] = $businessId;
+            $bindings[] = $needle;
+        }
+        if ($this->databaseTableExists('variations') && $this->databaseTableExists('product_variations')) {
+            $names = self::attributeTemplateNames('size');
+            $placeholders = implode(',', array_fill(0, count($names), '?'));
+            $parts[] = "EXISTS (
+                SELECT 1 FROM variations AS vsz
+                INNER JOIN product_variations AS pvsz ON pvsz.id = vsz.product_variation_id
+                WHERE vsz.product_id = products.id
+                  AND vsz.deleted_at IS NULL
+                  AND LOWER(TRIM(vsz.name)) = ?
+                  AND LOWER(TRIM(pvsz.name)) IN ({$placeholders})
+            )";
+            $bindings[] = $needle;
+            foreach ($names as $name) {
+                $bindings[] = $name;
+            }
+        }
+
+        if ($parts === []) {
+            return null;
+        }
+
+        return ['sql' => '('.implode(' OR ', $parts).')', 'bindings' => $bindings];
+    }
+
+    /**
+     * Assigned color, exact or prefix. Does not scan the product description.
+     *
+     * @return array{sql: string, bindings: array<int, mixed>}|null
+     */
+    protected function labelColorMatchSql(string $token, int $businessId): ?array
+    {
+        $parts = [];
+        $bindings = [];
+        $needle = mb_strtolower(trim($token));
+        if ($needle === '') {
+            return null;
+        }
+
+        $numeric = LabelProductSearch::isNumericToken($token);
+        $escaped = LabelProductSearch::escapeLike($needle);
+        if ($this->productsHaveColumn('color')) {
+            if ($numeric) {
+                $parts[] = $this->commaListSql('products.color').' LIKE ?';
+                $bindings[] = '%,'.$escaped.',%';
+            } else {
+                $parts[] = $this->commaListSql('products.color').' REGEXP ?';
+                $bindings[] = ','.self::regexFragment($needle).'[^,]*,';
+            }
+        }
+        if ($this->productsHaveColumn('hw_colour')) {
+            if ($numeric) {
+                $parts[] = $this->commaListSql('products.hw_colour').' LIKE ?';
+                $bindings[] = '%,'.$escaped.',%';
+            } else {
+                $parts[] = $this->commaListSql('products.hw_colour').' REGEXP ?';
+                $bindings[] = ','.self::regexFragment($needle).'[^,]*,';
+            }
+        }
+        if ($this->databaseTableExists('product_color') && $this->databaseTableExists('colors')) {
+            $parts[] = 'EXISTS (
+                SELECT 1 FROM product_color AS pc
+                INNER JOIN colors AS cl ON cl.id = pc.color_id
+                WHERE pc.product_id = products.id
+                  AND cl.business_id = ?
+                  AND (LOWER(cl.name) = ? OR LOWER(cl.name) LIKE ?)
+            )';
+            $bindings[] = $businessId;
+            $bindings[] = $needle;
+            $bindings[] = $numeric ? $needle : ($escaped.'%');
+        }
+        if ($this->databaseTableExists('product_colors')) {
+            $parts[] = 'EXISTS (
+                SELECT 1 FROM product_colors AS pcl
+                WHERE pcl.product_id = products.id
+                  AND pcl.business_id = ?
+                  AND (LOWER(pcl.name) = ? OR LOWER(pcl.name) LIKE ?)
+            )';
+            $bindings[] = $businessId;
+            $bindings[] = $needle;
+            $bindings[] = $numeric ? $needle : ($escaped.'%');
+        }
+        if ($this->databaseTableExists('variations') && $this->databaseTableExists('product_variations')) {
+            $names = self::attributeTemplateNames('color');
+            $placeholders = implode(',', array_fill(0, count($names), '?'));
+            $parts[] = "EXISTS (
+                SELECT 1 FROM variations AS vcl
+                INNER JOIN product_variations AS pvcl ON pvcl.id = vcl.product_variation_id
+                WHERE vcl.product_id = products.id
+                  AND vcl.deleted_at IS NULL
+                  AND (LOWER(TRIM(vcl.name)) = ? OR LOWER(TRIM(vcl.name)) LIKE ?)
+                  AND LOWER(TRIM(pvcl.name)) IN ({$placeholders})
+            )";
+            $bindings[] = $needle;
+            $bindings[] = $numeric ? $needle : ($escaped.'%');
+            foreach ($names as $name) {
+                $bindings[] = $name;
+            }
+        }
+
+        if ($parts === []) {
+            return null;
+        }
+
+        return ['sql' => '('.implode(' OR ', $parts).')', 'bindings' => $bindings];
+    }
+
+    /**
+     * Normalized ",54,56,58," so token boundaries stay exact.
+     */
+    protected function commaListSql(string $column): string
+    {
+        $expr = "LOWER(IFNULL({$column}, ''))";
+        $expr = "REPLACE(REPLACE(REPLACE(REPLACE({$expr}, ', ', ','), ', ', ','), ' ,', ','), ' ,', ',')";
+
+        return "CONCAT(',', {$expr}, ',')";
+    }
+
+    protected static function regexFragment(string $value): string
+    {
+        return preg_quote(mb_strtolower($value), '/');
+    }
+
+    /**
+     * @param  array<int, int>  $productIds
+     * @return array<int, array<int, object>>
+     */
+    protected function labelSearchVariations(array $productIds): array
+    {
+        $ids = [];
+        foreach ($productIds as $id) {
+            $id = (int) $id;
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+        if ($ids === []) {
+            return [];
+        }
+
+        $rows = DB::table('variations as v')
+            ->leftJoin('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->whereIn('v.product_id', array_values($ids))
+            ->whereNull('v.deleted_at')
+            ->orderBy('v.id')
+            ->get([
+                'v.id',
+                'v.product_id',
+                'v.name',
+                'v.sub_sku',
+                'pv.name as template_name',
+                'pv.is_dummy',
+            ]);
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $grouped[(int) $row->product_id][] = $row;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * @param  array<int, object>  $variations
+     * @param  array<int, string>  $tokens
+     */
+    protected function chooseLabelSearchVariation(array $variations, string $term, array $tokens)
+    {
+        $exact = null;
+        $dummy = null;
+        $first = null;
+        $termKey = mb_strtolower(trim($term));
+        $tokenKeys = [];
+        foreach ($tokens as $token) {
+            $tokenKeys[mb_strtolower($token)] = true;
+        }
+
+        foreach ($variations as $variation) {
+            if ($first === null) {
+                $first = $variation;
+            }
+            $name = trim((string) ($variation->name ?? ''));
+            if ((int) ($variation->is_dummy ?? 0) === 1 || strtoupper($name) === 'DUMMY') {
+                if ($dummy === null) {
+                    $dummy = $variation;
+                }
+            }
+            $sku = mb_strtolower(trim((string) ($variation->sub_sku ?? '')));
+            if ($sku !== '' && ($sku === $termKey || isset($tokenKeys[$sku]))) {
+                $exact = $variation;
+            }
+        }
+
+        return $exact ?? $dummy ?? $first;
     }
 
     /**
@@ -709,40 +1103,35 @@ class LabelsController extends Controller
         $supplierCodeLabel = ! empty($productLabels['custom_field_2']) ? $productLabels['custom_field_2'] : __('lang_v1.supplier_code');
 
         $stickers = [];
-        $sizeColorCache = [];
         $productIds = [];
         foreach ($products as $value) {
             if (is_array($value) && ! empty($value['product_id'])) {
                 $productIds[] = (int) $value['product_id'];
             }
         }
-        $catalogLists = ProductSizeColor::listsForProducts((int) $business_id, $productIds);
+        $assignedByProduct = $this->loadAssignedAttributes((int) $business_id, $productIds);
         $labelOverrides = $this->labelDisplayOverrides($request->input('label_overrides'));
         $rowIndex = 0;
         foreach ($products as $value) {
-            if (empty($value['variation_id'])) {
+            if (empty($value['variation_id']) && empty($value['product_id'])) {
                 continue;
             }
             $qty = max(1, (int) ceil((float) ($value['quantity'] ?? 1)));
-            $details = $this->productUtil->getDetailsFromVariation($value['variation_id'], $business_id, null, false);
-            if (empty($details)) {
-                continue;
-            }
-            $currentRow = $rowIndex;
-            $rowIndex++;
-
-            $productId = (int) ($value['product_id'] ?? $details->product_id ?? 0);
-            $options = $this->labelAttributeOptions(
-                $productId,
-                (int) ($value['variation_id'] ?? $details->variation_id ?? 0),
-                (int) $business_id,
-                $sizeColorCache,
-                $catalogLists[$productId] ?? ['sizes' => [], 'colors' => []]
-            );
-            $override = $labelOverrides[(string) $currentRow] ?? $labelOverrides[$currentRow] ?? [];
+            $productId = (int) ($value['product_id'] ?? 0);
+            $assigned = $assignedByProduct[$productId] ?? [
+                'sizes' => [],
+                'colors' => [],
+                'size_variations' => [],
+                'color_variations' => [],
+            ];
+            $override = $labelOverrides[(string) $rowIndex] ?? $labelOverrides[$rowIndex] ?? [];
             if (! is_array($override)) {
                 $override = [];
             }
+            $options = [
+                'sizes' => $assigned['sizes'],
+                'colors' => $assigned['colors'],
+            ];
             $size = ProductSizeColor::chooseOne(
                 $options['sizes'],
                 $override['size'] ?? ($value['label_size'] ?? '')
@@ -751,6 +1140,34 @@ class LabelsController extends Controller
                 $options['colors'],
                 $override['color'] ?? ($value['label_color'] ?? '')
             );
+
+            $variationId = (int) ($value['variation_id'] ?? 0);
+            $mappedId = $this->mappedLabelVariationId($assigned, $size, $color);
+            if ($mappedId > 0) {
+                $variationId = $mappedId;
+            }
+            if ($variationId < 1) {
+                continue;
+            }
+
+            try {
+                $details = $this->productUtil->getDetailsFromVariation($variationId, $business_id, null, false);
+            } catch (\Throwable $e) {
+                $originalId = (int) ($value['variation_id'] ?? 0);
+                if ($mappedId < 1 || $originalId < 1 || $originalId === $variationId) {
+                    throw $e;
+                }
+                $variationId = $originalId;
+                $details = $this->productUtil->getDetailsFromVariation($variationId, $business_id, null, false);
+            }
+            if (empty($details)) {
+                continue;
+            }
+            if ($productId < 1) {
+                $productId = (int) ($details->product_id ?? 0);
+            }
+            $currentRow = $rowIndex;
+            $rowIndex++;
 
             $sku = trim((string) ($details->sub_sku ?? ''));
             $name = $details->product_actual_name ?? $details->product_name ?? '';
@@ -841,6 +1258,22 @@ class LabelsController extends Controller
         if (empty($stickers)) {
             return redirect()->action([\App\Http\Controllers\LabelsController::class, 'show'])
                 ->with('status', ['success' => 0, 'msg' => __('lang_v1.label_no_product_error')]);
+        }
+
+        // The design form posts show_size / show_color (hidden 0 plus the checkbox).
+        // The first preview does not, so a chosen size or color is shown on that label.
+        // Unchecking Size or Color and rebuilding keeps them hidden. Nothing is saved here.
+        if (! $request->exists('show_size') && ! $request->exists('show_color')) {
+            foreach ($stickers as $sticker) {
+                if (trim((string) ($sticker['size'] ?? '')) !== '') {
+                    $opts['show_size'] = true;
+                    $layout['show_size'] = '1';
+                }
+                if (trim((string) ($sticker['color'] ?? '')) !== '') {
+                    $opts['show_color'] = true;
+                    $layout['show_color'] = '1';
+                }
+            }
         }
 
         $presets = BrowserLabelLayout::presets();
@@ -1085,33 +1518,26 @@ class LabelsController extends Controller
     }
 
     /**
-     * Size and color for the label list. Uses the selected variation when one exists.
+     * Size and color for the label list. Only values assigned to that product.
      *
      * @param  iterable  $products
      * @param  int  $business_id
      * @return iterable
      */
-    protected function attachSizeColor($products, $business_id)
+    protected function attachSizeColor($products, $business_id, string $preferredSize = '', string $preferredColor = '')
     {
         $ids = [];
         foreach ($products as $product) {
             $ids[] = (int) ($product->product_id ?? 0);
         }
-        $lists = ProductSizeColor::listsForProducts((int) $business_id, $ids);
-        $cache = [];
+        $lists = $this->loadAssignedAttributes((int) $business_id, $ids);
         foreach ($products as $product) {
             $productId = (int) ($product->product_id ?? 0);
-            $options = $this->labelAttributeOptions(
-                $productId,
-                (int) ($product->variation_id ?? 0),
-                (int) $business_id,
-                $cache,
-                $lists[$productId] ?? ['sizes' => [], 'colors' => []]
-            );
-            $product->size_options = $options['sizes'];
-            $product->color_options = $options['colors'];
-            $product->size = ProductSizeColor::chooseOne($options['sizes'], '');
-            $product->color = ProductSizeColor::chooseOne($options['colors'], '');
+            $assigned = $lists[$productId] ?? ['sizes' => [], 'colors' => []];
+            $product->size_options = $assigned['sizes'];
+            $product->color_options = $assigned['colors'];
+            $product->size = ProductSizeColor::chooseOne($assigned['sizes'], $preferredSize);
+            $product->color = ProductSizeColor::chooseOne($assigned['colors'], $preferredColor);
         }
 
         return $products;
@@ -1120,7 +1546,7 @@ class LabelsController extends Controller
     /**
      * Assigned sizes and colours for one product. The printed label uses one of each.
      *
-     * @param  array<string, array{size: string, color: string}|array{sizes: array<int, string>, colors: array<int, string>}>  $cache
+     * @param  array<string, array{sizes?: array<int, string>, colors?: array<int, string>}>  $cache
      * @param  array{sizes?: array<int, string>, colors?: array<int, string>}  $catalog
      * @return array{sizes: array<int, string>, colors: array<int, string>}
      */
@@ -1136,16 +1562,308 @@ class LabelsController extends Controller
             return $cache[$key] = $empty;
         }
 
-        $resolvedCache = [];
-        $resolved = $this->sizeColorForLabel($productId, $variationId, $businessId, $resolvedCache);
         if ($productId < 1) {
-            $catalog = ['sizes' => [], 'colors' => []];
+            $productId = (int) DB::table('variations')->where('id', $variationId)->value('product_id');
+        }
+        $loaded = $this->loadAssignedAttributes($businessId, [$productId]);
+        $assigned = $loaded[$productId] ?? $empty;
+        if (($assigned['sizes'] ?? []) === [] && ($assigned['colors'] ?? []) === [] && $catalog !== []) {
+            $resolvedCache = [];
+            $resolved = $this->sizeColorForLabel($productId, $variationId, $businessId, $resolvedCache);
+            $assigned = [
+                'sizes' => ProductSizeColor::optionList($catalog['sizes'] ?? [], $resolved['size'] ?? ''),
+                'colors' => ProductSizeColor::optionList($catalog['colors'] ?? [], $resolved['color'] ?? ''),
+            ];
         }
 
         return $cache[$key] = [
-            'sizes' => ProductSizeColor::optionList($catalog['sizes'] ?? [], $resolved['size'] ?? ''),
-            'colors' => ProductSizeColor::optionList($catalog['colors'] ?? [], $resolved['color'] ?? ''),
+            'sizes' => array_values($assigned['sizes'] ?? []),
+            'colors' => array_values($assigned['colors'] ?? []),
         ];
+    }
+
+    /**
+     * Sizes and colors actually assigned to these products.
+     * Catalog links win, then the product text copy, then size/color variations.
+     *
+     * @param  array<int, mixed>  $productIds
+     * @return array<int, array{sizes: array<int, string>, colors: array<int, string>, size_variations: array<string, int>, color_variations: array<string, int>}>
+     */
+    protected function loadAssignedAttributes(int $businessId, array $productIds): array
+    {
+        $ids = [];
+        foreach ($productIds as $id) {
+            $id = (int) $id;
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        $out = [];
+        foreach ($ids as $id) {
+            $out[$id] = [
+                'sizes' => [],
+                'colors' => [],
+                'size_variations' => [],
+                'color_variations' => [],
+            ];
+        }
+        if ($businessId < 1 || $ids === []) {
+            return $out;
+        }
+
+        $idList = array_values($ids);
+        $catalog = ProductSizeColor::listsForProducts($businessId, $idList);
+        $this->fillCatalogSizes($catalog, $businessId, $idList);
+        $this->fillCatalogColors($catalog, $businessId, $idList);
+        $legacy = $this->legacyAttributeColumns($businessId, $idList);
+        $fromVariations = $this->variationAttributeMaps($idList);
+
+        foreach ($idList as $id) {
+            $textSize = trim((string) ($legacy[$id]['size'] ?? ''));
+            if ($textSize === '') {
+                $textSize = trim((string) ($legacy[$id]['hw_size'] ?? ''));
+            }
+            $textColor = trim((string) ($legacy[$id]['color'] ?? ''));
+            if ($textColor === '') {
+                $textColor = trim((string) ($legacy[$id]['hw_colour'] ?? ''));
+            }
+            $variation = $fromVariations[$id] ?? [
+                'size_names' => [],
+                'color_names' => [],
+                'size_ids' => [],
+                'color_ids' => [],
+            ];
+            $sizes = LabelProductSearch::resolveAssigned($catalog[$id]['sizes'] ?? [], $textSize, $variation['size_names']);
+            $colors = LabelProductSearch::resolveAssigned($catalog[$id]['colors'] ?? [], $textColor, $variation['color_names']);
+            $out[$id]['sizes'] = $sizes['values'];
+            $out[$id]['colors'] = $colors['values'];
+            if ($sizes['source'] === 'variation') {
+                $out[$id]['size_variations'] = $variation['size_ids'];
+            }
+            if ($colors['source'] === 'variation') {
+                $out[$id]['color_variations'] = $variation['color_ids'];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<int, array{sizes: array<int, string>, colors: array<int, string>}>  $lists
+     * @param  array<int, int>  $ids
+     */
+    protected function fillCatalogSizes(array &$lists, int $businessId, array $ids): void
+    {
+        $missing = $this->idsMissingList($lists, $ids, 'sizes');
+        if ($missing === [] || ! $this->databaseTableExists('product_size') || ! $this->databaseTableExists('sizes')) {
+            return;
+        }
+
+        try {
+            $rows = DB::table('product_size')
+                ->join('sizes', 'sizes.id', '=', 'product_size.size_id')
+                ->where('sizes.business_id', $businessId)
+                ->whereIn('product_size.product_id', $missing)
+                ->orderBy('sizes.name')
+                ->get(['product_size.product_id as product_id', 'sizes.name as name']);
+            foreach ($rows as $row) {
+                $this->pushCatalogName($lists, (int) $row->product_id, 'sizes', $row->name ?? '');
+            }
+        } catch (\Throwable $e) {
+        }
+    }
+
+    /**
+     * @param  array<int, array{sizes: array<int, string>, colors: array<int, string>}>  $lists
+     * @param  array<int, int>  $ids
+     */
+    protected function fillCatalogColors(array &$lists, int $businessId, array $ids): void
+    {
+        $missing = $this->idsMissingList($lists, $ids, 'colors');
+        if ($missing !== [] && $this->databaseTableExists('product_color') && $this->databaseTableExists('colors')) {
+            try {
+                $rows = DB::table('product_color')
+                    ->join('colors', 'colors.id', '=', 'product_color.color_id')
+                    ->where('colors.business_id', $businessId)
+                    ->whereIn('product_color.product_id', $missing)
+                    ->orderBy('colors.name')
+                    ->get(['product_color.product_id as product_id', 'colors.name as name']);
+                foreach ($rows as $row) {
+                    $this->pushCatalogName($lists, (int) $row->product_id, 'colors', $row->name ?? '');
+                }
+            } catch (\Throwable $e) {
+            }
+            $missing = $this->idsMissingList($lists, $missing, 'colors');
+        }
+
+        if ($missing === [] || ! $this->databaseTableExists('product_colors')) {
+            return;
+        }
+
+        try {
+            $rows = DB::table('product_colors')
+                ->where('business_id', $businessId)
+                ->whereIn('product_id', $missing)
+                ->orderBy('id')
+                ->get(['product_id', 'name']);
+            foreach ($rows as $row) {
+                $this->pushCatalogName($lists, (int) $row->product_id, 'colors', $row->name ?? '');
+            }
+        } catch (\Throwable $e) {
+        }
+    }
+
+    /**
+     * @param  array<int, array{sizes?: array<int, string>, colors?: array<int, string>}>  $lists
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    protected function idsMissingList(array $lists, array $ids, string $key): array
+    {
+        $missing = [];
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            if ($id > 0 && empty($lists[$id][$key])) {
+                $missing[] = $id;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
+     * @param  array<int, array{sizes: array<int, string>, colors: array<int, string>}>  $lists
+     */
+    protected function pushCatalogName(array &$lists, int $productId, string $key, $name): void
+    {
+        $clean = ProductSizeColor::cleanName($name);
+        if ($clean === null || ! isset($lists[$productId])) {
+            return;
+        }
+        $lists[$productId][$key][] = $clean;
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return array<int, array{size: string, color: string, hw_size: string, hw_colour: string}>
+     */
+    protected function legacyAttributeColumns(int $businessId, array $ids): array
+    {
+        $out = [];
+        foreach ($ids as $id) {
+            $out[(int) $id] = ['size' => '', 'color' => '', 'hw_size' => '', 'hw_colour' => ''];
+        }
+        if ($ids === []) {
+            return $out;
+        }
+
+        $select = ['id'];
+        foreach (['size', 'color', 'hw_size', 'hw_colour'] as $column) {
+            if ($this->productsHaveColumn($column)) {
+                $select[] = $column;
+            }
+        }
+        if (count($select) === 1) {
+            return $out;
+        }
+
+        try {
+            $rows = DB::table('products')
+                ->where('business_id', $businessId)
+                ->whereIn('id', $ids)
+                ->get($select);
+        } catch (\Throwable $e) {
+            return $out;
+        }
+
+        foreach ($rows as $row) {
+            $id = (int) $row->id;
+            if (! isset($out[$id])) {
+                continue;
+            }
+            foreach (['size', 'color', 'hw_size', 'hw_colour'] as $column) {
+                if (isset($row->{$column})) {
+                    $out[$id][$column] = trim((string) $row->{$column});
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  array<int, int>  $ids
+     * @return array<int, array{size_names: array<int, string>, color_names: array<int, string>, size_ids: array<string, int>, color_ids: array<string, int>}>
+     */
+    protected function variationAttributeMaps(array $ids): array
+    {
+        $out = [];
+        foreach ($ids as $id) {
+            $out[(int) $id] = [
+                'size_names' => [],
+                'color_names' => [],
+                'size_ids' => [],
+                'color_ids' => [],
+            ];
+        }
+        if ($ids === [] || ! $this->databaseTableExists('variations')) {
+            return $out;
+        }
+
+        try {
+            $rows = DB::table('variations as v')
+                ->leftJoin('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+                ->whereIn('v.product_id', $ids)
+                ->whereNull('v.deleted_at')
+                ->orderBy('v.id')
+                ->get(['v.id', 'v.product_id', 'v.name', 'pv.name as template_name']);
+        } catch (\Throwable $e) {
+            return $out;
+        }
+
+        foreach ($rows as $row) {
+            $productId = (int) $row->product_id;
+            if (! isset($out[$productId])) {
+                continue;
+            }
+            $kind = self::labelAttributeKind((string) ($row->template_name ?? ''));
+            $name = ProductSizeColor::cleanName($row->name ?? '');
+            if ($name === null || $kind === '' || strtoupper($name) === 'DUMMY') {
+                continue;
+            }
+            $key = mb_strtolower($name);
+            if ($kind === 'size' && ! isset($out[$productId]['size_ids'][$key])) {
+                $out[$productId]['size_names'][] = $name;
+                $out[$productId]['size_ids'][$key] = (int) $row->id;
+            }
+            if ($kind === 'color' && ! isset($out[$productId]['color_ids'][$key])) {
+                $out[$productId]['color_names'][] = $name;
+                $out[$productId]['color_ids'][$key] = (int) $row->id;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Use the variation barcode only when the chosen value is a real size or color variation.
+     * Catalog sizes keep the product barcode and print the chosen size as text.
+     *
+     * @param  array{size_variations?: array<string, int>, color_variations?: array<string, int>}  $assigned
+     */
+    protected function mappedLabelVariationId(array $assigned, string $size, string $color): int
+    {
+        $sizeKey = mb_strtolower(trim($size));
+        if ($sizeKey !== '' && ! empty($assigned['size_variations'][$sizeKey])) {
+            return (int) $assigned['size_variations'][$sizeKey];
+        }
+        $colorKey = mb_strtolower(trim($color));
+        if ($colorKey !== '' && ! empty($assigned['color_variations'][$colorKey])) {
+            return (int) $assigned['color_variations'][$colorKey];
+        }
+
+        return 0;
     }
 
     /**
@@ -1300,14 +2018,61 @@ class LabelsController extends Controller
         $normalized = strtolower(trim($template));
         $normalized = preg_replace('/[^a-z]+/i', ' ', $normalized);
         $normalized = trim(preg_replace('/\s+/', ' ', (string) $normalized));
-        if (in_array($normalized, ['size', 'sizes', 'product size', 'item size'], true)) {
+        if (in_array($normalized, self::attributeTemplateNames('size'), true)) {
             return 'size';
         }
-        if (in_array($normalized, ['color', 'colour', 'colors', 'colours', 'product color', 'product colour', 'item color', 'item colour'], true)) {
+        if (in_array($normalized, self::attributeTemplateNames('color'), true)) {
             return 'color';
         }
 
         return '';
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected static function attributeTemplateNames(string $kind): array
+    {
+        if ($kind === 'size') {
+            return ['size', 'sizes', 'product size', 'item size'];
+        }
+
+        return ['color', 'colour', 'colors', 'colours', 'product color', 'product colour', 'item color', 'item colour'];
+    }
+
+    /**
+     * SHOW TABLES, because information_schema is empty on some cPanel accounts.
+     */
+    protected function databaseTableExists(string $table): bool
+    {
+        $table = strtolower($table);
+        $allowed = [
+            'variations',
+            'product_variations',
+            'product_size',
+            'sizes',
+            'product_color',
+            'colors',
+            'product_colors',
+            'product_locations',
+        ];
+        if (! in_array($table, $allowed, true)) {
+            return false;
+        }
+        if (array_key_exists($table, $this->tableExistsCache)) {
+            return $this->tableExistsCache[$table];
+        }
+
+        try {
+            $name = DB::connection()->getTablePrefix().$table;
+            $quoted = DB::connection()->getPdo()->quote($name);
+            $rows = DB::select('SHOW TABLES LIKE '.$quoted);
+            $this->tableExistsCache[$table] = $rows !== [];
+        } catch (\Throwable $e) {
+            $this->tableExistsCache[$table] = false;
+        }
+
+        return $this->tableExistsCache[$table];
     }
 
     protected function productsHaveColumn(string $column): bool

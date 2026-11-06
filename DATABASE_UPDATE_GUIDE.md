@@ -2,61 +2,44 @@
 
 Use phpMyAdmin. Do not use Terminal or SSH. Take a database backup before you start.
 
-This update adds tables and columns. It does not delete products, sales, stock, or payments.
+## Color Management catalog (current update)
 
-## Before you start
+1. Back up the database.
+2. Confirm Size/Color base tables exist (`sizes`, `product_size`, `product_colors`). If not, run `database/cpanel_size_color_management.sql` first.
+3. Open the **SQL** tab and run the full contents of `database/cpanel_color_catalog.sql`.
+4. Verify:
 
-1. In cPanel, open **phpMyAdmin**.
-2. Select the QPOS database (the same database named in the live `.env` file).
-3. Open the **Export** tab and download a backup.
+```sql
+SHOW TABLES LIKE 'colors';
+SHOW TABLES LIKE 'product_color';
+```
 
-## Apply the update
+Full steps, migration notes, and troubleshooting: see `updates/QPOS-COLOR-MANAGEMENT-UPDATE-cPanel/DATABASE_UPDATE_GUIDE.md`.
+
+The script is safe to run a second time. It does not delete products, sales, stock, or payments. Existing colour names are copied into the catalog with `is_catalog = 0` until promoted from Color Management.
+
+## Earlier Size Management tables
+
+If you still need the original Size + free-text colour tables:
 
 1. Open the **SQL** tab.
-2. Open `database/cpanel_size_color_management.sql` from this package in a text editor.
-3. Paste the full script into the SQL box.
-4. Click **Go**.
-
-The script is safe to run a second time. Tables that already exist are skipped. Products that already have size or colour links are not inserted again.
-
-## What the script creates
+2. Paste `database/cpanel_size_color_management.sql`.
+3. Optionally run `database/cpanel_size_dropdown_fix.sql` so Add Product only lists Size Management entries.
 
 | Object | Purpose |
 | --- | --- |
-| `sizes` | Size names for one business, such as S, M, L, XL, 32, Free Size |
+| `sizes` | Size names for one business |
 | `product_size` | Links a product to one or more sizes |
-| `product_colors` | Colours typed on a product. The same colour cannot be stored twice on one product |
-| `transaction_sell_lines.line_size` | Size chosen on a sale line, if the cashier picks one |
-| `transaction_sell_lines.line_color` | Colour chosen on a sale line, if the cashier picks one |
+| `product_colors` | Older per-product colour tags (kept and mirrored) |
+| `colors` | Colour catalog (this update) |
+| `product_color` | Links a product to one or more catalogue colours |
+| `transaction_sell_lines.line_size` / `line_color` | Optional cashier line choice |
 
-`products.size` and `products.color` stay in place. They hold a comma-separated copy used by the product list, POS, and labels. Existing text such as `M` or `Black` is copied into the new tables. Products with a blank size or colour are left blank.
+`products.size` and `products.color` stay as comma-separated display copies.
 
-## Check the result
+## Laravel migrations (optional)
 
-Run this in the SQL tab:
+- `database/migrations/2026_10_31_180000_create_sizes_and_product_colors.php`
+- `database/migrations/2026_11_05_120000_create_colors_catalog.php`
 
-```sql
-SHOW TABLES LIKE 'sizes';
-SHOW TABLES LIKE 'product_size';
-SHOW TABLES LIKE 'product_colors';
-SHOW COLUMNS FROM transaction_sell_lines LIKE 'line_size';
-SHOW COLUMNS FROM transaction_sell_lines LIKE 'line_color';
-```
-
-Each query should return a row.
-
-## If phpMyAdmin reports an error
-
-- **Table already exists**: the script uses `CREATE TABLE IF NOT EXISTS`. If you still see this, you pasted only part of the file. Paste the whole file again.
-- **Duplicate column**: the script checks `line_size` and `line_color` before adding them. Run the remaining statements after the one that failed.
-- **Foreign key error**: confirm you selected the QPOS database, and that the `business` and `products` tables are present.
-
-Do not drop `products`, `transaction_sell_lines`, or any sales table.
-
-## Laravel migration
-
-The same change is in:
-
-`database/migrations/2026_10_31_180000_create_sizes_and_product_colors.php`
-
-On this server there is no Terminal, so use the SQL file above. Do not run both a partial SQL script and a manual table create. The SQL file is the install path for cPanel.
+On cPanel without Terminal, prefer the SQL scripts above.

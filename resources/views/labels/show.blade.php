@@ -276,8 +276,10 @@ html[data-vspos-theme="dark"] .labels-choice select {
 }
 html[data-vspos-theme="dark"] .labels-add-combo { color: #7dd3fc; }
 @media (max-width: 640px) {
+	.labels-search-wrap { max-width: 100%; }
 	.labels-choice { flex-wrap: wrap; }
 	.labels-choice select { max-width: 100%; width: 100%; }
+	.labels-btn-row .tw-dw-btn { min-width: 0; width: calc(100% - 12px); }
 }
 html[data-vspos-theme="dark"] .labels-product-name { color: #f8fafc; }
 html[data-vspos-theme="dark"] .labels-product-variation { color: #94a3b8; }
@@ -333,11 +335,25 @@ html[data-vspos-theme="dark"] .labels-suggest-menu .ui-menu-item-wrapper { color
 .labels-suggest-item { padding: 8px 12px; line-height: 1.3; cursor: pointer; }
 .labels-suggest-name { font-weight: 600; color: #111827; }
 .labels-suggest-meta { font-size: 12px; color: #4b5563; margin-top: 2px; white-space: normal; }
+.labels-suggest-badge {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 1px 6px;
+	border-radius: 999px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .02em;
+	color: #92400e;
+	background: #fef3c7;
+	vertical-align: middle;
+}
 html[data-vspos-theme="dark"] .labels-suggest-name { color: #f8fafc; }
 html[data-vspos-theme="dark"] .labels-suggest-meta { color: #cbd5e1; }
+html[data-vspos-theme="dark"] .labels-suggest-badge { color: #fcd34d; background: rgba(251, 191, 36, .15); }
 .labels-suggest-status .labels-suggest-item { cursor: default; color: #94a3b8; }
 .ui-state-active .labels-suggest-name,
 .ui-state-active .labels-suggest-meta { color: #fff; }
+.ui-state-active .labels-suggest-badge { color: #fff; background: rgba(255, 255, 255, .22); }
 @media (max-width: 640px) {
 	.labels-suggest-menu.ui-autocomplete { max-width: calc(100vw - 24px) !important; }
 }
@@ -381,7 +397,7 @@ html[data-vspos-theme="dark"] .labels-remove-row:hover { background: rgba(248, 1
 		window.qposBrowserLabelLayout = @json($browser_label_layout ?? []);
 	</script>
 	{{-- Cache-bust: Cloudflare/LiteSpeed cache JS for 7 days; unique query forces fresh file --}}
-	<script src="{{ asset('js/labels.js?v=' . $asset_v . '-labelsearch1-lt2') }}"></script>
+	<script src="{{ asset('js/labels.js?v=' . $asset_v . '-labelsearch2') }}"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
 			var $tip = $('.labels-info-tip');

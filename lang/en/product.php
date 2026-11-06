@@ -34,6 +34,7 @@ return [
     'size_placeholder' => 'e.g. M, XL',
     'select_sizes' => 'Select sizes',
     'color' => 'Color',
+    'select_colors' => 'Select colors',
     'color_placeholder' => 'Type a colour and press Enter',
     'add_color' => 'Add',
     'color_duplicate' => 'This colour is already added',

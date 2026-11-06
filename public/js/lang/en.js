@@ -53,6 +53,8 @@ LANG = {
     'confirm_delete_barcode': 'This barcode setting will be deleted.',
     'add_name_as_new_product': 'Add ":term" as new product',
     'no_products_found': 'No matching product found!',
+    'label_search_failed': 'Search failed. Please try again.',
+    'label_search_narrow': '. Type more of the name, SKU, barcode, size, or color.',
     'cancel': 'Cancel',
     'ok': 'OK',
     'view_stock_details': 'View stock for each variation',

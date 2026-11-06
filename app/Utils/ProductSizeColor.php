@@ -2,6 +2,7 @@
 
 namespace App\Utils;
 
+use App\Color;
 use App\Product;
 use App\ProductColor;
 use App\Size;
@@ -12,8 +13,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Product-level sizes and colours.
  *
- * Sizes are a business catalog (many products, many sizes).
- * Colours are free-text tags stored per product.
+ * Sizes and colours are business catalogs (many products, many values).
  * products.size and products.color stay as a comma-separated copy so
  * product list, POS and labels keep reading the same columns.
  * This does not create stock variations and does not change quantities or prices.
@@ -24,7 +24,15 @@ class ProductSizeColor
     {
         return Schema::hasTable('sizes')
             && Schema::hasTable('product_size')
-            && Schema::hasTable('product_colors');
+            && (self::colorCatalogReady() || Schema::hasTable('product_colors'));
+    }
+
+    /**
+     * Centralized colour catalog + product pivot (same pattern as sizes).
+     */
+    public static function colorCatalogReady(): bool
+    {
+        return Schema::hasTable('colors') && Schema::hasTable('product_color');
     }
 
     public static function sellLineColumnsReady(): bool
@@ -135,7 +143,11 @@ class ProductSizeColor
 
         if ($request->input('size_color_managed') && self::tablesReady()) {
             $sizeNames = self::namesForSizeIds($businessId, (array) $request->input('size_ids', []));
-            $colorNames = self::uniqueNames((array) $request->input('colors', []));
+            if (self::colorCatalogReady()) {
+                $colorNames = self::namesForColorIds($businessId, (array) $request->input('color_ids', []));
+            } else {
+                $colorNames = self::uniqueNames((array) $request->input('colors', []));
+            }
             if ($hasSize) {
                 $product_details['size'] = self::joinList($sizeNames);
             } else {
@@ -173,13 +185,23 @@ class ProductSizeColor
         }
 
         if ($request->input('size_color_managed')) {
-            self::sync(
-                $product,
-                (array) $request->input('size_ids', []),
-                (array) $request->input('colors', []),
-                $businessId,
-                $userId
-            );
+            if (self::colorCatalogReady()) {
+                self::sync(
+                    $product,
+                    (array) $request->input('size_ids', []),
+                    (array) $request->input('color_ids', []),
+                    $businessId,
+                    $userId
+                );
+            } else {
+                self::syncFromNames(
+                    $product,
+                    self::namesForSizeIds($businessId, (array) $request->input('size_ids', [])),
+                    self::uniqueNames((array) $request->input('colors', [])),
+                    $businessId,
+                    $userId
+                );
+            }
 
             return;
         }
@@ -215,10 +237,40 @@ class ProductSizeColor
 
     /**
      * @param  array<int, mixed>  $sizeIds
-     * @param  array<int, mixed>  $colorNames
+     * @param  array<int, mixed>  $colorIds
      */
-    public static function sync(Product $product, array $sizeIds, array $colorNames, int $businessId, ?int $userId = null): void
+    public static function sync(Product $product, array $sizeIds, array $colorIds, int $businessId, ?int $userId = null): void
     {
+        $sizeNames = self::syncSizeIds($product, $sizeIds, $businessId);
+        $colorNames = self::syncColorIds($product, $colorIds, $businessId);
+        self::mirrorLegacyColorTags($product, $colorNames, $businessId);
+        self::writeDenormalized($product, $sizeNames, $colorNames);
+    }
+
+    /**
+     * @param  array<int, string>  $sizeNames
+     * @param  array<int, string>  $colorNames
+     */
+    public static function syncFromNames(Product $product, array $sizeNames, array $colorNames, int $businessId, ?int $userId = null): void
+    {
+        $sizeIds = [];
+        foreach (self::uniqueNames($sizeNames) as $name) {
+            $sizeIds[] = self::findOrCreateSize($businessId, $name, $userId)->id;
+        }
+
+        $colorIds = [];
+        foreach (self::uniqueNames($colorNames) as $name) {
+            if (self::colorCatalogReady()) {
+                $colorIds[] = self::findOrCreateColor($businessId, $name, $userId)->id;
+            }
+        }
+
+        if (self::colorCatalogReady()) {
+            self::sync($product, $sizeIds, $colorIds, $businessId, $userId);
+
+            return;
+        }
+
         $orderedIds = [];
         foreach ($sizeIds as $id) {
             $id = (int) $id;
@@ -244,22 +296,8 @@ class ProductSizeColor
         }
 
         $product->sizes()->sync($sync);
-        self::replaceColors($product, $colorNames, $businessId);
+        self::mirrorLegacyColorTags($product, $colorNames, $businessId);
         self::writeDenormalized($product, $names, self::uniqueNames($colorNames));
-    }
-
-    /**
-     * @param  array<int, string>  $sizeNames
-     * @param  array<int, string>  $colorNames
-     */
-    public static function syncFromNames(Product $product, array $sizeNames, array $colorNames, int $businessId, ?int $userId = null): void
-    {
-        $ids = [];
-        foreach (self::uniqueNames($sizeNames) as $name) {
-            $ids[] = self::findOrCreateSize($businessId, $name, $userId)->id;
-        }
-
-        self::sync($product, $ids, $colorNames, $businessId, $userId);
     }
 
     public static function findOrCreateSize(int $businessId, string $name, ?int $userId = null): Size
@@ -279,9 +317,37 @@ class ProductSizeColor
         ]);
     }
 
+    public static function findOrCreateColor(int $businessId, string $name, ?int $userId = null): Color
+    {
+        $name = self::cleanName($name);
+        $existing = Color::where('business_id', $businessId)
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower((string) $name)])
+            ->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        return Color::create([
+            'business_id' => $businessId,
+            'name' => $name,
+            'created_by' => $userId,
+        ]);
+    }
+
     public static function nameTaken(int $businessId, string $name, ?int $ignoreId = null): bool
     {
         $query = Size::where('business_id', $businessId)
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))]);
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        return $query->exists();
+    }
+
+    public static function colorNameTaken(int $businessId, string $name, ?int $ignoreId = null): bool
+    {
+        $query = Color::where('business_id', $businessId)
             ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))]);
         if ($ignoreId) {
             $query->where('id', '!=', $ignoreId);
@@ -311,6 +377,42 @@ class ProductSizeColor
             DB::table('products')->where('id', $productId)->update([
                 'size' => self::joinList($names),
             ]);
+        }
+    }
+
+    /**
+     * Rebuild products.color for every product that uses this colour.
+     */
+    public static function refreshProductsForColor(Color $color): void
+    {
+        if (! Schema::hasColumn('products', 'color') || ! self::colorCatalogReady()) {
+            return;
+        }
+
+        $productIds = DB::table('product_color')->where('color_id', $color->id)->pluck('product_id');
+        foreach ($productIds as $productId) {
+            $names = DB::table('product_color')
+                ->join('colors', 'colors.id', '=', 'product_color.color_id')
+                ->where('product_color.product_id', $productId)
+                ->orderBy('product_color.position')
+                ->orderBy('colors.name')
+                ->pluck('colors.name')
+                ->all();
+            $joined = self::joinList($names);
+            DB::table('products')->where('id', $productId)->update([
+                'color' => $joined,
+            ]);
+            if (Schema::hasTable('product_colors')) {
+                ProductColor::where('product_id', $productId)->delete();
+                foreach (self::uniqueNames($names) as $name) {
+                    ProductColor::create([
+                        'business_id' => (int) $color->business_id,
+                        'product_id' => $productId,
+                        'name' => $name,
+                        'name_key' => mb_strtolower($name),
+                    ]);
+                }
+            }
         }
     }
 
@@ -390,16 +492,33 @@ class ProductSizeColor
         }
 
         try {
-            $rows = DB::table('product_colors')
-                ->where('business_id', $businessId)
-                ->whereIn('product_id', $idList)
-                ->orderBy('id')
-                ->get(['product_id', 'name']);
-            foreach ($rows as $row) {
-                $pid = (int) $row->product_id;
-                $name = self::cleanName($row->name ?? '');
-                if ($name !== null && isset($out[$pid])) {
-                    $out[$pid]['colors'][] = $name;
+            if (self::colorCatalogReady()) {
+                $rows = DB::table('product_color')
+                    ->join('colors', 'colors.id', '=', 'product_color.color_id')
+                    ->where('colors.business_id', $businessId)
+                    ->whereIn('product_color.product_id', $idList)
+                    ->orderBy('product_color.position')
+                    ->orderBy('colors.name')
+                    ->get(['product_color.product_id as product_id', 'colors.name as name']);
+                foreach ($rows as $row) {
+                    $pid = (int) $row->product_id;
+                    $name = self::cleanName($row->name ?? '');
+                    if ($name !== null && isset($out[$pid])) {
+                        $out[$pid]['colors'][] = $name;
+                    }
+                }
+            } elseif (Schema::hasTable('product_colors')) {
+                $rows = DB::table('product_colors')
+                    ->where('business_id', $businessId)
+                    ->whereIn('product_id', $idList)
+                    ->orderBy('id')
+                    ->get(['product_id', 'name']);
+                foreach ($rows as $row) {
+                    $pid = (int) $row->product_id;
+                    $name = self::cleanName($row->name ?? '');
+                    if ($name !== null && isset($out[$pid])) {
+                        $out[$pid]['colors'][] = $name;
+                    }
                 }
             }
         } catch (\Throwable $e) {
@@ -486,6 +605,34 @@ class ProductSizeColor
     }
 
     /**
+     * @param  array<int, mixed>  $ids
+     * @return array<int, string>
+     */
+    public static function namesForColorIds(int $businessId, array $ids): array
+    {
+        $ordered = [];
+        foreach ($ids as $id) {
+            $id = (int) $id;
+            if ($id > 0 && ! in_array($id, $ordered, true)) {
+                $ordered[] = $id;
+            }
+        }
+        if (empty($ordered) || ! self::colorCatalogReady()) {
+            return [];
+        }
+
+        $valid = Color::where('business_id', $businessId)->whereIn('id', $ordered)->pluck('name', 'id');
+        $names = [];
+        foreach ($ordered as $id) {
+            if (isset($valid[$id])) {
+                $names[] = $valid[$id];
+            }
+        }
+
+        return $names;
+    }
+
+    /**
      * @param  array<int, mixed>  $names
      * @return array<int, string>
      */
@@ -510,10 +657,90 @@ class ProductSizeColor
     }
 
     /**
+     * @param  array<int, mixed>  $sizeIds
+     * @return array<int, string>
+     */
+    protected static function syncSizeIds(Product $product, array $sizeIds, int $businessId): array
+    {
+        $orderedIds = [];
+        foreach ($sizeIds as $id) {
+            $id = (int) $id;
+            if ($id > 0 && ! in_array($id, $orderedIds, true)) {
+                $orderedIds[] = $id;
+            }
+        }
+
+        $valid = empty($orderedIds)
+            ? collect()
+            : Size::where('business_id', $businessId)->whereIn('id', $orderedIds)->pluck('name', 'id');
+
+        $sync = [];
+        $names = [];
+        $position = 0;
+        foreach ($orderedIds as $id) {
+            if (! isset($valid[$id])) {
+                continue;
+            }
+            $sync[$id] = ['position' => $position];
+            $names[] = $valid[$id];
+            $position++;
+        }
+
+        $product->sizes()->sync($sync);
+
+        return $names;
+    }
+
+    /**
+     * @param  array<int, mixed>  $colorIds
+     * @return array<int, string>
+     */
+    protected static function syncColorIds(Product $product, array $colorIds, int $businessId): array
+    {
+        if (! self::colorCatalogReady()) {
+            return [];
+        }
+
+        $orderedIds = [];
+        foreach ($colorIds as $id) {
+            $id = (int) $id;
+            if ($id > 0 && ! in_array($id, $orderedIds, true)) {
+                $orderedIds[] = $id;
+            }
+        }
+
+        $valid = empty($orderedIds)
+            ? collect()
+            : Color::where('business_id', $businessId)->whereIn('id', $orderedIds)->pluck('name', 'id');
+
+        $sync = [];
+        $names = [];
+        $position = 0;
+        foreach ($orderedIds as $id) {
+            if (! isset($valid[$id])) {
+                continue;
+            }
+            $sync[$id] = ['position' => $position];
+            $names[] = $valid[$id];
+            $position++;
+        }
+
+        $product->colors()->sync($sync);
+
+        return $names;
+    }
+
+    /**
+     * Keep the older product_colors tag table aligned when it still exists.
+     *
      * @param  array<int, mixed>  $colorNames
      */
-    protected static function replaceColors(Product $product, array $colorNames, int $businessId): void
+    protected static function mirrorLegacyColorTags(Product $product, array $colorNames, int $businessId): void
     {
+        if (! Schema::hasTable('product_colors')) {
+            return;
+        }
+
         ProductColor::where('product_id', $product->id)->delete();
         foreach (self::uniqueNames($colorNames) as $name) {
             ProductColor::create([

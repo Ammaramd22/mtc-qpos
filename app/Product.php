@@ -212,7 +212,18 @@ class Product extends Model
     }
 
     /**
-     * Free-text colours typed on the product.
+     * Catalog colours from Color Management. Does not create stock variations.
+     */
+    public function colors()
+    {
+        return $this->belongsToMany(\App\Color::class, 'product_color', 'product_id', 'color_id')
+            ->withPivot('position')
+            ->withTimestamps()
+            ->orderBy('product_color.position');
+    }
+
+    /**
+     * Legacy per-product colour tags (kept in sync with the colour catalog).
      */
     public function productColors()
     {

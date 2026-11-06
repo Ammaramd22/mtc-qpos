@@ -2907,20 +2907,29 @@ class ProductController extends Controller
     private function sizeColorErrorResponse(Request $request, bool $json = false)
     {
         if ($request->input('size_color_managed')) {
-            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-                'size_ids' => 'nullable|array|max:40',
-                'size_ids.*' => 'integer',
-                'colors' => 'nullable|array|max:40',
-                'colors.*' => 'nullable|string|max:150',
-            ]);
-            $duplicate = \App\Utils\ProductSizeColor::duplicateColor((array) $request->input('colors', []));
-            if ($duplicate !== null) {
-                $payload = [
-                    'success' => 0,
-                    'msg' => __('product.color_duplicate').': '.$duplicate,
-                ];
+            if (\App\Utils\ProductSizeColor::colorCatalogReady()) {
+                $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                    'size_ids' => 'nullable|array|max:40',
+                    'size_ids.*' => 'integer',
+                    'color_ids' => 'nullable|array|max:40',
+                    'color_ids.*' => 'integer',
+                ]);
+            } else {
+                $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                    'size_ids' => 'nullable|array|max:40',
+                    'size_ids.*' => 'integer',
+                    'colors' => 'nullable|array|max:40',
+                    'colors.*' => 'nullable|string|max:150',
+                ]);
+                $duplicate = \App\Utils\ProductSizeColor::duplicateColor((array) $request->input('colors', []));
+                if ($duplicate !== null) {
+                    $payload = [
+                        'success' => 0,
+                        'msg' => __('product.color_duplicate').': '.$duplicate,
+                    ];
 
-                return $json ? $payload : redirect()->back()->withInput()->with('status', $payload);
+                    return $json ? $payload : redirect()->back()->withInput()->with('status', $payload);
+                }
             }
         } else {
             $validator = \Illuminate\Support\Facades\Validator::make($request->only(['size', 'color']), [
